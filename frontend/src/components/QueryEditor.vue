@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue';
-import { Play, Loader2, AlertCircle, Database as DatabaseIcon } from 'lucide-vue-next';
+import { ref, computed, watch, onUnmounted } from 'vue';
+import { Play, Loader2, AlertCircle, Database as DatabaseIcon, GripHorizontal } from 'lucide-vue-next';
 import CodeMirror from 'vue-codemirror6';
 import { sql, MySQL, PostgreSQL, SQLite } from '@codemirror/lang-sql';
 import { oneDark } from '@codemirror/theme-one-dark';
@@ -14,11 +14,44 @@ const props = defineProps<{
 }>();
 
 const query = defineModel<string>({ default: '' });
+const height = defineModel<number>('height', { default: 300 });
 const loading = ref(false);
 const fetchingSchema = ref(false);
 const result = ref<any>(null);
 const error = ref<string | null>(null);
 const schema = ref<Record<string, string[]>>({});
+const isResizing = ref(false);
+const editorContainerRef = ref<HTMLElement | null>(null);
+
+const startResizing = (e: MouseEvent) => {
+  e.preventDefault();
+  isResizing.value = true;
+  window.addEventListener('mousemove', handleMouseMove);
+  window.addEventListener('mouseup', handleMouseUp);
+};
+
+const handleMouseMove = (e: MouseEvent) => {
+  if (!isResizing.value || !editorContainerRef.value) return;
+  
+  const rect = editorContainerRef.value.getBoundingClientRect();
+  const newHeight = e.clientY - rect.top;
+  
+  // Limitar la altura mínima y máxima razonable
+  if (newHeight > 100 && newHeight < window.innerHeight - 200) {
+    height.value = newHeight;
+  }
+};
+
+const handleMouseUp = () => {
+  isResizing.value = false;
+  window.removeEventListener('mousemove', handleMouseMove);
+  window.removeEventListener('mouseup', handleMouseUp);
+};
+
+onUnmounted(() => {
+  window.removeEventListener('mousemove', handleMouseMove);
+  window.removeEventListener('mouseup', handleMouseUp);
+});
 
 watch(() => [props.serverId, props.database], async () => {
   if (props.serverId && props.database) {
@@ -107,6 +140,12 @@ const formatCellValue = (val: any) => {
 const isArray = (val: any) => Array.isArray(val);
 </script>
 
+<style scoped>
+:deep(.cm-editor) {
+  height: 100%;
+}
+</style>
+
 <template>
   <div class="flex-1 flex flex-col min-h-0 w-full gap-4">
     <!-- Toolbar -->
@@ -131,8 +170,15 @@ const isArray = (val: any) => Array.isArray(val);
     </div>
 
     <!-- Editor Area -->
-    <div class="flex-1 flex flex-col min-h-0 gap-4">
-      <div class="flex-1 h-1/2 min-h-[150px] overflow-hidden border border-slate-700 rounded-lg bg-[#282c34]">
+    <div 
+      class="flex-1 flex flex-col min-h-0"
+      ref="editorContainerRef"
+      :class="isResizing ? 'cursor-row-resize select-none' : ''"
+    >
+      <div 
+        :style="{ height: height + 'px' }"
+        class="min-h-[150px] overflow-hidden border border-slate-700 rounded-lg bg-[#282c34] flex flex-col flex-shrink-0"
+      >
         <CodeMirror
           v-model="query"
           :extensions="extensions"
@@ -147,12 +193,24 @@ const isArray = (val: any) => Array.isArray(val);
             highlightActiveLine: true,
             highlightSelectionMatches: true
           }"
-          class="h-full text-sm font-mono"
+          class="flex-1 h-full text-sm font-mono"
         />
       </div>
 
+      <!-- Resize Handle -->
+      <div 
+        class="h-3 flex items-center justify-center cursor-row-resize group"
+        @mousedown="startResizing"
+      >
+        <div class="w-full h-px bg-slate-800 group-hover:bg-blue-500 transition-colors relative flex items-center justify-center">
+          <div class="absolute bg-slate-900 border border-slate-700 rounded px-1 py-0.5 group-hover:border-blue-500 transition-colors">
+            <GripHorizontal :size="12" class="text-slate-500 group-hover:text-blue-400" />
+          </div>
+        </div>
+      </div>
+
       <!-- Results Area -->
-      <div class="flex-1 h-1/2 min-h-0 flex flex-col border border-slate-700 rounded-lg bg-slate-900 overflow-hidden">
+      <div class="flex-1 min-h-0 flex flex-col border border-slate-700 rounded-lg bg-slate-900 overflow-hidden">
         <div v-if="error" class="p-4 flex items-start gap-3 text-red-400 bg-red-400/10">
           <AlertCircle :size="20" class="flex-shrink-0 mt-0.5" />
           <div class="space-y-1">

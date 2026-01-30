@@ -50,12 +50,15 @@ export interface AppState {
   selectedServerId: string | null;
   selectedDatabase: string | null;
   selectedTable: string | null;
-  activeTab: 'data' | 'query';
+  activeTab: string;
+  queryTabs: { id: string; name: string; query: string }[];
   sidebarWidth: number;
+  queryEditorHeight?: number;
   dbFilter: string;
   tableFilter: string;
   expandedServerIds: string[];
   expandedDatabaseIds: string[]; // Formato "serverId:dbName"
+  expandedTableIds: string[]; // Formato "serverId:dbName:tableName"
 }
 
 export interface IDatabaseDriver {

@@ -41,6 +41,7 @@ const expandedServerIds = ref<string[]>([]);
 const expandedDatabaseIds = ref<string[]>([]);
 const expandedTableIds = ref<string[]>([]);
 const loadingTables = ref<string[]>([]);
+const queryEditorHeight = ref(300);
 
 const fetchServers = async () => {
   const res = await fetch('http://localhost:3001/api/servers');
@@ -167,6 +168,7 @@ const initApp = async () => {
     }
 
     sidebarWidth.value = state.sidebarWidth || 256;
+    queryEditorHeight.value = state.queryEditorHeight || 300;
     dbFilter.value = state.dbFilter || '';
     tableFilter.value = state.tableFilter || '';
     selectedServerId.value = state.selectedServerId;
@@ -218,7 +220,7 @@ onMounted(() => {
   document.documentElement.style.setProperty('--sidebar-width', `${sidebarWidth.value}px`);
 });
 
-watch([servers, selectedServerId, selectedDatabase, selectedTable, activeTab, sidebarWidth, dbFilter, tableFilter, expandedServerIds, expandedDatabaseIds, expandedTableIds, queryTabs], (_, __, onCleanup) => {
+watch([servers, selectedServerId, selectedDatabase, selectedTable, activeTab, sidebarWidth, queryEditorHeight, dbFilter, tableFilter, expandedServerIds, expandedDatabaseIds, expandedTableIds, queryTabs], (_, __, onCleanup) => {
   const saveState = async () => {
     const state = {
       activeServerIds: servers.value.map(s => s.id),
@@ -228,6 +230,7 @@ watch([servers, selectedServerId, selectedDatabase, selectedTable, activeTab, si
       activeTab: activeTab.value,
       queryTabs: queryTabs.value,
       sidebarWidth: sidebarWidth.value,
+      queryEditorHeight: queryEditorHeight.value,
       dbFilter: dbFilter.value,
       tableFilter: tableFilter.value,
       expandedServerIds: expandedServerIds.value,
@@ -491,6 +494,7 @@ const selectTable = (serverId: string, db: string, table: string) => {
                 :serverType="selectedServerType"
                 :database="selectedDatabase"
                 v-model="queryTabs.find(t => t.id === activeTab)!.query"
+                v-model:height="queryEditorHeight"
               />
             </KeepAlive>
           </div>
