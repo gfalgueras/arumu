@@ -12,7 +12,7 @@ export const TopBar: React.FC<TopBarProps> = ({ onOpenConnection, onCloseConnect
     <div className="h-10 bg-slate-900 border-b border-slate-700 flex items-center px-4 gap-2">
       <button 
         onClick={onOpenConnection}
-        className="p-1.5 hover:bg-slate-800 rounded text-emerald-400 transition-colors"
+        className="p-1.5 hover:bg-slate-800 rounded text-emerald-400"
         title="Open Connection"
       >
         <Power size={18} />
@@ -20,7 +20,7 @@ export const TopBar: React.FC<TopBarProps> = ({ onOpenConnection, onCloseConnect
       <button 
         onClick={onCloseConnection}
         disabled={!canClose}
-        className={`p-1.5 rounded transition-colors ${canClose ? 'hover:bg-slate-800 text-red-400' : 'text-slate-600 cursor-not-allowed'}`}
+        className={`p-1.5 rounded ${canClose ? 'hover:bg-slate-800 text-red-400' : 'text-slate-600 cursor-not-allowed'}`}
         title="Close Connection"
       >
         <PowerOff size={18} />

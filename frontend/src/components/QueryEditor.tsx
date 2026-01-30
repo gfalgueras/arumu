@@ -42,6 +42,17 @@ export const QueryEditor: React.FC<QueryEditorProps> = ({ serverId, database }) 
     }
   };
 
+  const formatCellValue = (val: any) => {
+    if (val === null) return <span className="text-slate-600 italic text-xs">NULL</span>;
+    
+    // Detect ISO date strings and format them
+    if (typeof val === 'string' && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/.test(val)) {
+      return val.replace('T', ' ').replace(/\.\d+Z$/, '').replace('Z', '');
+    }
+    
+    return String(val);
+  };
+
   return (
     <div className="flex-1 flex flex-col min-h-0 w-full gap-4">
       {/* Toolbar */}
@@ -49,7 +60,7 @@ export const QueryEditor: React.FC<QueryEditorProps> = ({ serverId, database }) 
         <button
           onClick={handleExecute}
           disabled={loading || !serverId}
-          className="flex items-center gap-2 px-4 py-1.5 bg-emerald-600 hover:bg-emerald-500 disabled:bg-slate-700 text-white rounded transition-colors font-medium text-sm"
+          className="flex items-center gap-2 px-4 py-1.5 bg-emerald-600 hover:bg-emerald-500 disabled:bg-slate-700 text-white rounded font-medium text-sm"
         >
           {loading ? <Loader2 size={16} className="animate-spin" /> : <Play size={16} />}
           <span>Execute</span>
@@ -100,10 +111,10 @@ export const QueryEditor: React.FC<QueryEditorProps> = ({ serverId, database }) 
                        </thead>
                        <tbody>
                          {result.map((row: any, i: number) => (
-                           <tr key={i} className="hover:bg-slate-800/50 border-b border-slate-800/50 last:border-0 transition-colors">
+                           <tr key={i} className="hover:bg-slate-800/40 border-b border-slate-800/50 last:border-0">
                              {Object.keys(row).map(col => (
                                <td key={col} className="px-4 py-1.5 text-sm text-slate-300 truncate max-w-xs border-r border-slate-800/30 last:border-r-0">
-                                 {row[col] === null ? <span className="text-slate-600 italic text-xs">NULL</span> : String(row[col])}
+                                 {formatCellValue(row[col])}
                                </td>
                              ))}
                            </tr>

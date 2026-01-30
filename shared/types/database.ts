@@ -44,11 +44,24 @@ export interface SortConfig {
   direction: 'ASC' | 'DESC';
 }
 
+export interface AppState {
+  activeServerIds: string[];
+  selectedServerId: string | null;
+  selectedDatabase: string | null;
+  selectedTable: string | null;
+  activeTab: 'data' | 'query';
+  sidebarWidth: number;
+  dbFilter: string;
+  tableFilter: string;
+  expandedServerIds: string[];
+  expandedDatabaseIds: string[]; // Formato "serverId:dbName"
+}
+
 export interface IDatabaseDriver {
   connect(config: ConnectionConfig): Promise<void>;
   disconnect(): Promise<void>;
   getDatabases(): Promise<DatabaseInfo[]>;
   getTables(database: string): Promise<TableInfo[]>;
-  getTableData(database: string, table: string, limit: number, offset: number, sort?: SortConfig[]): Promise<TableDataResponse>;
+  getTableData(database: string, table: string, limit: number, offset: number, sort?: SortConfig[], filter?: string): Promise<TableDataResponse>;
   executeQuery(sql: string): Promise<any>;
 }

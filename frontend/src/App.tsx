@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Sidebar } from './components/Sidebar';
 import { TopBar } from './components/TopBar';
 import { ConnectionModal } from './components/ConnectionModal';
@@ -17,11 +17,99 @@ function App() {
   const [loadingServers, setLoadingServers] = useState<string[]>([]);
   const [loadingDatabases, setLoadingDatabases] = useState<string[]>([]);
   const [sidebarWidth, setSidebarWidth] = useState(256); // Default in px
+  const sidebarWidthRef = useRef(256);
   const [isResizing, setIsResizing] = useState(false);
+  const [dbFilter, setDbFilter] = useState('');
+  const [tableFilter, setTableFilter] = useState('');
+  const [expandedServerIds, setExpandedServerIds] = useState<string[]>([]);
+  const [expandedDatabaseIds, setExpandedDatabaseIds] = useState<string[]>([]);
 
   useEffect(() => {
-    fetchServers();
+    initApp();
   }, []);
+
+  const initApp = async () => {
+    // 1. Fetch stored servers
+    const storedRes = await fetch('http://localhost:3001/api/stored-servers');
+    const storedServers: StoredServer[] = await storedRes.json();
+
+    // 2. Fetch app state
+    const stateRes = await fetch('http://localhost:3001/api/app-state');
+    const state = await stateRes.json();
+
+    if (state) {
+      // 3. Reconnect to previously active servers
+      if (state.activeServerIds && state.activeServerIds.length > 0) {
+        for (const serverId of state.activeServerIds) {
+          const serverToConnect = storedServers.find(s => s.id === serverId);
+          if (serverToConnect) {
+            await handleConnect(serverToConnect, false); // No cerramos el modal ni refrescamos servers individualmente aquí
+          }
+        }
+      }
+
+      // 4. Restore state
+      setSidebarWidth(state.sidebarWidth || 256);
+      setDbFilter(state.dbFilter || '');
+      setTableFilter(state.tableFilter || '');
+      setSelectedServerId(state.selectedServerId);
+      setSelectedDatabase(state.selectedDatabase);
+      setSelectedTable(state.selectedTable);
+      setActiveTab(state.activeTab || 'query');
+      setExpandedServerIds(state.expandedServerIds || []);
+      setExpandedDatabaseIds(state.expandedDatabaseIds || []);
+    }
+
+    await fetchServers();
+
+    // 5. Expand restored servers and databases
+    if (state) {
+      if (state.expandedServerIds) {
+        for (const sId of state.expandedServerIds) {
+          handleExpandServer(sId);
+        }
+      }
+      if (state.expandedDatabaseIds) {
+        for (const dbId of state.expandedDatabaseIds) {
+          const [sId, dbName] = dbId.split(':');
+          if (sId && dbName) {
+            handleExpandDatabase(sId, dbName);
+          }
+        }
+      }
+    }
+  };
+
+  useEffect(() => {
+    const saveState = async () => {
+      const state = {
+        activeServerIds: servers.map(s => s.id),
+        selectedServerId,
+        selectedDatabase,
+        selectedTable,
+        activeTab,
+        sidebarWidth,
+        dbFilter,
+        tableFilter,
+        expandedServerIds,
+        expandedDatabaseIds
+      };
+
+      try {
+        await fetch('http://localhost:3001/api/app-state', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(state),
+        });
+      } catch (error) {
+        console.error('Error saving app state:', error);
+      }
+    };
+
+    // Debounce state saving
+    const timer = setTimeout(saveState, 1000);
+    return () => clearTimeout(timer);
+  }, [servers, selectedServerId, selectedDatabase, selectedTable, activeTab, sidebarWidth, dbFilter, tableFilter, expandedServerIds, expandedDatabaseIds]);
 
   useEffect(() => {
     if (isResizing) {
@@ -36,6 +124,11 @@ function App() {
       window.removeEventListener('mouseup', handleMouseUp);
     };
   }, [isResizing]);
+
+  useEffect(() => {
+    sidebarWidthRef.current = sidebarWidth;
+    document.documentElement.style.setProperty('--sidebar-width', `${sidebarWidth}px`);
+  }, [sidebarWidth]);
 
   const handleMouseDown = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -52,10 +145,14 @@ function App() {
     if (newWidth < minWidth) newWidth = minWidth;
     if (newWidth > maxWidth) newWidth = maxWidth;
     
-    setSidebarWidth(newWidth);
+    sidebarWidthRef.current = newWidth;
+    document.documentElement.style.setProperty('--sidebar-width', `${newWidth}px`);
   };
 
   const handleMouseUp = () => {
+    if (isResizing) {
+      setSidebarWidth(sidebarWidthRef.current);
+    }
     setIsResizing(false);
   };
 
@@ -117,15 +214,25 @@ function App() {
     setEditingServer(null);
   };
 
-  const handleConnect = async (storedServer: StoredServer) => {
+  const handleConnect = async (storedServer: StoredServer, closeAndRefresh = true) => {
     const res = await fetch('http://localhost:3001/api/servers/connect', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(storedServer),
     });
-    if (res.ok) {
+    if (res.ok && closeAndRefresh) {
       await fetchServers();
       handleCloseModal();
+
+      // Seleccionar el servidor recién conectado
+      setSelectedServerId(storedServer.id);
+      setSelectedDatabase(null);
+      setSelectedTable(null);
+      setActiveTab('query');
+
+      // Expandir el servidor y cargar sus bases de datos
+      setExpandedServerIds(prev => prev.includes(storedServer.id) ? prev : [...prev, storedServer.id]);
+      handleExpandServer(storedServer.id);
     }
   };
 
@@ -174,6 +281,10 @@ function App() {
         selectedServerId={selectedServerId}
         selectedDatabase={selectedDatabase}
         selectedTable={selectedTable}
+        dbFilter={dbFilter}
+        tableFilter={tableFilter}
+        setDbFilter={setDbFilter}
+        setTableFilter={setTableFilter}
         onSelectServer={(id) => {
           setSelectedServerId(id);
           setSelectedDatabase(null);
@@ -194,14 +305,17 @@ function App() {
         }}
         onExpandServer={handleExpandServer}
         onExpandDatabase={handleExpandDatabase}
+        expandedServerIds={expandedServerIds}
+        setExpandedServerIds={setExpandedServerIds}
+        expandedDatabaseIds={expandedDatabaseIds}
+        setExpandedDatabaseIds={setExpandedDatabaseIds}
         onConfigServer={handleConfigServer}
         loadingServers={loadingServers}
         loadingDatabases={loadingDatabases}
-        width={sidebarWidth}
         onResizeMouseDown={handleMouseDown}
         onOpenConnection={() => setIsModalOpen(true)}
       />
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col min-w-0">
         <TopBar 
           onOpenConnection={() => setIsModalOpen(true)}
           onCloseConnection={handleCloseConnection}
@@ -209,27 +323,27 @@ function App() {
         />
         <main className="flex-1 flex flex-col p-4 overflow-hidden min-w-0">
           {selectedServerId ? (
-            <div className="w-full h-full flex flex-col min-h-0">
+            <div className="w-full h-full flex flex-col min-h-0 min-w-0">
                {/* Tabs Header */}
-               <div className="flex border-b border-slate-800 mb-4">
+               <div className="flex border-b border-slate-800 mb-4 flex-shrink-0">
                  {selectedTable && (
                    <button 
                     onClick={() => setActiveTab('data')}
-                    className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${activeTab === 'data' ? 'border-blue-500 text-blue-500' : 'border-transparent text-slate-400 hover:text-slate-200'}`}
+                    className={`px-4 py-2 text-sm font-medium border-b-2 ${activeTab === 'data' ? 'border-blue-500 text-blue-500' : 'border-transparent text-slate-400 hover:text-slate-200'}`}
                    >
                      Datos
                    </button>
                  )}
                  <button 
                   onClick={() => setActiveTab('query')}
-                  className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${activeTab === 'query' ? 'border-blue-500 text-blue-500' : 'border-transparent text-slate-400 hover:text-slate-200'}`}
+                  className={`px-4 py-2 text-sm font-medium border-b-2 ${activeTab === 'query' ? 'border-blue-500 text-blue-500' : 'border-transparent text-slate-400 hover:text-slate-200'}`}
                  >
                    Query
                  </button>
                </div>
 
                {/* Tab Content */}
-               <div className="flex-1 min-h-0 flex flex-col">
+               <div className="flex-1 min-h-0 flex flex-col min-w-0">
                  {activeTab === 'data' && selectedTable && selectedServerId && selectedDatabase && (
                     <DataTable 
                       serverId={selectedServerId}

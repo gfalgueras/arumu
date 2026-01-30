@@ -12,6 +12,7 @@ const port = 3001;
 const USER_HOME = process.env.HOME || process.env.USERPROFILE || '';
 const CONFIG_DIR = path.join(USER_HOME, '.sqlmanager');
 const CONNECTIONS_FILE = path.join(CONFIG_DIR, 'connections.json');
+const APP_STATE_FILE = path.join(CONFIG_DIR, 'state.json');
 const OLD_CONNECTIONS_FILE = path.join(process.cwd(), 'connections.json');
 
 // Ensure directory exists
@@ -44,6 +45,18 @@ const getStoredServers = (): StoredServer[] => {
 
 const saveStoredServers = (servers: StoredServer[]) => {
   fs.writeFileSync(CONNECTIONS_FILE, JSON.stringify(servers, null, 2));
+};
+
+// Helper to read/write app state
+const getAppState = () => {
+  if (!fs.existsSync(APP_STATE_FILE)) {
+    return null;
+  }
+  return JSON.parse(fs.readFileSync(APP_STATE_FILE, 'utf-8'));
+};
+
+const saveAppState = (state: any) => {
+  fs.writeFileSync(APP_STATE_FILE, JSON.stringify(state, null, 2));
 };
 
 // Servidores activos (en memoria)
@@ -150,26 +163,36 @@ app.get('/api/servers/:serverId/databases/:dbName/tables', async (req, res) => {
 });
 
 app.post('/api/servers/connect', async (req, res) => {
-  const storedServer = req.body as StoredServer;
-  
   try {
+    const storedServer = req.body as StoredServer;
+    
     // Validamos la conexión antes de añadirlo a activos
-    await driver.connect(storedServer.config);
-    // Opcionalmente podemos desconectar aquí, o dejarlo para las peticiones lazy
-    // await driver.disconnect();
+    if (!storedServer || !storedServer.config) {
+      return res.status(400).json({ error: 'Server configuration missing or invalid request body' });
+    }
+    
+    // Check if it's already connected
+    const alreadyActive = activeServers.find(s => s.id === storedServer.id);
+    if (!alreadyActive) {
+      await driver.connect(storedServer.config);
+    }
 
     const newActiveServer: ServerInfo = {
       ...storedServer,
-      databases: [] // Empieza vacío para carga lazy
+      databases: alreadyActive ? alreadyActive.databases : [] 
     };
     
-    if (!activeServers.find(s => s.id === newActiveServer.id)) {
+    if (!alreadyActive) {
       activeServers.push(newActiveServer);
     }
     res.json(newActiveServer);
   } catch (error: any) {
     console.error('Connection error:', error);
-    res.status(500).json({ error: 'Failed to connect: ' + error.message });
+    let errorMessage = error.message;
+    if (!errorMessage && error.code) {
+      errorMessage = `Error code: ${error.code}`;
+    }
+    res.status(500).json({ error: 'Failed to connect: ' + (errorMessage || 'Unknown error') });
   }
 });
 
@@ -181,6 +204,20 @@ app.delete('/api/servers/:id', (req, res) => {
 // Endpoints para gestionar conexiones guardadas
 app.get('/api/stored-servers', (req, res) => {
   res.json(getStoredServers());
+});
+
+app.get('/api/app-state', (req, res) => {
+  res.json(getAppState());
+});
+
+app.post('/api/app-state', (req, res) => {
+  try {
+    saveAppState(req.body);
+    res.sendStatus(204);
+  } catch (error: any) {
+    console.error('Error saving app state:', error);
+    res.status(500).json({ error: 'Failed to save app state: ' + error.message });
+  }
 });
 
 app.post('/api/stored-servers', (req, res) => {
@@ -242,6 +279,7 @@ app.get('/api/servers/:serverId/databases/:dbName/tables/:tableName/data', async
   const limit = parseInt(req.query.limit as string) || 1000;
   const offset = parseInt(req.query.offset as string) || 0;
   const sort = req.query.sort ? JSON.parse(req.query.sort as string) : undefined;
+  const filter = req.query.filter as string | undefined;
 
   const server = activeServers.find(s => s.id === serverId);
   if (!server) {
@@ -255,9 +293,7 @@ app.get('/api/servers/:serverId/databases/:dbName/tables/:tableName/data', async
         database: dbName
       };
       await driver.connect(config);
-      console.log(Object.getOwnPropertyNames(Object.getPrototypeOf(driver)));
-      console.log(driver);
-      const data = await driver.getTableData(dbName, tableName, limit, offset, sort);
+      const data = await driver.getTableData(dbName, tableName, limit, offset, sort, filter);
       res.json(data);
     } else {
       res.status(400).json({ error: 'Server configuration missing' });

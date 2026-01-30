@@ -68,7 +68,7 @@ const TableItem: React.FC<TableItemProps> = ({ name, size, isSelected, onSelect 
   >
     <Table size={14} className={`flex-shrink-0 ${isSelected ? 'text-blue-400' : 'text-slate-400'}`} />
     <span className="truncate flex-1">{name}</span>
-    <span className="text-[10px] text-slate-500 group-hover:text-slate-300 transition-colors flex-shrink-0">
+    <span className="text-[10px] text-slate-500 group-hover:text-slate-300 flex-shrink-0">
       {formatSize(size)}
     </span>
   </div>
@@ -81,6 +81,8 @@ interface DatabaseItemProps {
   filterTable: string;
   isSelected: boolean;
   selectedTable: string | null;
+  isOpen: boolean;
+  onToggle: (open: boolean) => void;
   onSelect: () => void;
   onSelectTable: (table: string) => void;
   onExpand: () => void;
@@ -88,11 +90,9 @@ interface DatabaseItemProps {
 }
 
 const DatabaseItem: React.FC<DatabaseItemProps> = ({ 
-  name, size, tables, filterTable, isSelected, selectedTable, onSelect, onSelectTable,
+  name, size, tables, filterTable, isSelected, selectedTable, isOpen, onToggle, onSelect, onSelectTable,
   onExpand, isLoading
 }) => {
-  const [isOpen, setIsOpen] = useState(false);
-
   useEffect(() => {
     if (isOpen && tables.length === 0 && !isLoading) {
       onExpand();
@@ -108,20 +108,26 @@ const DatabaseItem: React.FC<DatabaseItemProps> = ({
   return (
     <div>
       <div 
-        className={`flex items-center gap-2 py-1.5 px-8 hover:bg-slate-700 cursor-pointer transition-colors ${isSelected ? 'bg-blue-600/20 text-blue-400' : 'text-slate-300'} overflow-hidden group`}
+        className={`flex items-center gap-2 py-1.5 px-8 hover:bg-slate-700 cursor-pointer ${isSelected ? 'bg-blue-600/20 text-blue-400' : 'text-slate-300'} overflow-hidden group`}
         onClick={(e) => {
           e.stopPropagation();
-          setIsOpen(!isOpen);
+          if (!isOpen) onToggle(true);
           onSelect();
         }}
       >
         <div className="flex items-center gap-2 flex-1 min-w-0">
-          <div className="flex-shrink-0">
+          <div 
+            className="flex-shrink-0 hover:bg-slate-600 rounded p-0.5 -m-0.5"
+            onClick={(e) => {
+              e.stopPropagation();
+              onToggle(!isOpen);
+            }}
+          >
             {isOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
           </div>
           <Database size={16} className={`flex-shrink-0 ${isSelected ? 'text-blue-400' : 'text-blue-400'}`} />
           <span className="text-sm font-medium truncate flex-1">{name}</span>
-          <span className="text-[10px] text-slate-500 group-hover:text-slate-300 transition-colors flex-shrink-0 mr-1">
+          <span className="text-[10px] text-slate-500 group-hover:text-slate-300 flex-shrink-0 mr-1">
             {formatSize(size)}
           </span>
         </div>
@@ -160,23 +166,26 @@ interface ServerItemProps {
   isSelected: boolean;
   selectedDatabase: string | null;
   selectedTable: string | null;
+  isOpen: boolean;
+  onToggle: (open: boolean) => void;
   onSelect: () => void;
   onSelectDatabase: (db: string) => void;
-  onSelectTable: (table: string) => void;
+  onSelectTable: (dbName: string, table: string) => void;
   onExpand: () => void;
   onExpandDatabase: (db: string) => void;
   onContextMenu: (e: React.MouseEvent, id: string) => void;
   isLoading?: boolean;
   loadingDatabases?: string[];
+  expandedDatabaseIds: string[];
+  onToggleDatabase: (db: string, open: boolean) => void;
 }
 
 const ServerItem: React.FC<ServerItemProps> = ({ 
   id, name, databases, filterDatabase, filterTable, isSelected, 
-  selectedDatabase, selectedTable, onSelect, onSelectDatabase, onSelectTable,
-  onExpand, onExpandDatabase, onContextMenu, isLoading, loadingDatabases = []
+  selectedDatabase, selectedTable, isOpen, onToggle, onSelect, onSelectDatabase, onSelectTable,
+  onExpand, onExpandDatabase, onContextMenu, isLoading, loadingDatabases = [],
+  expandedDatabaseIds, onToggleDatabase
 }) => {
-  const [isOpen, setIsOpen] = useState(false);
-
   useEffect(() => {
     if (isOpen && databases.length === 0 && !isLoading) {
       onExpand();
@@ -193,15 +202,22 @@ const ServerItem: React.FC<ServerItemProps> = ({
   return (
     <div>
       <div 
-        className={`flex items-center gap-2 py-2 px-4 hover:bg-slate-700 cursor-pointer transition-colors ${isSelected ? 'bg-blue-600/20 border-l-2 border-blue-500' : 'text-slate-200'} overflow-hidden`}
-        onClick={() => {
-          setIsOpen(!isOpen);
+        className={`flex items-center gap-2 py-2 px-4 hover:bg-slate-700 cursor-pointer ${isSelected ? 'bg-blue-600/20 border-l-2 border-blue-500' : 'text-slate-200'} overflow-hidden`}
+        onClick={(e) => {
+          e.stopPropagation();
+          if (!isOpen) onToggle(true);
           onSelect();
         }}
         onContextMenu={(e) => onContextMenu(e, id)}
       >
         <div className="flex items-center gap-2 flex-1 min-w-0">
-          <div className="flex-shrink-0">
+          <div 
+            className="flex-shrink-0 hover:bg-slate-600 rounded p-0.5 -m-0.5"
+            onClick={(e) => {
+              e.stopPropagation();
+              onToggle(!isOpen);
+            }}
+          >
             {isOpen ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
           </div>
           <Server size={18} className={`flex-shrink-0 ${isSelected ? 'text-blue-400' : 'text-emerald-400'}`} />
@@ -220,8 +236,10 @@ const ServerItem: React.FC<ServerItemProps> = ({
               filterTable={filterTable}
               isSelected={selectedDatabase === db.name}
               selectedTable={selectedTable}
+              isOpen={expandedDatabaseIds.includes(db.name)}
+              onToggle={(open) => onToggleDatabase(db.name, open)}
               onSelect={() => onSelectDatabase(db.name)}
-              onSelectTable={onSelectTable}
+              onSelectTable={(table) => onSelectTable(db.name, table)}
               onExpand={() => onExpandDatabase(db.name)}
               isLoading={loadingDatabases.includes(db.name)}
             />
@@ -251,7 +269,14 @@ interface SidebarProps {
   onConfigServer: (serverId: string) => void;
   loadingServers: string[];
   loadingDatabases: string[]; // Esperado como "serverId:dbName"
-  width?: number;
+  dbFilter: string;
+  tableFilter: string;
+  setDbFilter: (val: string) => void;
+  setTableFilter: (val: string) => void;
+  expandedServerIds: string[];
+  setExpandedServerIds: React.Dispatch<React.SetStateAction<string[]>>;
+  expandedDatabaseIds: string[];
+  setExpandedDatabaseIds: React.Dispatch<React.SetStateAction<string[]>>;
   onResizeMouseDown?: (e: React.MouseEvent) => void;
   onOpenConnection?: () => void;
 }
@@ -259,11 +284,24 @@ interface SidebarProps {
 export const Sidebar: React.FC<SidebarProps> = ({ 
   servers, selectedServerId, selectedDatabase, selectedTable,
   onSelectServer, onSelectDatabase, onSelectTable, onExpandServer, onExpandDatabase,
-  onConfigServer, loadingServers, loadingDatabases, width = 256, onResizeMouseDown, onOpenConnection
+  onConfigServer, loadingServers, loadingDatabases, dbFilter, tableFilter, setDbFilter, setTableFilter,
+  expandedServerIds, setExpandedServerIds, expandedDatabaseIds, setExpandedDatabaseIds,
+  onResizeMouseDown, onOpenConnection
 }) => {
-  const [dbFilter, setDbFilter] = useState('');
-  const [tableFilter, setTableFilter] = useState('');
   const [contextMenu, setContextMenu] = useState<{ x: number, y: number, serverId: string } | null>(null);
+
+  const handleToggleServer = (serverId: string, open: boolean) => {
+    setExpandedServerIds(prev => 
+      open ? [...prev, serverId] : prev.filter(id => id !== serverId)
+    );
+  };
+
+  const handleToggleDatabase = (serverId: string, dbName: string, open: boolean) => {
+    const key = `${serverId}:${dbName}`;
+    setExpandedDatabaseIds(prev => 
+      open ? [...prev, key] : prev.filter(k => k !== key)
+    );
+  };
 
   const handleContextMenu = (e: React.MouseEvent, serverId: string) => {
     e.preventDefault();
@@ -273,7 +311,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   return (
     <div 
       className="h-screen bg-slate-900 flex flex-col border-r border-slate-700 select-none relative overflow-x-hidden flex-shrink-0"
-      style={{ width: `${width}px` }}
+      style={{ width: 'var(--sidebar-width, 256px)' }}
     >
       <div className="p-4 space-y-3 border-b border-slate-700">
         <div className="relative">
@@ -304,9 +342,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <p className="text-sm text-slate-500 italic">No connections active</p>
             <button 
               onClick={onOpenConnection}
-              className="w-full py-2 px-4 bg-blue-600/10 hover:bg-blue-600/20 text-blue-400 border border-blue-600/30 rounded text-sm transition-colors flex items-center justify-center gap-2 group"
+              className="w-full py-2 px-4 bg-blue-600/10 hover:bg-blue-600/20 text-blue-400 border border-blue-600/30 rounded text-sm flex items-center justify-center gap-2 group"
             >
-              <Server size={14} className="group-hover:scale-110 transition-transform" />
+              <Server size={14} className="group-hover:scale-110" />
               <span>Open Connection</span>
             </button>
           </div>
@@ -330,9 +368,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
               isSelected={selectedServerId === server.id}
               selectedDatabase={selectedServerId === server.id ? selectedDatabase : null}
               selectedTable={selectedServerId === server.id ? selectedTable : null}
+              isOpen={expandedServerIds.includes(server.id)}
+              onToggle={(open) => handleToggleServer(server.id, open)}
               onSelect={() => onSelectServer(server.id)}
               onSelectDatabase={(db) => onSelectDatabase(server.id, db)}
-              onSelectTable={(table) => onSelectTable(server.id, selectedDatabase || '', table)}
+              onSelectTable={(dbName, table) => onSelectTable(server.id, dbName, table)}
               onExpand={() => onExpandServer(server.id)}
               onExpandDatabase={(db) => onExpandDatabase(server.id, db)}
               onContextMenu={handleContextMenu}
@@ -341,6 +381,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 .filter(ld => ld.startsWith(`${server.id}:`))
                 .map(ld => ld.split(':')[1] || '')
               }
+              expandedDatabaseIds={expandedDatabaseIds
+                .filter(ed => ed.startsWith(`${server.id}:`))
+                .map(ed => ed.split(':')[1] || '')
+              }
+              onToggleDatabase={(db, open) => handleToggleDatabase(server.id, db, open)}
             />
           ))
         )}
@@ -361,7 +406,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
       {/* Resize Handle */}
       <div 
-        className="absolute top-0 right-0 w-1 h-full cursor-col-resize hover:bg-blue-500/50 transition-colors z-10"
+        className="absolute top-0 right-0 w-1 h-full cursor-col-resize hover:bg-blue-500/50 z-10"
         onMouseDown={onResizeMouseDown}
       />
     </div>

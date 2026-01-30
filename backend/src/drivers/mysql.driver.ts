@@ -10,7 +10,8 @@ export class MySQLDriver implements IDatabaseDriver {
       port: config.port,
       user: config.user,
       password: config.password,
-      database: config.database
+      database: config.database,
+      dateStrings: true
     });
   }
 
@@ -52,34 +53,63 @@ export class MySQLDriver implements IDatabaseDriver {
     }));
   }
 
-  async getTableData(database: string, table: string, limit: number, offset: number, sort?: SortConfig[]): Promise<TableDataResponse> {
+  async getTableData(database: string, table: string, limit: number, offset: number, sort?: SortConfig[], filter?: string): Promise<TableDataResponse> {
     if (!this.connection) throw new Error('Not connected');
 
-    // Escapar nombres de tabla y base de datos para evitar inyección SQL básica
-    // Nota: En una app real usaríamos una librería más robusta para esto.
     const escapedDb = database.replace(/`/g, '``');
     const escapedTable = table.replace(/`/g, '``');
     const fullTableName = `\`${escapedDb}\`.\`${escapedTable}\``;
+
+    // Get columns first to build the filter clause if needed
+    const colQuery = `SELECT COLUMN_NAME FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ? ORDER BY ORDINAL_POSITION`;
+    const [colRows]: any = await this.connection.execute(colQuery, [database, table]);
+    const columns = colRows.map((r: any) => r.COLUMN_NAME);
+
+    let whereClause = '';
+    const params: any[] = [];
+    if (filter && columns.length > 0) {
+      const trimmedFilter = filter.trim();
+      const lowerFilter = trimmedFilter.toLowerCase();
+
+      // Check if it looks like a raw WHERE condition
+      const isRawWhere = lowerFilter.startsWith('where ') || 
+                         lowerFilter.includes('=') || 
+                         lowerFilter.includes('>') || 
+                         lowerFilter.includes('<') || 
+                         lowerFilter.includes(' like ') ||
+                         lowerFilter.includes(' is null') ||
+                         lowerFilter.includes(' is not null') ||
+                         lowerFilter.includes(' between ') ||
+                         lowerFilter.includes(' in (');
+
+      if (isRawWhere) {
+        if (lowerFilter.startsWith('where ')) {
+          whereClause = trimmedFilter;
+        } else {
+          whereClause = `WHERE ${trimmedFilter}`;
+        }
+        console.log(`[MySQLDriver] Using raw WHERE clause: ${whereClause}`);
+      } else {
+        const searchTerms = columns.map((col: string) => `\`${col.replace(/`/g, '``')}\` LIKE ?`).join(' OR ');
+        whereClause = `WHERE ${searchTerms}`;
+        const filterValue = `%${filter}%`;
+        columns.forEach(() => params.push(filterValue));
+        console.log(`[MySQLDriver] Using search filter: ${filter}`);
+      }
+    }
 
     let orderBy = '';
     if (sort && sort.length > 0) {
       orderBy = 'ORDER BY ' + sort.map(s => `\`${s.column.replace(/`/g, '``')}\` ${s.direction}`).join(', ');
     }
 
-    const query = `SELECT * FROM ${fullTableName} ${orderBy} LIMIT ${limit} OFFSET ${offset}`;
-    const countQuery = `SELECT COUNT(*) as total FROM ${fullTableName}`;
+    const query = `SELECT * FROM ${fullTableName} ${whereClause} ${orderBy} LIMIT ${limit} OFFSET ${offset}`;
+    const countQuery = `SELECT COUNT(*) as total FROM ${fullTableName} ${whereClause}`;
 
-    const [rows]: any = await this.connection.execute(query);
-    const [countRows]: any = await this.connection.execute(countQuery);
-
-    const columns = rows.length > 0 ? Object.keys(rows[0]) : [];
-
-    // Si no hay filas, intentamos obtener las columnas de information_schema
-    if (columns.length === 0) {
-      const colQuery = `SELECT COLUMN_NAME FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ? ORDER BY ORDINAL_POSITION`;
-      const [colRows]: any = await this.connection.execute(colQuery, [database, table]);
-      colRows.forEach((r: any) => columns.push(r.COLUMN_NAME));
-    }
+    console.log(`[MySQLDriver] Executing query: ${query}`);
+    
+    const [rows]: any = await this.connection.execute(query, params);
+    const [countRows]: any = await this.connection.execute(countQuery, params);
 
     return {
       columns,

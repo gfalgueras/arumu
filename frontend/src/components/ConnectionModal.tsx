@@ -111,7 +111,7 @@ export const ConnectionModal: React.FC<ConnectionModalProps> = ({ onClose, onCon
               )}
               <button 
                 onClick={() => setShowAddForm(true)}
-                className="w-full py-2 border border-dashed border-slate-600 rounded flex items-center justify-center gap-2 text-slate-400 hover:text-slate-100 hover:border-slate-400 transition-colors"
+                className="w-full py-2 border border-dashed border-slate-600 rounded flex items-center justify-center gap-2 text-slate-400 hover:text-slate-100 hover:border-slate-400"
               >
                 <Plus size={18} />
                 <span>Add New Connection</span>
