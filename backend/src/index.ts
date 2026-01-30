@@ -5,6 +5,11 @@ import path from 'path';
 import { MySQLDriver } from './drivers/mysql.driver';
 import type {ServerInfo, StoredServer, DatabaseInfo} from '@shared/types/database';
 
+// Soporte para serializar BigInt en JSON
+(BigInt.prototype as any).toJSON = function () {
+  return this.toString();
+};
+
 const app = express();
 const port = 3001;
 
@@ -62,8 +67,6 @@ const saveAppState = (state: any) => {
 // Servidores activos (en memoria)
 let activeServers: ServerInfo[] = [];
 
-const driver = new MySQLDriver();
-
 app.get('/api/servers', (req, res) => {
   const sanitizedServers = activeServers.map(s => ({
     id: s.id,
@@ -79,6 +82,7 @@ app.get('/api/servers/:id/databases', async (req, res) => {
     return res.status(404).json({ error: 'Server not found' });
   }
 
+  const driver = new MySQLDriver();
   try {
     if (server.databases && server.databases.length > 0) {
       return res.json(server.databases);
@@ -102,6 +106,8 @@ app.get('/api/servers/:id/databases', async (req, res) => {
   } catch (error: any) {
     console.error('Error fetching databases:', error);
     res.status(500).json({ error: error.message });
+  } finally {
+    await driver.disconnect();
   }
 });
 
@@ -112,6 +118,7 @@ app.get('/api/servers/:serverId/databases/:dbName/tables', async (req, res) => {
     return res.status(404).json({ error: 'Server not found' });
   }
 
+  const driver = new MySQLDriver();
   try {
     const db = server.databases?.find(d => d.name === dbName);
     if (db && db.tables && db.tables.length > 0) {
@@ -159,10 +166,13 @@ app.get('/api/servers/:serverId/databases/:dbName/tables', async (req, res) => {
   } catch (error: any) {
     console.error('Error fetching tables:', error);
     res.status(500).json({ error: error.message });
+  } finally {
+    await driver.disconnect();
   }
 });
 
 app.post('/api/servers/connect', async (req, res) => {
+  const driver = new MySQLDriver();
   try {
     const storedServer = req.body as StoredServer;
     
@@ -193,6 +203,8 @@ app.post('/api/servers/connect', async (req, res) => {
       errorMessage = `Error code: ${error.code}`;
     }
     res.status(500).json({ error: 'Failed to connect: ' + (errorMessage || 'Unknown error') });
+  } finally {
+    await driver.disconnect();
   }
 });
 
@@ -264,6 +276,7 @@ app.get('/api/debug/tables-raw/:serverId/:dbName', async (req, res) => {
   const { serverId, dbName } = req.params;
   const server = activeServers.find(s => s.id === serverId);
   if (!server || !server.config) return res.status(404).json({ error: 'Server or configuration not found' });
+  const driver = new MySQLDriver();
   try {
     const config = { ...server.config, database: dbName };
     await driver.connect(config);
@@ -271,6 +284,8 @@ app.get('/api/debug/tables-raw/:serverId/:dbName', async (req, res) => {
     res.json(result);
   } catch (error: any) {
     res.status(500).json({ error: error.message });
+  } finally {
+    await driver.disconnect();
   }
 });
 
@@ -286,6 +301,7 @@ app.get('/api/servers/:serverId/databases/:dbName/tables/:tableName/data', async
     return res.status(404).json({ error: 'Server not found' });
   }
 
+  const driver = new MySQLDriver();
   try {
     if (server.config) {
       const config = {
@@ -301,6 +317,8 @@ app.get('/api/servers/:serverId/databases/:dbName/tables/:tableName/data', async
   } catch (error: any) {
     console.error('Error fetching table data:', error);
     res.status(500).json({ error: error.message });
+  } finally {
+    await driver.disconnect();
   }
 });
 
@@ -313,6 +331,7 @@ app.post('/api/servers/:serverId/execute', async (req, res) => {
     return res.status(404).json({ error: 'Server not found' });
   }
 
+  const driver = new MySQLDriver();
   try {
     if (server.config) {
       const config = {
@@ -328,6 +347,8 @@ app.post('/api/servers/:serverId/execute', async (req, res) => {
   } catch (error: any) {
     console.error('Error executing query:', error);
     res.status(500).json({ error: error.message });
+  } finally {
+    await driver.disconnect();
   }
 });
 

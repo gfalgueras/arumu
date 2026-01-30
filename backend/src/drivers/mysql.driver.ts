@@ -89,7 +89,7 @@ export class MySQLDriver implements IDatabaseDriver {
           whereClause = `WHERE ${trimmedFilter}`;
         }
         console.log(`[MySQLDriver] Using raw WHERE clause: ${whereClause}`);
-      } else {
+      } else if (columns.length > 0) {
         const searchTerms = columns.map((col: string) => `\`${col.replace(/`/g, '``')}\` LIKE ?`).join(' OR ');
         whereClause = `WHERE ${searchTerms}`;
         const filterValue = `%${filter}%`;
@@ -114,7 +114,7 @@ export class MySQLDriver implements IDatabaseDriver {
     return {
       columns,
       rows,
-      total: countRows[0].total
+      total: (countRows && countRows[0]) ? Number(countRows[0].total) : 0
     };
   }
 

@@ -34,7 +34,7 @@ const handleExpandServer = async (serverId: string) => {
   
   loadingServers.value.push(serverId);
   try {
-    const res = await fetch(`http://localhost:3001/api/servers/${serverId}/databases`);
+    const res = await fetch(`http://localhost:3001/api/servers/${encodeURIComponent(serverId)}/databases`);
     const databases = await res.json();
     
     servers.value = servers.value.map(s => 
@@ -53,7 +53,7 @@ const handleExpandDatabase = async (serverId: string, dbName: string) => {
 
   loadingDatabases.value.push(key);
   try {
-    const res = await fetch(`http://localhost:3001/api/servers/${serverId}/databases/${dbName}/tables`);
+    const res = await fetch(`http://localhost:3001/api/servers/${encodeURIComponent(serverId)}/databases/${encodeURIComponent(dbName)}/tables`);
     const tables = await res.json();
 
     servers.value = servers.value.map(s => {
@@ -211,7 +211,7 @@ const handleMouseDown = (e: MouseEvent) => {
 const handleCloseConnection = async () => {
   if (!selectedServerId.value) return;
   try {
-    const res = await fetch(`http://localhost:3001/api/servers/${selectedServerId.value}`, {
+    const res = await fetch(`http://localhost:3001/api/servers/${encodeURIComponent(selectedServerId.value)}`, {
       method: 'DELETE',
     });
     if (res.ok) {
@@ -318,17 +318,23 @@ const selectTable = (serverId: string, db: string, table: string) => {
 
           <!-- Tab Content -->
           <div class="flex-1 min-h-0 flex flex-col min-w-0">
-            <DataTable 
-              v-if="activeTab === 'data' && selectedTable && selectedServerId && selectedDatabase"
-              :serverId="selectedServerId"
-              :database="selectedDatabase"
-              :table="selectedTable"
-            />
-            <QueryEditor 
-              v-if="activeTab === 'query'"
-              :serverId="selectedServerId"
-              :database="selectedDatabase"
-            />
+            <KeepAlive>
+              <DataTable 
+                v-if="activeTab === 'data' && selectedTable && selectedServerId && selectedDatabase"
+                :key="`${selectedServerId}:${selectedDatabase}:${selectedTable}`"
+                :serverId="selectedServerId"
+                :database="selectedDatabase"
+                :table="selectedTable"
+              />
+            </KeepAlive>
+            <KeepAlive>
+              <QueryEditor 
+                v-if="activeTab === 'query'"
+                :key="`${selectedServerId}:${selectedDatabase}`"
+                :serverId="selectedServerId"
+                :database="selectedDatabase"
+              />
+            </KeepAlive>
           </div>
         </div>
         <div v-else class="flex-1 flex flex-col items-center justify-center">

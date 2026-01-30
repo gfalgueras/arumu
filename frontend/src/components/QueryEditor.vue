@@ -19,7 +19,7 @@ const handleExecute = async () => {
   result.value = null;
 
   try {
-    const res = await fetch(`http://localhost:3001/api/servers/${props.serverId}/execute`, {
+    const res = await fetch(`http://localhost:3001/api/servers/${encodeURIComponent(props.serverId)}/execute`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ 

@@ -42,7 +42,7 @@ const fetchData = async () => {
   try {
     const sortParam = sort.value.length > 0 ? `&sort=${encodeURIComponent(JSON.stringify(sort.value))}` : '';
     const filterParam = appliedFilter.value ? `&filter=${encodeURIComponent(appliedFilter.value)}` : '';
-    const res = await fetch(`http://localhost:3001/api/servers/${props.serverId}/databases/${props.database}/tables/${props.table}/data?limit=${limit}&offset=${page.value * limit}${sortParam}${filterParam}`);
+    const res = await fetch(`http://localhost:3001/api/servers/${encodeURIComponent(props.serverId)}/databases/${encodeURIComponent(props.database)}/tables/${encodeURIComponent(props.table)}/data?limit=${limit}&offset=${page.value * limit}${sortParam}${filterParam}`);
     if (!res.ok) {
       const errData = await res.json();
       throw new Error(errData.error || 'Failed to fetch data');
@@ -58,7 +58,7 @@ const fetchData = async () => {
 
 watch(() => [props.serverId, props.database, props.table, page.value, sort.value, appliedFilter.value], () => {
   fetchData();
-});
+}, { immediate: true });
 
 const handleSort = (column: string) => {
   const existing = sort.value.find(s => s.column === column);
