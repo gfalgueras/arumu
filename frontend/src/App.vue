@@ -1,0 +1,362 @@
+<script setup lang="ts">
+import { ref, onMounted, watch } from 'vue';
+import Sidebar from './components/Sidebar.vue';
+import TopBar from './components/TopBar.vue';
+import ConnectionModal from './components/ConnectionModal.vue';
+import DataTable from './components/DataTable.vue';
+import QueryEditor from './components/QueryEditor.vue';
+import type { ServerInfo, StoredServer } from '@shared/types/database';
+
+const servers = ref<ServerInfo[]>([]);
+const selectedServerId = ref<string | null>(null);
+const selectedDatabase = ref<string | null>(null);
+const selectedTable = ref<string | null>(null);
+const activeTab = ref<'data' | 'query'>('query');
+const isModalOpen = ref(false);
+const editingServer = ref<StoredServer | undefined>(undefined);
+const loadingServers = ref<string[]>([]);
+const loadingDatabases = ref<string[]>([]);
+const sidebarWidth = ref(256);
+const isResizing = ref(false);
+const dbFilter = ref('');
+const tableFilter = ref('');
+const expandedServerIds = ref<string[]>([]);
+const expandedDatabaseIds = ref<string[]>([]);
+
+const fetchServers = async () => {
+  const res = await fetch('http://localhost:3001/api/servers');
+  const data = await res.json();
+  servers.value = data;
+};
+
+const handleExpandServer = async (serverId: string) => {
+  if (loadingServers.value.includes(serverId)) return;
+  
+  loadingServers.value.push(serverId);
+  try {
+    const res = await fetch(`http://localhost:3001/api/servers/${serverId}/databases`);
+    const databases = await res.json();
+    
+    servers.value = servers.value.map(s => 
+      s.id === serverId ? { ...s, databases } : s
+    );
+  } catch (error) {
+    console.error('Error fetching databases:', error);
+  } finally {
+    loadingServers.value = loadingServers.value.filter(id => id !== serverId);
+  }
+};
+
+const handleExpandDatabase = async (serverId: string, dbName: string) => {
+  const key = `${serverId}:${dbName}`;
+  if (loadingDatabases.value.includes(key)) return;
+
+  loadingDatabases.value.push(key);
+  try {
+    const res = await fetch(`http://localhost:3001/api/servers/${serverId}/databases/${dbName}/tables`);
+    const tables = await res.json();
+
+    servers.value = servers.value.map(s => {
+      if (s.id === serverId) {
+        const updatedDbs = s.databases?.map(db => 
+          db.name === dbName ? { 
+            ...db, 
+            tables, 
+            size: tables.reduce((acc: number, t: any) => acc + (t.size || 0), 0) 
+          } : db
+        );
+        return { ...s, databases: updatedDbs };
+      }
+      return s;
+    });
+  } catch (error) {
+    console.error('Error fetching tables:', error);
+  } finally {
+    loadingDatabases.value = loadingDatabases.value.filter(k => k !== key);
+  }
+};
+
+const handleConnect = async (storedServer: StoredServer, closeAndRefresh = true) => {
+  const res = await fetch('http://localhost:3001/api/servers/connect', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(storedServer),
+  });
+  if (res.ok && closeAndRefresh) {
+    await fetchServers();
+    isModalOpen.value = false;
+    editingServer.value = null;
+
+    selectedServerId.value = storedServer.id;
+    selectedDatabase.value = null;
+    selectedTable.value = null;
+    activeTab.value = 'query';
+
+    if (!expandedServerIds.value.includes(storedServer.id)) {
+      expandedServerIds.value.push(storedServer.id);
+    }
+    handleExpandServer(storedServer.id);
+  }
+};
+
+const initApp = async () => {
+  const storedRes = await fetch('http://localhost:3001/api/stored-servers');
+  const storedServers: StoredServer[] = await storedRes.json();
+
+  const stateRes = await fetch('http://localhost:3001/api/app-state');
+  const state = await stateRes.json();
+
+  if (state) {
+    if (state.activeServerIds && state.activeServerIds.length > 0) {
+      for (const serverId of state.activeServerIds) {
+        const serverToConnect = storedServers.find(s => s.id === serverId);
+        if (serverToConnect) {
+          await handleConnect(serverToConnect, false);
+        }
+      }
+    }
+
+    sidebarWidth.value = state.sidebarWidth || 256;
+    dbFilter.value = state.dbFilter || '';
+    tableFilter.value = state.tableFilter || '';
+    selectedServerId.value = state.selectedServerId;
+    selectedDatabase.value = state.selectedDatabase;
+    selectedTable.value = state.selectedTable;
+    activeTab.value = state.activeTab || 'query';
+    expandedServerIds.value = state.expandedServerIds || [];
+    expandedDatabaseIds.value = state.expandedDatabaseIds || [];
+  }
+
+  await fetchServers();
+
+  if (state) {
+    if (state.expandedServerIds) {
+      for (const sId of state.expandedServerIds) {
+        handleExpandServer(sId);
+      }
+    }
+    if (state.expandedDatabaseIds) {
+      for (const dbId of state.expandedDatabaseIds) {
+        const [sId, dbName] = dbId.split(':');
+        if (sId && dbName) {
+          handleExpandDatabase(sId, dbName);
+        }
+      }
+    }
+  }
+};
+
+onMounted(() => {
+  initApp();
+  document.documentElement.style.setProperty('--sidebar-width', `${sidebarWidth.value}px`);
+});
+
+watch([servers, selectedServerId, selectedDatabase, selectedTable, activeTab, sidebarWidth, dbFilter, tableFilter, expandedServerIds, expandedDatabaseIds], (_, __, onCleanup) => {
+  const saveState = async () => {
+    const state = {
+      activeServerIds: servers.value.map(s => s.id),
+      selectedServerId: selectedServerId.value,
+      selectedDatabase: selectedDatabase.value,
+      selectedTable: selectedTable.value,
+      activeTab: activeTab.value,
+      sidebarWidth: sidebarWidth.value,
+      dbFilter: dbFilter.value,
+      tableFilter: tableFilter.value,
+      expandedServerIds: expandedServerIds.value,
+      expandedDatabaseIds: expandedDatabaseIds.value
+    };
+
+    try {
+      await fetch('http://localhost:3001/api/app-state', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(state),
+      });
+    } catch (error) {
+      console.error('Error saving app state:', error);
+    }
+  };
+
+  const timer = setTimeout(saveState, 1000);
+  onCleanup(() => clearTimeout(timer));
+}, { deep: true });
+
+const handleMouseMove = (e: MouseEvent) => {
+  if (!isResizing.value) return;
+  
+  let newWidth = e.clientX;
+  const minWidth = window.innerWidth * 0.05;
+  const maxWidth = window.innerWidth * 0.20;
+  
+  if (newWidth < minWidth) newWidth = minWidth;
+  if (newWidth > maxWidth) newWidth = maxWidth;
+  
+  document.documentElement.style.setProperty('--sidebar-width', `${newWidth}px`);
+  sidebarWidth.value = newWidth;
+};
+
+const handleMouseUp = () => {
+  isResizing.value = false;
+  window.removeEventListener('mousemove', handleMouseMove);
+  window.removeEventListener('mouseup', handleMouseUp);
+};
+
+const handleMouseDown = (e: MouseEvent) => {
+  e.preventDefault();
+  isResizing.value = true;
+  window.addEventListener('mousemove', handleMouseMove);
+  window.addEventListener('mouseup', handleMouseUp);
+};
+
+const handleCloseConnection = async () => {
+  if (!selectedServerId.value) return;
+  try {
+    const res = await fetch(`http://localhost:3001/api/servers/${selectedServerId.value}`, {
+      method: 'DELETE',
+    });
+    if (res.ok) {
+      servers.value = servers.value.filter(s => s.id !== selectedServerId.value);
+      selectedServerId.value = null;
+      selectedDatabase.value = null;
+      selectedTable.value = null;
+    } else {
+      const errorData = await res.json();
+      alert('Error closing connection: ' + (errorData.error || 'Unknown error'));
+    }
+  } catch (error: any) {
+    console.error('Error closing connection:', error);
+    alert('Error closing connection: ' + error.message);
+  }
+};
+
+const handleConfigServer = async (serverId: string) => {
+  try {
+    const res = await fetch('http://localhost:3001/api/stored-servers');
+    const storedServers: StoredServer[] = await res.json();
+    const serverToEdit = storedServers.find(s => s.id === serverId);
+    if (serverToEdit) {
+      editingServer.value = serverToEdit;
+      isModalOpen.value = true;
+    } else {
+      alert('No se pudo encontrar la configuración guardada para este servidor.');
+    }
+  } catch (error) {
+    console.error('Error fetching server config:', error);
+  }
+};
+
+const selectServer = (id: string) => {
+  selectedServerId.value = id;
+  selectedDatabase.value = null;
+  selectedTable.value = null;
+  activeTab.value = 'query';
+};
+
+const selectDatabase = (serverId: string, db: string) => {
+  selectedServerId.value = serverId;
+  selectedDatabase.value = db;
+  selectedTable.value = null;
+  activeTab.value = 'query';
+};
+
+const selectTable = (serverId: string, db: string, table: string) => {
+  selectedServerId.value = serverId;
+  selectedDatabase.value = db;
+  selectedTable.value = table;
+  activeTab.value = 'data';
+};
+</script>
+
+<template>
+  <div class="flex h-screen w-screen bg-slate-950 text-slate-100 overflow-hidden" :class="isResizing ? 'cursor-col-resize select-none' : ''">
+    <Sidebar 
+      :servers="servers"
+      :selectedServerId="selectedServerId"
+      :selectedDatabase="selectedDatabase"
+      :selectedTable="selectedTable"
+      v-model:dbFilter="dbFilter"
+      v-model:tableFilter="tableFilter"
+      v-model:expandedServerIds="expandedServerIds"
+      v-model:expandedDatabaseIds="expandedDatabaseIds"
+      @selectServer="selectServer"
+      @selectDatabase="selectDatabase"
+      @selectTable="selectTable"
+      @expandServer="handleExpandServer"
+      @expandDatabase="handleExpandDatabase"
+      @configServer="handleConfigServer"
+      :loadingServers="loadingServers"
+      :loadingDatabases="loadingDatabases"
+      @resizeMouseDown="handleMouseDown"
+      @openConnection="isModalOpen = true"
+    />
+    <div class="flex-1 flex flex-col min-w-0">
+      <TopBar 
+        @openConnection="isModalOpen = true"
+        @closeConnection="handleCloseConnection"
+        :canClose="!!selectedServerId"
+      />
+      <main class="flex-1 flex flex-col p-4 overflow-hidden min-w-0">
+        <div v-if="selectedServerId" class="w-full h-full flex flex-col min-h-0 min-w-0">
+          <!-- Tabs Header -->
+          <div class="flex border-b border-slate-800 mb-4 flex-shrink-0">
+            <button 
+              v-if="selectedTable"
+              @click="activeTab = 'data'"
+              class="px-4 py-2 text-sm font-medium border-b-2"
+              :class="activeTab === 'data' ? 'border-blue-500 text-blue-500' : 'border-transparent text-slate-400 hover:text-slate-200'"
+            >
+              Datos
+            </button>
+            <button 
+              @click="activeTab = 'query'"
+              class="px-4 py-2 text-sm font-medium border-b-2"
+              :class="activeTab === 'query' ? 'border-blue-500 text-blue-500' : 'border-transparent text-slate-400 hover:text-slate-200'"
+            >
+              Query
+            </button>
+          </div>
+
+          <!-- Tab Content -->
+          <div class="flex-1 min-h-0 flex flex-col min-w-0">
+            <DataTable 
+              v-if="activeTab === 'data' && selectedTable && selectedServerId && selectedDatabase"
+              :serverId="selectedServerId"
+              :database="selectedDatabase"
+              :table="selectedTable"
+            />
+            <QueryEditor 
+              v-if="activeTab === 'query'"
+              :serverId="selectedServerId"
+              :database="selectedDatabase"
+            />
+          </div>
+        </div>
+        <div v-else class="flex-1 flex flex-col items-center justify-center">
+          <div class="max-w-2xl text-center space-y-4">
+            <h1 class="text-4xl font-bold text-blue-500">SQL Manager</h1>
+            <p class="text-slate-400 text-lg">
+              Select a server, database and table from the sidebar to start managing your data.
+            </p>
+            <div class="grid grid-cols-2 gap-4 mt-8 mx-auto">
+              <div class="p-6 bg-slate-900 rounded-lg border border-slate-800 text-left">
+                <h3 class="font-semibold text-blue-400 mb-2">Modular Backend</h3>
+                <p class="text-sm text-slate-500">Ready for MySQL, PostgreSQL, and SQLite.</p>
+              </div>
+              <div class="p-6 bg-slate-900 rounded-lg border border-slate-800 text-left">
+                <h3 class="font-semibold text-blue-400 mb-2">Modern UI</h3>
+                <p class="text-sm text-slate-500">Built with Vue, Tailwind CSS and Lucide icons.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <ConnectionModal 
+      v-if="isModalOpen"
+      @close="isModalOpen = false; editingServer = null"
+      @connect="handleConnect"
+      :editServer="editingServer"
+    />
+  </div>
+</template>
