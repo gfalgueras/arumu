@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue';
+import { ref, onMounted, watch, computed } from 'vue';
 import { Plus, X } from 'lucide-vue-next';
 import Sidebar from './components/Sidebar.vue';
 import TopBar from './components/TopBar.vue';
@@ -39,6 +39,8 @@ const dbFilter = ref('');
 const tableFilter = ref('');
 const expandedServerIds = ref<string[]>([]);
 const expandedDatabaseIds = ref<string[]>([]);
+const expandedTableIds = ref<string[]>([]);
+const loadingTables = ref<string[]>([]);
 
 const fetchServers = async () => {
   const res = await fetch('http://localhost:3001/api/servers');
@@ -93,6 +95,37 @@ const handleExpandDatabase = async (serverId: string, dbName: string) => {
   }
 };
 
+const handleExpandTable = async (serverId: string, dbName: string, tableName: string) => {
+  const key = `${serverId}:${dbName}:${tableName}`;
+  if (loadingTables.value.includes(key)) return;
+
+  loadingTables.value.push(key);
+  try {
+    const res = await fetch(`http://localhost:3001/api/servers/${encodeURIComponent(serverId)}/databases/${encodeURIComponent(dbName)}/tables/${encodeURIComponent(tableName)}/columns`);
+    const columns = await res.json();
+
+    servers.value = servers.value.map(s => {
+      if (s.id === serverId) {
+        const updatedDbs = s.databases?.map(db => {
+          if (db.name === dbName) {
+            const updatedTables = db.tables?.map(t => 
+              t.name === tableName ? { ...t, columns } : t
+            );
+            return { ...db, tables: updatedTables };
+          }
+          return db;
+        });
+        return { ...s, databases: updatedDbs };
+      }
+      return s;
+    });
+  } catch (error) {
+    console.error('Error fetching columns:', error);
+  } finally {
+    loadingTables.value = loadingTables.value.filter(k => k !== key);
+  }
+};
+
 const handleConnect = async (storedServer: StoredServer, closeAndRefresh = true) => {
   const res = await fetch('http://localhost:3001/api/servers/connect', {
     method: 'POST',
@@ -102,7 +135,7 @@ const handleConnect = async (storedServer: StoredServer, closeAndRefresh = true)
   if (res.ok && closeAndRefresh) {
     await fetchServers();
     isModalOpen.value = false;
-    editingServer.value = null;
+    editingServer.value = undefined;
 
     selectedServerId.value = storedServer.id;
     selectedDatabase.value = null;
@@ -150,6 +183,7 @@ const initApp = async () => {
     }
     expandedServerIds.value = state.expandedServerIds || [];
     expandedDatabaseIds.value = state.expandedDatabaseIds || [];
+    expandedTableIds.value = state.expandedTableIds || [];
   }
 
   await fetchServers();
@@ -168,6 +202,14 @@ const initApp = async () => {
         }
       }
     }
+    if (state.expandedTableIds) {
+      for (const tableId of state.expandedTableIds) {
+        const [sId, dbName, tableName] = tableId.split(':');
+        if (sId && dbName && tableName) {
+          handleExpandTable(sId, dbName, tableName);
+        }
+      }
+    }
   }
 };
 
@@ -176,7 +218,7 @@ onMounted(() => {
   document.documentElement.style.setProperty('--sidebar-width', `${sidebarWidth.value}px`);
 });
 
-watch([servers, selectedServerId, selectedDatabase, selectedTable, activeTab, sidebarWidth, dbFilter, tableFilter, expandedServerIds, expandedDatabaseIds, queryTabs], (_, __, onCleanup) => {
+watch([servers, selectedServerId, selectedDatabase, selectedTable, activeTab, sidebarWidth, dbFilter, tableFilter, expandedServerIds, expandedDatabaseIds, expandedTableIds, queryTabs], (_, __, onCleanup) => {
   const saveState = async () => {
     const state = {
       activeServerIds: servers.value.map(s => s.id),
@@ -189,7 +231,8 @@ watch([servers, selectedServerId, selectedDatabase, selectedTable, activeTab, si
       dbFilter: dbFilter.value,
       tableFilter: tableFilter.value,
       expandedServerIds: expandedServerIds.value,
-      expandedDatabaseIds: expandedDatabaseIds.value
+      expandedDatabaseIds: expandedDatabaseIds.value,
+      expandedTableIds: expandedTableIds.value
     };
 
     try {
@@ -322,6 +365,11 @@ const selectServer = (id: string) => {
   }
 };
 
+const selectedServerType = computed(() => {
+  const server = servers.value.find(s => s.id === selectedServerId.value);
+  return server?.type || 'mysql';
+});
+
 const selectDatabase = (serverId: string, db: string) => {
   selectedServerId.value = serverId;
   selectedDatabase.value = db;
@@ -350,14 +398,17 @@ const selectTable = (serverId: string, db: string, table: string) => {
       v-model:tableFilter="tableFilter"
       v-model:expandedServerIds="expandedServerIds"
       v-model:expandedDatabaseIds="expandedDatabaseIds"
+      v-model:expandedTableIds="expandedTableIds"
       @selectServer="selectServer"
       @selectDatabase="selectDatabase"
       @selectTable="selectTable"
       @expandServer="handleExpandServer"
       @expandDatabase="handleExpandDatabase"
+      @expandTable="handleExpandTable"
       @configServer="handleConfigServer"
       :loadingServers="loadingServers"
       :loadingDatabases="loadingDatabases"
+      :loadingTables="loadingTables"
       @resizeMouseDown="handleMouseDown"
       @openConnection="isModalOpen = true"
     />
@@ -437,6 +488,7 @@ const selectTable = (serverId: string, db: string, table: string) => {
                 v-if="activeTab !== 'data'"
                 :key="activeTab"
                 :serverId="selectedServerId!"
+                :serverType="selectedServerType"
                 :database="selectedDatabase"
                 v-model="queryTabs.find(t => t.id === activeTab)!.query"
               />
@@ -466,7 +518,7 @@ const selectTable = (serverId: string, db: string, table: string) => {
 
     <ConnectionModal 
       v-if="isModalOpen"
-      @close="isModalOpen = false; editingServer = null"
+      @close="isModalOpen = false; editingServer = undefined"
       @connect="handleConnect"
       :editServer="editingServer"
     />

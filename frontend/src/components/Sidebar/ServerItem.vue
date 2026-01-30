@@ -16,7 +16,9 @@ const props = defineProps<{
   isOpen: boolean;
   isLoading?: boolean;
   loadingDatabases?: string[];
+  loadingTables?: string[];
   expandedDatabaseIds: string[];
+  expandedTableIds: string[];
 }>();
 
 const emit = defineEmits<{
@@ -24,11 +26,25 @@ const emit = defineEmits<{
   (e: 'select'): void;
   (e: 'selectDatabase', db: string): void;
   (e: 'selectTable', dbName: string, table: string): void;
-  (e: 'expand'): void;
+  (e: 'expand', serverId: string): void;
   (e: 'expandDatabase', db: string): void;
+  (e: 'expandTable', db: string, table: string): void;
   (e: 'contextMenu', event: MouseEvent, id: string): void;
   (e: 'toggleDatabase', db: string, open: boolean): void;
+  (e: 'toggleTable', db: string, table: string, open: boolean): void;
 }>();
+
+const getLoadingTablesForDatabase = (dbName: string) => {
+  return props.loadingTables
+    ?.filter(lt => lt.startsWith(`${dbName}:`))
+    .map(lt => lt.split(':')[1] || []);
+};
+
+const getExpandedTableIdsForDatabase = (dbName: string) => {
+  return props.expandedTableIds
+    .filter(et => et.startsWith(`${dbName}:`))
+    .map(et => et.split(':')[1] || []);
+};
 
 watch(() => props.isOpen, (newVal) => {
   if (newVal && props.databases.length === 0 && !props.isLoading) {
@@ -89,10 +105,14 @@ const handleSelect = () => {
         :selectedTable="selectedTable"
         :isOpen="expandedDatabaseIds.includes(db.name)"
         :isLoading="loadingDatabases?.includes(db.name)"
+        :loadingTables="getLoadingTablesForDatabase(db.name)"
+        :expandedTableIds="getExpandedTableIdsForDatabase(db.name)"
         @toggle="(open) => emit('toggleDatabase', db.name, open)"
         @select="emit('selectDatabase', db.name)"
         @selectTable="(table) => emit('selectTable', db.name, table)"
         @expand="emit('expandDatabase', db.name)"
+        @expandTable="(table) => emit('expandTable', db.name, table)"
+        @toggleTable="(table, open) => emit('toggleTable', db.name, table, open)"
       />
       <div v-if="!isLoading && filteredDatabases.length === 0 && databases.length > 0" class="pl-8 py-1 text-xs text-slate-500 italic">
         No databases found

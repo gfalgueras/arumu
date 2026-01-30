@@ -12,6 +12,8 @@ const props = defineProps<{
   selectedTable: string | null;
   isOpen: boolean;
   isLoading?: boolean;
+  loadingTables?: string[];
+  expandedTableIds: string[];
 }>();
 
 const emit = defineEmits<{
@@ -19,6 +21,8 @@ const emit = defineEmits<{
   (e: 'select'): void;
   (e: 'selectTable', table: string): void;
   (e: 'expand'): void;
+  (e: 'expandTable', table: string): void;
+  (e: 'toggleTable', table: string, open: boolean): void;
 }>();
 
 watch(() => props.isOpen, (newVal) => {
@@ -84,8 +88,13 @@ const handleSelect = () => {
         :key="table.name" 
         :name="table.name" 
         :size="table.size"
+        :columns="(table as any).columns"
         :isSelected="selectedTable === table.name"
+        :isOpen="expandedTableIds.includes(table.name)"
+        :isLoading="loadingTables?.includes(table.name)"
+        @toggle="(open) => emit('toggleTable', table.name, open)"
         @select="emit('selectTable', table.name)"
+        @expand="emit('expandTable', table.name)"
       />
       <div v-if="!isLoading && filteredTables.length === 0 && tables.length > 0" class="pl-12 py-1 text-xs text-slate-500 italic">
         No tables found

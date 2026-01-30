@@ -1,16 +1,67 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, computed, watch } from 'vue';
 import { Play, Loader2, AlertCircle, Database as DatabaseIcon } from 'lucide-vue-next';
+import CodeMirror from 'vue-codemirror6';
+import { sql, MySQL, PostgreSQL, SQLite } from '@codemirror/lang-sql';
+import { oneDark } from '@codemirror/theme-one-dark';
+import { keymap } from '@codemirror/view';
+import { autocompletion, completionKeymap } from '@codemirror/autocomplete';
 
 const props = defineProps<{
   serverId: string;
+  serverType: 'mysql' | 'postgres' | 'sqlite';
   database: string | null;
 }>();
 
 const query = defineModel<string>({ default: '' });
 const loading = ref(false);
+const fetchingSchema = ref(false);
 const result = ref<any>(null);
 const error = ref<string | null>(null);
+const schema = ref<Record<string, string[]>>({});
+
+watch(() => [props.serverId, props.database], async () => {
+  if (props.serverId && props.database) {
+    fetchingSchema.value = true;
+    try {
+      const res = await fetch(`http://localhost:3001/api/servers/${encodeURIComponent(props.serverId)}/databases/${encodeURIComponent(props.database)}/schema`);
+      if (res.ok) {
+        schema.value = await res.json();
+      }
+    } catch (err) {
+      console.error('Error fetching schema:', err);
+    } finally {
+      fetchingSchema.value = false;
+    }
+  } else {
+    schema.value = {};
+  }
+}, { immediate: true });
+
+const extensions = computed(() => {
+  const dialect = props.serverType === 'postgres' ? PostgreSQL : 
+                  props.serverType === 'sqlite' ? SQLite : MySQL;
+  
+  return [
+    sql({ 
+      dialect, 
+      schema: schema.value,
+      upperCaseKeywords: true
+    }),
+    oneDark,
+    autocompletion({ activateOnTyping: true }),
+    keymap.of([
+      ...completionKeymap,
+      {
+        key: "Ctrl-Enter",
+        run: () => {
+          handleExecute();
+          return true;
+        }
+      }
+    ])
+  ];
+});
 
 const handleExecute = async () => {
   if (!props.serverId || loading.value) return;
@@ -72,18 +123,32 @@ const isArray = (val: any) => Array.isArray(val);
       <div class="flex items-center gap-2 text-slate-400 text-sm border-l border-slate-700 pl-4">
         <DatabaseIcon :size="14" />
         <span>{{ database || 'No database selected' }}</span>
+        <Loader2 v-if="fetchingSchema" :size="12" class="animate-spin ml-2 text-blue-500" />
+        <span v-else-if="Object.keys(schema).length > 0" class="ml-2 text-[10px] bg-slate-800 px-1.5 py-0.5 rounded border border-slate-700 text-slate-500 font-mono">
+          {{ Object.keys(schema).length }} tables
+        </span>
       </div>
     </div>
 
     <!-- Editor Area -->
     <div class="flex-1 flex flex-col min-h-0 gap-4">
-      <div class="flex-1 h-1/2 min-h-[150px]">
-        <textarea
-          class="w-full h-full bg-slate-900 text-slate-100 p-4 font-mono text-sm border border-slate-700 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500 resize-none"
+      <div class="flex-1 h-1/2 min-h-[150px] overflow-hidden border border-slate-700 rounded-lg bg-[#282c34]">
+        <CodeMirror
           v-model="query"
-          spellcheck="false"
-          @keydown.ctrl.enter.prevent="handleExecute"
-        ></textarea>
+          :extensions="extensions"
+          :basic-setup="{ 
+            lineNumbers: true,
+            foldGutter: true,
+            dropCursor: true,
+            allowMultipleSelections: true,
+            indentOnInput: true,
+            bracketMatching: true,
+            autocompletion: false,
+            highlightActiveLine: true,
+            highlightSelectionMatches: true
+          }"
+          class="h-full text-sm font-mono"
+        />
       </div>
 
       <!-- Results Area -->

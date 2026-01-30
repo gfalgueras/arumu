@@ -1,6 +1,7 @@
 export interface TableInfo {
   name: string;
   size?: number; // Size in bytes
+  columns?: string[];
 }
 
 export interface DatabaseInfo {
@@ -62,6 +63,7 @@ export interface IDatabaseDriver {
   disconnect(): Promise<void>;
   getDatabases(): Promise<DatabaseInfo[]>;
   getTables(database: string): Promise<TableInfo[]>;
+  getSchema(database: string): Promise<Record<string, string[]>>;
   getTableData(database: string, table: string, limit: number, offset: number, sort?: SortConfig[], filter?: string): Promise<TableDataResponse>;
   executeQuery(sql: string): Promise<any>;
 }

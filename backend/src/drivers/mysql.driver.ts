@@ -53,6 +53,35 @@ export class MySQLDriver implements IDatabaseDriver {
     }));
   }
 
+  async getSchema(database: string): Promise<Record<string, string[]>> {
+    if (!this.connection) throw new Error('Not connected');
+
+    const query = `
+      SELECT TABLE_NAME, COLUMN_NAME 
+      FROM information_schema.COLUMNS 
+      WHERE TABLE_SCHEMA = ? 
+      ORDER BY TABLE_NAME, ORDINAL_POSITION
+    `;
+
+    const [rows]: any = await this.connection.execute(query, [database]);
+    
+    const schema: Record<string, string[]> = {};
+    rows.forEach((row: any) => {
+      // Usar búsqueda insensible a mayúsculas para las columnas de information_schema
+      const tableName = row.TABLE_NAME || row.table_name || row.TableName;
+      const columnName = row.COLUMN_NAME || row.column_name || row.ColumnName;
+      
+      if (tableName && columnName) {
+        if (!schema[tableName]) {
+          schema[tableName] = [];
+        }
+        schema[tableName].push(columnName);
+      }
+    });
+
+    return schema;
+  }
+
   async getTableData(database: string, table: string, limit: number, offset: number, sort?: SortConfig[], filter?: string): Promise<TableDataResponse> {
     if (!this.connection) throw new Error('Not connected');
 

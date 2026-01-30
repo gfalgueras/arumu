@@ -1,8 +1,10 @@
 .idea
 node_modules
 frontend/node_modules
+backend/src/**/*.d.ts
 backend/src/**/*.js
 backend/src/**/*.map
 backend/node_modules
-backend/src/**/*.js
-backend/src/**/*.map
+shared/types/**/*.d.ts
+shared/types/**/*.js
+shared/types/**/*.map

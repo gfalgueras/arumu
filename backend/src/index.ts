@@ -11,7 +11,7 @@ import type {ServerInfo, StoredServer, DatabaseInfo} from '@shared/types/databas
 };
 
 const app = express();
-const port = 3001;
+const port = process.env.PORT || 3001;
 
 // Define the connections file path in the user's home directory
 const USER_HOME = process.env.HOME || process.env.USERPROFILE || '';
@@ -165,6 +165,34 @@ app.get('/api/servers/:serverId/databases/:dbName/tables', async (req, res) => {
     res.json(tables);
   } catch (error: any) {
     console.error('Error fetching tables:', error);
+    res.status(500).json({ error: error.message });
+  } finally {
+    await driver.disconnect();
+  }
+});
+
+app.get('/api/servers/:serverId/databases/:dbName/schema', async (req, res) => {
+  const { serverId, dbName } = req.params;
+  const server = activeServers.find(s => s.id === serverId);
+  if (!server) {
+    return res.status(404).json({ error: 'Server not found' });
+  }
+
+  const driver = new MySQLDriver();
+  try {
+    if (server.config) {
+      const config = {
+        ...server.config,
+        database: dbName
+      };
+      await driver.connect(config);
+      const schema = await driver.getSchema(dbName);
+      res.json(schema);
+    } else {
+      res.status(400).json({ error: 'Server configuration missing' });
+    }
+  } catch (error: any) {
+    console.error('Error fetching schema:', error);
     res.status(500).json({ error: error.message });
   } finally {
     await driver.disconnect();
@@ -346,6 +374,35 @@ app.post('/api/servers/:serverId/execute', async (req, res) => {
     }
   } catch (error: any) {
     console.error('Error executing query:', error);
+    res.status(500).json({ error: error.message });
+  } finally {
+    await driver.disconnect();
+  }
+});
+
+app.get('/api/servers/:serverId/databases/:dbName/tables/:tableName/columns', async (req, res) => {
+  const { serverId, dbName, tableName } = req.params;
+  const server = activeServers.find(s => s.id === serverId);
+  if (!server) {
+    return res.status(404).json({ error: 'Server not found' });
+  }
+
+  const driver = new MySQLDriver();
+  try {
+    if (server.config) {
+      const config = {
+        ...server.config,
+        database: dbName
+      };
+      await driver.connect(config);
+      const schema = await driver.getSchema(dbName);
+      const columns = schema[tableName] || [];
+      res.json(columns);
+    } else {
+      res.status(400).json({ error: 'Server configuration missing' });
+    }
+  } catch (error: any) {
+    console.error('Error fetching columns:', error);
     res.status(500).json({ error: error.message });
   } finally {
     await driver.disconnect();
