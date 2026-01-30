@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, watch, computed } from 'vue';
+import { ref, onMounted, watch, computed, shallowRef } from 'vue';
 import { Plus, X } from 'lucide-vue-next';
 import Sidebar from './components/Sidebar.vue';
 import TopBar from './components/TopBar.vue';
@@ -8,10 +8,12 @@ import DataTable from './components/DataTable.vue';
 import QueryEditor from './components/QueryEditor.vue';
 import type { ServerInfo, StoredServer } from '@shared/types/database';
 
-const servers = ref<ServerInfo[]>([]);
-const selectedServerId = ref<string | null>(null);
+const servers = shallowRef<ServerInfo[]>([]);
+const selectedServerName = ref<string | null>(null);
 const selectedDatabase = ref<string | null>(null);
 const selectedTable = ref<string | null>(null);
+
+const activeServerNames = computed(() => servers.value.map(s => s.name));
 
 interface QueryTab {
   id: string;
@@ -37,7 +39,7 @@ const sidebarWidth = ref(256);
 const isResizing = ref(false);
 const dbFilter = ref('');
 const tableFilter = ref('');
-const expandedServerIds = ref<string[]>([]);
+const expandedServerNames = ref<string[]>([]);
 const expandedDatabaseIds = ref<string[]>([]);
 const expandedTableIds = ref<string[]>([]);
 const loadingTables = ref<string[]>([]);
@@ -49,35 +51,35 @@ const fetchServers = async () => {
   servers.value = data;
 };
 
-const handleExpandServer = async (serverId: string) => {
-  if (loadingServers.value.includes(serverId)) return;
+const handleExpandServer = async (serverName: string) => {
+  if (loadingServers.value.includes(serverName)) return;
   
-  loadingServers.value.push(serverId);
+  loadingServers.value.push(serverName);
   try {
-    const res = await fetch(`http://localhost:3001/api/servers/${encodeURIComponent(serverId)}/databases`);
+    const res = await fetch(`http://localhost:3001/api/servers/${encodeURIComponent(serverName)}/databases`);
     const databases = await res.json();
     
     servers.value = servers.value.map(s => 
-      s.id === serverId ? { ...s, databases } : s
+      s.name === serverName ? { ...s, databases } : s
     );
   } catch (error) {
     console.error('Error fetching databases:', error);
   } finally {
-    loadingServers.value = loadingServers.value.filter(id => id !== serverId);
+    loadingServers.value = loadingServers.value.filter(id => id !== serverName);
   }
 };
 
-const handleExpandDatabase = async (serverId: string, dbName: string) => {
-  const key = `${serverId}:${dbName}`;
+const handleExpandDatabase = async (serverName: string, dbName: string) => {
+  const key = `${serverName}:${dbName}`;
   if (loadingDatabases.value.includes(key)) return;
 
   loadingDatabases.value.push(key);
   try {
-    const res = await fetch(`http://localhost:3001/api/servers/${encodeURIComponent(serverId)}/databases/${encodeURIComponent(dbName)}/tables`);
+    const res = await fetch(`http://localhost:3001/api/servers/${encodeURIComponent(serverName)}/databases/${encodeURIComponent(dbName)}/tables`);
     const tables = await res.json();
 
     servers.value = servers.value.map(s => {
-      if (s.id === serverId) {
+      if (s.name === serverName) {
         const updatedDbs = s.databases?.map(db => 
           db.name === dbName ? { 
             ...db, 
@@ -96,17 +98,17 @@ const handleExpandDatabase = async (serverId: string, dbName: string) => {
   }
 };
 
-const handleExpandTable = async (serverId: string, dbName: string, tableName: string) => {
-  const key = `${serverId}:${dbName}:${tableName}`;
+const handleExpandTable = async (serverName: string, dbName: string, tableName: string) => {
+  const key = `${serverName}:${dbName}:${tableName}`;
   if (loadingTables.value.includes(key)) return;
 
   loadingTables.value.push(key);
   try {
-    const res = await fetch(`http://localhost:3001/api/servers/${encodeURIComponent(serverId)}/databases/${encodeURIComponent(dbName)}/tables/${encodeURIComponent(tableName)}/columns`);
+    const res = await fetch(`http://localhost:3001/api/servers/${encodeURIComponent(serverName)}/databases/${encodeURIComponent(dbName)}/tables/${encodeURIComponent(tableName)}/columns`);
     const columns = await res.json();
 
     servers.value = servers.value.map(s => {
-      if (s.id === serverId) {
+      if (s.name === serverName) {
         const updatedDbs = s.databases?.map(db => {
           if (db.name === dbName) {
             const updatedTables = db.tables?.map(t => 
@@ -128,25 +130,40 @@ const handleExpandTable = async (serverId: string, dbName: string, tableName: st
 };
 
 const handleConnect = async (storedServer: StoredServer, closeAndRefresh = true) => {
-  const res = await fetch('http://localhost:3001/api/servers/connect', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(storedServer),
-  });
-  if (res.ok && closeAndRefresh) {
-    await fetchServers();
-    isModalOpen.value = false;
-    editingServer.value = undefined;
+  try {
+    const res = await fetch('http://localhost:3001/api/servers/connect', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(storedServer),
+    });
+    
+    if (res.ok) {
+      if (closeAndRefresh) {
+        await fetchServers();
+        isModalOpen.value = false;
+        editingServer.value = undefined;
 
-    selectedServerId.value = storedServer.id;
-    selectedDatabase.value = null;
-    selectedTable.value = null;
-    activeTab.value = 'query';
+        selectedServerName.value = storedServer.name;
+        selectedDatabase.value = null;
+        selectedTable.value = null;
+        
+        // Seleccionar la primera pestaña de query disponible
+        if (queryTabs.value.length > 0) {
+          activeTab.value = queryTabs.value[0].id;
+        }
 
-    if (!expandedServerIds.value.includes(storedServer.id)) {
-      expandedServerIds.value.push(storedServer.id);
+        if (!expandedServerNames.value.includes(storedServer.name)) {
+          expandedServerNames.value.push(storedServer.name);
+        }
+        handleExpandServer(storedServer.name);
+      }
+    } else {
+      const errorData = await res.json();
+      alert('Error al conectar: ' + (errorData.error || 'Error desconocido'));
     }
-    handleExpandServer(storedServer.id);
+  } catch (error: any) {
+    console.error('Connection error:', error);
+    alert('Error de red al conectar: ' + error.message);
   }
 };
 
@@ -158,9 +175,9 @@ const initApp = async () => {
   const state = await stateRes.json();
 
   if (state) {
-    if (state.activeServerIds && state.activeServerIds.length > 0) {
-      for (const serverId of state.activeServerIds) {
-        const serverToConnect = storedServers.find(s => s.id === serverId);
+    if (state.activeServerNames && state.activeServerNames.length > 0) {
+      for (const serverName of state.activeServerNames) {
+        const serverToConnect = storedServers.find(s => s.name === serverName);
         if (serverToConnect) {
           await handleConnect(serverToConnect, false);
         }
@@ -171,7 +188,7 @@ const initApp = async () => {
     queryEditorHeight.value = state.queryEditorHeight || 300;
     dbFilter.value = state.dbFilter || '';
     tableFilter.value = state.tableFilter || '';
-    selectedServerId.value = state.selectedServerId;
+    selectedServerName.value = state.selectedServerName;
     selectedDatabase.value = state.selectedDatabase;
     selectedTable.value = state.selectedTable;
     if (state.queryTabs && state.queryTabs.length > 0) {
@@ -183,7 +200,7 @@ const initApp = async () => {
     if (activeTab.value !== 'data' && !queryTabs.value.find(t => t.id === activeTab.value)) {
       activeTab.value = queryTabs.value[0].id;
     }
-    expandedServerIds.value = state.expandedServerIds || [];
+    expandedServerNames.value = state.expandedServerNames || [];
     expandedDatabaseIds.value = state.expandedDatabaseIds || [];
     expandedTableIds.value = state.expandedTableIds || [];
   }
@@ -191,24 +208,24 @@ const initApp = async () => {
   await fetchServers();
 
   if (state) {
-    if (state.expandedServerIds) {
-      for (const sId of state.expandedServerIds) {
-        handleExpandServer(sId);
+    if (state.expandedServerNames) {
+      for (const sName of state.expandedServerNames) {
+        handleExpandServer(sName);
       }
     }
     if (state.expandedDatabaseIds) {
       for (const dbId of state.expandedDatabaseIds) {
-        const [sId, dbName] = dbId.split(':');
-        if (sId && dbName) {
-          handleExpandDatabase(sId, dbName);
+        const [sName, dbName] = dbId.split(':');
+        if (sName && dbName) {
+          handleExpandDatabase(sName, dbName);
         }
       }
     }
     if (state.expandedTableIds) {
       for (const tableId of state.expandedTableIds) {
-        const [sId, dbName, tableName] = tableId.split(':');
-        if (sId && dbName && tableName) {
-          handleExpandTable(sId, dbName, tableName);
+        const [sName, dbName, tableName] = tableId.split(':');
+        if (sName && dbName && tableName) {
+          handleExpandTable(sName, dbName, tableName);
         }
       }
     }
@@ -220,11 +237,11 @@ onMounted(() => {
   document.documentElement.style.setProperty('--sidebar-width', `${sidebarWidth.value}px`);
 });
 
-watch([servers, selectedServerId, selectedDatabase, selectedTable, activeTab, sidebarWidth, queryEditorHeight, dbFilter, tableFilter, expandedServerIds, expandedDatabaseIds, expandedTableIds, queryTabs], (_, __, onCleanup) => {
+watch([activeServerNames, selectedServerName, selectedDatabase, selectedTable, activeTab, sidebarWidth, queryEditorHeight, dbFilter, tableFilter, expandedServerNames, expandedDatabaseIds, expandedTableIds, queryTabs], (_, __, onCleanup) => {
   const saveState = async () => {
     const state = {
-      activeServerIds: servers.value.map(s => s.id),
-      selectedServerId: selectedServerId.value,
+      activeServerNames: activeServerNames.value,
+      selectedServerName: selectedServerName.value,
       selectedDatabase: selectedDatabase.value,
       selectedTable: selectedTable.value,
       activeTab: activeTab.value,
@@ -233,7 +250,7 @@ watch([servers, selectedServerId, selectedDatabase, selectedTable, activeTab, si
       queryEditorHeight: queryEditorHeight.value,
       dbFilter: dbFilter.value,
       tableFilter: tableFilter.value,
-      expandedServerIds: expandedServerIds.value,
+      expandedServerNames: expandedServerNames.value,
       expandedDatabaseIds: expandedDatabaseIds.value,
       expandedTableIds: expandedTableIds.value
     };
@@ -281,14 +298,14 @@ const handleMouseDown = (e: MouseEvent) => {
 };
 
 const handleCloseConnection = async () => {
-  if (!selectedServerId.value) return;
+  if (!selectedServerName.value) return;
   try {
-    const res = await fetch(`http://localhost:3001/api/servers/${encodeURIComponent(selectedServerId.value)}`, {
+    const res = await fetch(`http://localhost:3001/api/servers/${encodeURIComponent(selectedServerName.value)}`, {
       method: 'DELETE',
     });
     if (res.ok) {
-      servers.value = servers.value.filter(s => s.id !== selectedServerId.value);
-      selectedServerId.value = null;
+      servers.value = servers.value.filter(s => s.name !== selectedServerName.value);
+      selectedServerName.value = null;
       selectedDatabase.value = null;
       selectedTable.value = null;
     } else {
@@ -301,11 +318,11 @@ const handleCloseConnection = async () => {
   }
 };
 
-const handleConfigServer = async (serverId: string) => {
+const handleConfigServer = async (serverName: string) => {
   try {
     const res = await fetch('http://localhost:3001/api/stored-servers');
     const storedServers: StoredServer[] = await res.json();
-    const serverToEdit = storedServers.find(s => s.id === serverId);
+    const serverToEdit = storedServers.find(s => s.name === serverName);
     if (serverToEdit) {
       editingServer.value = serverToEdit;
       isModalOpen.value = true;
@@ -327,11 +344,14 @@ watch(activeTab, (newVal) => {
 
 const addQueryTab = () => {
   const newId = Date.now().toString();
-  queryTabs.value.push({
-    id: newId,
-    name: `Query ${queryTabs.value.length + 1}`,
-    query: ''
-  });
+  queryTabs.value = [
+    ...queryTabs.value,
+    {
+      id: newId,
+      name: `Query ${queryTabs.value.length + 1}`,
+      query: ''
+    }
+  ];
   activeTab.value = newId;
 };
 
@@ -342,10 +362,13 @@ const startEditingTabName = (tab: QueryTab) => {
 
 const saveTabName = () => {
   if (editingTabId.value) {
-    const tab = queryTabs.value.find(t => t.id === editingTabId.value);
-    if (tab && editTabNameValue.value.trim()) {
-      tab.name = editTabNameValue.value.trim();
-    }
+    queryTabs.value = queryTabs.value.map(t => {
+      if (t.id === editingTabId.value) {
+        const newName = editTabNameValue.value.trim();
+        return newName ? { ...t, name: newName } : t;
+      }
+      return t;
+    });
   }
   editingTabId.value = null;
 };
@@ -359,8 +382,8 @@ const removeQueryTab = (id: string) => {
   }
 };
 
-const selectServer = (id: string) => {
-  selectedServerId.value = id;
+const selectServer = (name: string) => {
+  selectedServerName.value = name;
   selectedDatabase.value = null;
   selectedTable.value = null;
   if (activeTab.value === 'data') {
@@ -369,12 +392,12 @@ const selectServer = (id: string) => {
 };
 
 const selectedServerType = computed(() => {
-  const server = servers.value.find(s => s.id === selectedServerId.value);
+  const server = servers.value.find(s => s.name === selectedServerName.value);
   return server?.type || 'mysql';
 });
 
-const selectDatabase = (serverId: string, db: string) => {
-  selectedServerId.value = serverId;
+const selectDatabase = (serverName: string, db: string) => {
+  selectedServerName.value = serverName;
   selectedDatabase.value = db;
   selectedTable.value = null;
   if (activeTab.value === 'data') {
@@ -382,8 +405,8 @@ const selectDatabase = (serverId: string, db: string) => {
   }
 };
 
-const selectTable = (serverId: string, db: string, table: string) => {
-  selectedServerId.value = serverId;
+const selectTable = (serverName: string, db: string, table: string) => {
+  selectedServerName.value = serverName;
   selectedDatabase.value = db;
   selectedTable.value = table;
   activeTab.value = 'data';
@@ -394,12 +417,12 @@ const selectTable = (serverId: string, db: string, table: string) => {
   <div class="flex h-screen w-screen bg-slate-950 text-slate-100 overflow-hidden" :class="isResizing ? 'cursor-col-resize select-none' : ''">
     <Sidebar 
       :servers="servers"
-      :selectedServerId="selectedServerId"
+      :selectedServerName="selectedServerName"
       :selectedDatabase="selectedDatabase"
       :selectedTable="selectedTable"
       v-model:dbFilter="dbFilter"
       v-model:tableFilter="tableFilter"
-      v-model:expandedServerIds="expandedServerIds"
+      v-model:expandedServerNames="expandedServerNames"
       v-model:expandedDatabaseIds="expandedDatabaseIds"
       v-model:expandedTableIds="expandedTableIds"
       @selectServer="selectServer"
@@ -419,10 +442,10 @@ const selectTable = (serverId: string, db: string, table: string) => {
       <TopBar 
         @openConnection="isModalOpen = true"
         @closeConnection="handleCloseConnection"
-        :canClose="!!selectedServerId"
+        :canClose="!!selectedServerName"
       />
       <main class="flex-1 flex flex-col p-4 overflow-hidden min-w-0">
-        <div v-if="selectedServerId" class="w-full h-full flex flex-col min-h-0 min-w-0">
+        <div v-if="selectedServerName" class="w-full h-full flex flex-col min-h-0 min-w-0">
           <!-- Tabs Header -->
           <div class="flex border-b border-slate-800 mb-4 flex-shrink-0 items-center overflow-x-auto scrollbar-none">
             <button 
@@ -436,6 +459,7 @@ const selectTable = (serverId: string, db: string, table: string) => {
             <div 
               v-for="tab in queryTabs" 
               :key="tab.id"
+              v-memo="[tab.id, tab.name, activeTab === tab.id, editingTabId === tab.id]"
               class="group relative flex items-center border-b-2 transition-colors"
               :class="(activeTab === tab.id || editingTabId === tab.id) ? 'border-blue-500 bg-blue-500/5' : 'border-transparent hover:bg-slate-800/50'"
             >
@@ -479,9 +503,9 @@ const selectTable = (serverId: string, db: string, table: string) => {
           <div class="flex-1 min-h-0 flex flex-col min-w-0">
             <KeepAlive>
               <DataTable 
-                v-if="activeTab === 'data' && selectedTable && selectedServerId && selectedDatabase"
-                :key="`${selectedServerId}:${selectedDatabase}:${selectedTable}`"
-                :serverId="selectedServerId"
+                v-if="activeTab === 'data' && selectedTable && selectedServerName && selectedDatabase"
+                :key="`${selectedServerName}:${selectedDatabase}:${selectedTable}`"
+                :serverName="selectedServerName"
                 :database="selectedDatabase"
                 :table="selectedTable"
               />
@@ -490,7 +514,7 @@ const selectTable = (serverId: string, db: string, table: string) => {
               <QueryEditor 
                 v-if="activeTab !== 'data'"
                 :key="activeTab"
-                :serverId="selectedServerId!"
+                :serverName="selectedServerName!"
                 :serverType="selectedServerType"
                 :database="selectedDatabase"
                 v-model="queryTabs.find(t => t.id === activeTab)!.query"

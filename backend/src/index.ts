@@ -69,15 +69,14 @@ let activeServers: ServerInfo[] = [];
 
 app.get('/api/servers', (req, res) => {
   const sanitizedServers = activeServers.map(s => ({
-    id: s.id,
     name: s.name,
     type: s.type
   }));
   res.json(sanitizedServers);
 });
 
-app.get('/api/servers/:id/databases', async (req, res) => {
-  const server = activeServers.find(s => s.id === req.params.id);
+app.get('/api/servers/:name/databases', async (req, res) => {
+  const server = activeServers.find(s => s.name === req.params.name);
   if (!server) {
     return res.status(404).json({ error: 'Server not found' });
   }
@@ -111,9 +110,9 @@ app.get('/api/servers/:id/databases', async (req, res) => {
   }
 });
 
-app.get('/api/servers/:serverId/databases/:dbName/tables', async (req, res) => {
-  const { serverId, dbName } = req.params;
-  const server = activeServers.find(s => s.id === serverId);
+app.get('/api/servers/:serverName/databases/:dbName/tables', async (req, res) => {
+  const { serverName, dbName } = req.params;
+  const server = activeServers.find(s => s.name === serverName);
   if (!server) {
     return res.status(404).json({ error: 'Server not found' });
   }
@@ -171,9 +170,9 @@ app.get('/api/servers/:serverId/databases/:dbName/tables', async (req, res) => {
   }
 });
 
-app.get('/api/servers/:serverId/databases/:dbName/schema', async (req, res) => {
-  const { serverId, dbName } = req.params;
-  const server = activeServers.find(s => s.id === serverId);
+app.get('/api/servers/:serverName/databases/:dbName/schema', async (req, res) => {
+  const { serverName, dbName } = req.params;
+  const server = activeServers.find(s => s.name === serverName);
   if (!server) {
     return res.status(404).json({ error: 'Server not found' });
   }
@@ -210,7 +209,7 @@ app.post('/api/servers/connect', async (req, res) => {
     }
     
     // Check if it's already connected
-    const alreadyActive = activeServers.find(s => s.id === storedServer.id);
+    const alreadyActive = activeServers.find(s => s.name === storedServer.name);
     if (!alreadyActive) {
       await driver.connect(storedServer.config);
     }
@@ -236,8 +235,8 @@ app.post('/api/servers/connect', async (req, res) => {
   }
 });
 
-app.delete('/api/servers/:id', (req, res) => {
-  activeServers = activeServers.filter(s => s.id !== req.params.id);
+app.delete('/api/servers/:name', (req, res) => {
+  activeServers = activeServers.filter(s => s.name !== req.params.name);
   res.sendStatus(204);
 });
 
@@ -263,7 +262,13 @@ app.post('/api/app-state', (req, res) => {
 app.post('/api/stored-servers', (req, res) => {
   try {
     const servers = getStoredServers();
-    const newServer = { ...req.body, id: Date.now().toString() };
+    const newServer = { ...req.body };
+    
+    // Evitar duplicados por nombre
+    if (servers.find(s => s.name === newServer.name)) {
+      return res.status(400).json({ error: 'Ya existe un servidor con este nombre' });
+    }
+
     servers.push(newServer);
     saveStoredServers(servers);
     res.json(newServer);
@@ -273,18 +278,18 @@ app.post('/api/stored-servers', (req, res) => {
   }
 });
 
-app.put('/api/stored-servers/:id', (req, res) => {
+app.put('/api/stored-servers/:name', (req, res) => {
   try {
     const servers = getStoredServers();
-    const index = servers.findIndex(s => s.id === req.params.id);
+    const index = servers.findIndex(s => s.name === req.params.name);
     if (index === -1) {
       return res.status(404).json({ error: 'Server not found' });
     }
-    servers[index] = { ...req.body, id: req.params.id };
+    servers[index] = { ...req.body };
     saveStoredServers(servers);
     
     // Si el servidor está activo, actualizar su config y limpiar cache de bases de datos
-    const activeIndex = activeServers.findIndex(s => s.id === req.params.id);
+    const activeIndex = activeServers.findIndex(s => s.name === req.params.name);
     if (activeIndex !== -1) {
       const updatedServer: ServerInfo = { 
         ...servers[index]!, 
@@ -300,9 +305,9 @@ app.put('/api/stored-servers/:id', (req, res) => {
   }
 });
 
-app.get('/api/debug/tables-raw/:serverId/:dbName', async (req, res) => {
-  const { serverId, dbName } = req.params;
-  const server = activeServers.find(s => s.id === serverId);
+app.get('/api/debug/tables-raw/:serverName/:dbName', async (req, res) => {
+  const { serverName, dbName } = req.params;
+  const server = activeServers.find(s => s.name === serverName);
   if (!server || !server.config) return res.status(404).json({ error: 'Server or configuration not found' });
   const driver = new MySQLDriver();
   try {
@@ -317,14 +322,14 @@ app.get('/api/debug/tables-raw/:serverId/:dbName', async (req, res) => {
   }
 });
 
-app.get('/api/servers/:serverId/databases/:dbName/tables/:tableName/data', async (req, res) => {
-  const { serverId, dbName, tableName } = req.params;
+app.get('/api/servers/:serverName/databases/:dbName/tables/:tableName/data', async (req, res) => {
+  const { serverName, dbName, tableName } = req.params;
   const limit = parseInt(req.query.limit as string) || 1000;
   const offset = parseInt(req.query.offset as string) || 0;
   const sort = req.query.sort ? JSON.parse(req.query.sort as string) : undefined;
   const filter = req.query.filter as string | undefined;
 
-  const server = activeServers.find(s => s.id === serverId);
+  const server = activeServers.find(s => s.name === serverName);
   if (!server) {
     return res.status(404).json({ error: 'Server not found' });
   }
@@ -350,11 +355,11 @@ app.get('/api/servers/:serverId/databases/:dbName/tables/:tableName/data', async
   }
 });
 
-app.post('/api/servers/:serverId/execute', async (req, res) => {
-  const { serverId } = req.params;
+app.post('/api/servers/:serverName/execute', async (req, res) => {
+  const { serverName } = req.params;
   const { sql, database } = req.body;
 
-  const server = activeServers.find(s => s.id === serverId);
+  const server = activeServers.find(s => s.name === serverName);
   if (!server) {
     return res.status(404).json({ error: 'Server not found' });
   }
@@ -380,9 +385,9 @@ app.post('/api/servers/:serverId/execute', async (req, res) => {
   }
 });
 
-app.get('/api/servers/:serverId/databases/:dbName/tables/:tableName/columns', async (req, res) => {
-  const { serverId, dbName, tableName } = req.params;
-  const server = activeServers.find(s => s.id === serverId);
+app.get('/api/servers/:serverName/databases/:dbName/tables/:tableName/columns', async (req, res) => {
+  const { serverName, dbName, tableName } = req.params;
+  const server = activeServers.find(s => s.name === serverName);
   if (!server) {
     return res.status(404).json({ error: 'Server not found' });
   }

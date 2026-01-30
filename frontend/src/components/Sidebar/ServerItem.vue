@@ -4,7 +4,6 @@ import { Server, ChevronRight, ChevronDown, Loader2 } from 'lucide-vue-next';
 import DatabaseItem from './DatabaseItem.vue';
 
 const props = defineProps<{
-  id: string;
   name: string;
   type: string;
   databases: { name: string; size?: number; tables: { name: string; size?: number }[] }[];
@@ -26,10 +25,10 @@ const emit = defineEmits<{
   (e: 'select'): void;
   (e: 'selectDatabase', db: string): void;
   (e: 'selectTable', dbName: string, table: string): void;
-  (e: 'expand', serverId: string): void;
+  (e: 'expand', serverName: string): void;
   (e: 'expandDatabase', db: string): void;
   (e: 'expandTable', db: string, table: string): void;
-  (e: 'contextMenu', event: MouseEvent, id: string): void;
+  (e: 'contextMenu', event: MouseEvent, name: string): void;
   (e: 'toggleDatabase', db: string, open: boolean): void;
   (e: 'toggleTable', db: string, table: string, open: boolean): void;
 }>();
@@ -37,18 +36,18 @@ const emit = defineEmits<{
 const getLoadingTablesForDatabase = (dbName: string) => {
   return props.loadingTables
     ?.filter(lt => lt.startsWith(`${dbName}:`))
-    .map(lt => lt.split(':')[1] || []);
+    .map(lt => lt.split(':')[1] || '');
 };
 
 const getExpandedTableIdsForDatabase = (dbName: string) => {
   return props.expandedTableIds
     .filter(et => et.startsWith(`${dbName}:`))
-    .map(et => et.split(':')[1] || []);
+    .map(et => et.split(':')[1] || '');
 };
 
 watch(() => props.isOpen, (newVal) => {
   if (newVal && props.databases.length === 0 && !props.isLoading) {
-    emit('expand');
+    emit('expand', props.name);
   }
 }, { immediate: true });
 
@@ -78,7 +77,7 @@ const handleSelect = () => {
       class="flex items-center gap-2 py-2 px-4 hover:bg-slate-700 cursor-pointer overflow-hidden"
       :class="isSelected ? 'bg-blue-600/20 border-l-2 border-blue-500' : 'text-slate-200'"
       @click.stop="handleSelect"
-      @contextmenu.prevent="emit('contextMenu', $event, id)"
+      @contextmenu.prevent="emit('contextMenu', $event, name)"
     >
       <div class="flex items-center gap-2 flex-1 min-w-0">
         <div 
@@ -97,6 +96,7 @@ const handleSelect = () => {
       <DatabaseItem 
         v-for="db in filteredDatabases"
         :key="db.name" 
+        v-memo="[db.name, db.size, db.tables, filterTable, selectedDatabase === db.name, selectedTable, expandedDatabaseIds.includes(db.name), loadingDatabases?.includes(db.name), getLoadingTablesForDatabase(db.name), getExpandedTableIdsForDatabase(db.name)]"
         :name="db.name" 
         :size="db.size"
         :tables="db.tables" 

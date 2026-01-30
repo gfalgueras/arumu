@@ -1,17 +1,17 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, watch, computed } from 'vue';
+import { ref, onMounted, onUnmounted, watch, computed, shallowRef } from 'vue';
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, ArrowUp, ArrowDown, Loader2 } from 'lucide-vue-next';
 import type { SortConfig, TableDataResponse } from '@shared/types/database';
 import DataRow from './DataTable/DataRow.vue';
 import FilterInput from './DataTable/FilterInput.vue';
 
 const props = defineProps<{
-  serverId: string;
+  serverName: string;
   database: string;
   table: string;
 }>();
 
-const data = ref<TableDataResponse | null>(null);
+const data = shallowRef<TableDataResponse | null>(null);
 const loading = ref(false);
 const error = ref<string | null>(null);
 const page = ref(0);
@@ -29,7 +29,7 @@ const tableRef = ref<HTMLTableElement | null>(null);
 const colRefs = ref<Record<string, HTMLTableColElement | null>>({});
 const limit = 1000;
 
-watch(() => [props.serverId, props.database, props.table], () => {
+watch(() => [props.serverName, props.database, props.table], () => {
   page.value = 0;
   sort.value = [];
   appliedFilter.value = '';
@@ -42,7 +42,7 @@ const fetchData = async () => {
   try {
     const sortParam = sort.value.length > 0 ? `&sort=${encodeURIComponent(JSON.stringify(sort.value))}` : '';
     const filterParam = appliedFilter.value ? `&filter=${encodeURIComponent(appliedFilter.value)}` : '';
-    const res = await fetch(`http://localhost:3001/api/servers/${encodeURIComponent(props.serverId)}/databases/${encodeURIComponent(props.database)}/tables/${encodeURIComponent(props.table)}/data?limit=${limit}&offset=${page.value * limit}${sortParam}${filterParam}`);
+    const res = await fetch(`http://localhost:3001/api/servers/${encodeURIComponent(props.serverName)}/databases/${encodeURIComponent(props.database)}/tables/${encodeURIComponent(props.table)}/data?limit=${limit}&offset=${page.value * limit}${sortParam}${filterParam}`);
     if (!res.ok) {
       const errData = await res.json();
       throw new Error(errData.error || 'Failed to fetch data');
@@ -56,7 +56,7 @@ const fetchData = async () => {
   }
 };
 
-watch(() => [props.serverId, props.database, props.table, page.value, sort.value, appliedFilter.value], () => {
+watch(() => [props.serverName, props.database, props.table, page.value, sort.value, appliedFilter.value], () => {
   fetchData();
 }, { immediate: true });
 
@@ -251,6 +251,7 @@ const totalWidth = computed(() => data.value?.columns.reduce((acc, col) => acc +
             <DataRow 
               v-for="(row, i) in data?.rows"
               :key="i" 
+              v-memo="[row, data?.columns]"
               :row="row" 
               :columns="data?.columns || []" 
             />

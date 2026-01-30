@@ -6,7 +6,7 @@ import ServerItem from './Sidebar/ServerItem.vue';
 
 const props = defineProps<{
   servers: any[];
-  selectedServerId: string | null;
+  selectedServerName: string | null;
   selectedDatabase: string | null;
   selectedTable: string | null;
   loadingServers: string[];
@@ -14,7 +14,7 @@ const props = defineProps<{
   loadingTables: string[];
   dbFilter: string;
   tableFilter: string;
-  expandedServerIds: string[];
+  expandedServerNames: string[];
   expandedDatabaseIds: string[];
   expandedTableIds: string[];
 }>();
@@ -22,73 +22,73 @@ const props = defineProps<{
 const emit = defineEmits<{
   (e: 'update:dbFilter', val: string): void;
   (e: 'update:tableFilter', val: string): void;
-  (e: 'update:expandedServerIds', val: string[]): void;
+  (e: 'update:expandedServerNames', val: string[]): void;
   (e: 'update:expandedDatabaseIds', val: string[]): void;
   (e: 'update:expandedTableIds', val: string[]): void;
-  (e: 'selectServer', id: string): void;
-  (e: 'selectDatabase', serverId: string, db: string): void;
-  (e: 'selectTable', serverId: string, db: string, table: string): void;
-  (e: 'expandServer', serverId: string): void;
-  (e: 'expandDatabase', serverId: string, db: string): void;
-  (e: 'expandTable', serverId: string, db: string, table: string): void;
-  (e: 'configServer', serverId: string): void;
+  (e: 'selectServer', name: string): void;
+  (e: 'selectDatabase', serverName: string, db: string): void;
+  (e: 'selectTable', serverName: string, db: string, table: string): void;
+  (e: 'expandServer', serverName: string): void;
+  (e: 'expandDatabase', serverName: string, db: string): void;
+  (e: 'expandTable', serverName: string, db: string, table: string): void;
+  (e: 'configServer', serverName: string): void;
   (e: 'resizeMouseDown', event: MouseEvent): void;
   (e: 'openConnection'): void;
 }>();
 
-const contextMenu = ref<{ x: number, y: number, serverId: string } | null>(null);
+const contextMenu = ref<{ x: number, y: number, serverName: string } | null>(null);
 
-const handleToggleServer = (serverId: string, open: boolean) => {
+const handleToggleServer = (serverName: string, open: boolean) => {
   const newVal = open 
-    ? [...props.expandedServerIds, serverId] 
-    : props.expandedServerIds.filter(id => id !== serverId);
-  emit('update:expandedServerIds', newVal);
+    ? [...props.expandedServerNames, serverName] 
+    : props.expandedServerNames.filter(name => name !== serverName);
+  emit('update:expandedServerNames', newVal);
 };
 
-const handleToggleDatabase = (serverId: string, dbName: string, open: boolean) => {
-  const key = `${serverId}:${dbName}`;
+const handleToggleDatabase = (serverName: string, dbName: string, open: boolean) => {
+  const key = `${serverName}:${dbName}`;
   const newVal = open 
     ? [...props.expandedDatabaseIds, key] 
     : props.expandedDatabaseIds.filter(k => k !== key);
   emit('update:expandedDatabaseIds', newVal);
 };
 
-const handleToggleTable = (serverId: string, dbName: string, tableName: string, open: boolean) => {
-  const key = `${serverId}:${dbName}:${tableName}`;
+const handleToggleTable = (serverName: string, dbName: string, tableName: string, open: boolean) => {
+  const key = `${serverName}:${dbName}:${tableName}`;
   const newVal = open 
     ? [...props.expandedTableIds, key] 
     : props.expandedTableIds.filter(k => k !== key);
   emit('update:expandedTableIds', newVal);
 };
 
-const handleContextMenu = (e: MouseEvent, serverId: string) => {
-  contextMenu.value = { x: e.clientX, y: e.clientY, serverId };
+const handleContextMenu = (e: MouseEvent, serverName: string) => {
+  contextMenu.value = { x: e.clientX, y: e.clientY, serverName };
 };
 
-const getLoadingDatabasesForServer = (serverId: string) => {
+const getLoadingDatabasesForServer = (serverName: string) => {
   return props.loadingDatabases
-    .filter(ld => ld.startsWith(`${serverId}:`))
+    .filter(ld => ld.startsWith(`${serverName}:`))
     .map(ld => ld.split(':')[1] || '');
 };
 
-const getLoadingTablesForServer = (serverId: string) => {
+const getLoadingTablesForServer = (serverName: string) => {
   return props.loadingTables
-    .filter(lt => lt.startsWith(`${serverId}:`))
+    .filter(lt => lt.startsWith(`${serverName}:`))
     .map(lt => {
       const parts = lt.split(':');
       return `${parts[1]}:${parts[2]}`;
     });
 };
 
-const getExpandedDatabaseIdsForServer = (serverId: string) => {
+const getExpandedDatabaseIdsForServer = (serverName: string) => {
   return props.expandedDatabaseIds
-    .filter(ed => ed.startsWith(`${serverId}:`))
+    .filter(ed => ed.startsWith(`${serverName}:`))
     .map(ed => ed.split(':')[1] || '');
 };
 
-const getExpandedTableIdsForServer = (serverId: string) => {
+const getExpandedTableIdsForServer = (serverName: string) => {
   return props.expandedTableIds
-    .filter(et => et.startsWith(`${serverId}:`))
+    .filter(et => et.startsWith(`${serverName}:`))
     .map(et => {
       const parts = et.split(':');
       return `${parts[1]}:${parts[2]}`;
@@ -138,8 +138,8 @@ const getExpandedTableIdsForServer = (serverId: string) => {
       <template v-else>
         <ServerItem 
           v-for="server in servers"
-          :key="server.id"
-          :id="server.id"
+          :key="server.name"
+          v-memo="[server.name, server.type, server.databases, dbFilter, tableFilter, selectedServerName === server.name, selectedServerName === server.name ? selectedDatabase : null, selectedServerName === server.name ? selectedTable : null, expandedServerNames.includes(server.name), loadingServers.includes(server.name), getLoadingDatabasesForServer(server.name), getLoadingTablesForServer(server.name), getExpandedDatabaseIdsForServer(server.name), getExpandedTableIdsForServer(server.name)]"
           :name="server.name"
           :type="server.type"
           :databases="(server.databases || []).map((db: any) => ({
@@ -152,25 +152,25 @@ const getExpandedTableIdsForServer = (serverId: string) => {
           }))"
           :filterDatabase="dbFilter"
           :filterTable="tableFilter"
-          :isSelected="selectedServerId === server.id"
-          :selectedDatabase="selectedServerId === server.id ? selectedDatabase : null"
-          :selectedTable="selectedServerId === server.id ? selectedTable : null"
-          :isOpen="expandedServerIds.includes(server.id)"
-          :isLoading="loadingServers.includes(server.id)"
-          :loadingDatabases="getLoadingDatabasesForServer(server.id)"
-          :loadingTables="getLoadingTablesForServer(server.id)"
-          :expandedDatabaseIds="getExpandedDatabaseIdsForServer(server.id)"
-          :expandedTableIds="getExpandedTableIdsForServer(server.id)"
-          @toggle="(open) => handleToggleServer(server.id, open)"
-          @select="emit('selectServer', server.id)"
-          @selectDatabase="(db) => emit('selectDatabase', server.id, db)"
-          @selectTable="(dbName, table) => emit('selectTable', server.id, dbName, table)"
-          @expand="emit('expandServer', server.id)"
-          @expandDatabase="(db) => emit('expandDatabase', server.id, db)"
-          @expandTable="(db, table) => emit('expandTable', server.id, db, table)"
+          :isSelected="selectedServerName === server.name"
+          :selectedDatabase="selectedServerName === server.name ? selectedDatabase : null"
+          :selectedTable="selectedServerName === server.name ? selectedTable : null"
+          :isOpen="expandedServerNames.includes(server.name)"
+          :isLoading="loadingServers.includes(server.name)"
+          :loadingDatabases="getLoadingDatabasesForServer(server.name)"
+          :loadingTables="getLoadingTablesForServer(server.name)"
+          :expandedDatabaseIds="getExpandedDatabaseIdsForServer(server.name)"
+          :expandedTableIds="getExpandedTableIdsForServer(server.name)"
+          @toggle="(open) => handleToggleServer(server.name, open)"
+          @select="emit('selectServer', server.name)"
+          @selectDatabase="(db) => emit('selectDatabase', server.name, db)"
+          @selectTable="(dbName, table) => emit('selectTable', server.name, dbName, table)"
+          @expand="emit('expandServer', server.name)"
+          @expandDatabase="(db) => emit('expandDatabase', server.name, db)"
+          @expandTable="(db, table) => emit('expandTable', server.name, db, table)"
           @contextMenu="handleContextMenu"
-          @toggleDatabase="(db, open) => handleToggleDatabase(server.id, db, open)"
-          @toggleTable="(db, table, open) => handleToggleTable(server.id, db, table, open)"
+          @toggleDatabase="(db, open) => handleToggleDatabase(server.name, db, open)"
+          @toggleTable="(db, table, open) => handleToggleTable(server.name, db, table, open)"
         />
       </template>
     </div>
@@ -180,7 +180,7 @@ const getExpandedTableIdsForServer = (serverId: string) => {
       :x="contextMenu.x" 
       :y="contextMenu.y" 
       @close="contextMenu = null"
-      @config="emit('configServer', contextMenu.serverId)"
+      @config="emit('configServer', contextMenu.serverName)"
     />
     
     <div class="p-4 bg-slate-950 text-xs text-slate-500 border-t border-slate-800">

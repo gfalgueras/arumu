@@ -86,6 +86,7 @@ const handleSelect = () => {
       <TableItem 
         v-for="table in filteredTables"
         :key="table.name" 
+        v-memo="[table.name, table.size, (table as any).columns, selectedTable === table.name, expandedTableIds.includes(table.name), loadingTables?.includes(table.name)]"
         :name="table.name" 
         :size="table.size"
         :columns="(table as any).columns"

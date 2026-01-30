@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch, onUnmounted } from 'vue';
+import { ref, computed, watch, onUnmounted, shallowRef } from 'vue';
 import { Play, Loader2, AlertCircle, Database as DatabaseIcon, GripHorizontal } from 'lucide-vue-next';
 import CodeMirror from 'vue-codemirror6';
 import { sql, MySQL, PostgreSQL, SQLite } from '@codemirror/lang-sql';
@@ -8,7 +8,7 @@ import { keymap } from '@codemirror/view';
 import { autocompletion, completionKeymap } from '@codemirror/autocomplete';
 
 const props = defineProps<{
-  serverId: string;
+  serverName: string;
   serverType: 'mysql' | 'postgres' | 'sqlite';
   database: string | null;
 }>();
@@ -17,9 +17,9 @@ const query = defineModel<string>({ default: '' });
 const height = defineModel<number>('height', { default: 300 });
 const loading = ref(false);
 const fetchingSchema = ref(false);
-const result = ref<any>(null);
+const result = shallowRef<any>(null);
 const error = ref<string | null>(null);
-const schema = ref<Record<string, string[]>>({});
+const schema = shallowRef<Record<string, string[]>>({});
 const isResizing = ref(false);
 const editorContainerRef = ref<HTMLElement | null>(null);
 
@@ -53,11 +53,11 @@ onUnmounted(() => {
   window.removeEventListener('mouseup', handleMouseUp);
 });
 
-watch(() => [props.serverId, props.database], async () => {
-  if (props.serverId && props.database) {
+watch(() => [props.serverName, props.database], async () => {
+  if (props.serverName && props.database) {
     fetchingSchema.value = true;
     try {
-      const res = await fetch(`http://localhost:3001/api/servers/${encodeURIComponent(props.serverId)}/databases/${encodeURIComponent(props.database)}/schema`);
+      const res = await fetch(`http://localhost:3001/api/servers/${encodeURIComponent(props.serverName)}/databases/${encodeURIComponent(props.database)}/schema`);
       if (res.ok) {
         schema.value = await res.json();
       }
@@ -97,13 +97,13 @@ const extensions = computed(() => {
 });
 
 const handleExecute = async () => {
-  if (!props.serverId || loading.value) return;
+  if (!props.serverName || loading.value) return;
   loading.value = true;
   error.value = null;
   result.value = null;
 
   try {
-    const res = await fetch(`http://localhost:3001/api/servers/${encodeURIComponent(props.serverId)}/execute`, {
+    const res = await fetch(`http://localhost:3001/api/servers/${encodeURIComponent(props.serverName)}/execute`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ 
@@ -152,7 +152,7 @@ const isArray = (val: any) => Array.isArray(val);
     <div class="flex items-center gap-4 bg-slate-900/50 p-2 border border-slate-700 rounded-lg">
       <button
         @click="handleExecute"
-        :disabled="loading || !serverId"
+        :disabled="loading || !serverName"
         class="flex items-center gap-2 px-4 py-1.5 bg-emerald-600 hover:bg-emerald-500 disabled:bg-slate-700 text-white rounded font-medium text-sm"
       >
         <Loader2 v-if="loading" :size="16" class="animate-spin" />

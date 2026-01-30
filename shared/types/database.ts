@@ -11,7 +11,6 @@ export interface DatabaseInfo {
 }
 
 export interface ServerInfo {
-  id: string;
   name: string;
   type: 'mysql' | 'postgres' | 'sqlite';
   databases?: DatabaseInfo[];
@@ -19,7 +18,6 @@ export interface ServerInfo {
 }
 
 export interface StoredServer {
-  id: string;
   name: string;
   type: 'mysql' | 'postgres' | 'sqlite';
   config: ConnectionConfig;
@@ -46,8 +44,8 @@ export interface SortConfig {
 }
 
 export interface AppState {
-  activeServerIds: string[];
-  selectedServerId: string | null;
+  activeServerNames: string[];
+  selectedServerName: string | null;
   selectedDatabase: string | null;
   selectedTable: string | null;
   activeTab: string;
@@ -56,9 +54,9 @@ export interface AppState {
   queryEditorHeight?: number;
   dbFilter: string;
   tableFilter: string;
-  expandedServerIds: string[];
-  expandedDatabaseIds: string[]; // Formato "serverId:dbName"
-  expandedTableIds: string[]; // Formato "serverId:dbName:tableName"
+  expandedServerNames: string[];
+  expandedDatabaseIds: string[]; // Formato "serverName:dbName"
+  expandedTableIds: string[]; // Formato "serverName:dbName:tableName"
 }
 
 export interface IDatabaseDriver {

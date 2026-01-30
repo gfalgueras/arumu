@@ -39,7 +39,7 @@ onMounted(() => {
 const handleSave = async () => {
   try {
     const url = props.editServer 
-      ? `http://localhost:3001/api/stored-servers/${props.editServer.id}`
+      ? `http://localhost:3001/api/stored-servers/${encodeURIComponent(props.editServer.name)}`
       : 'http://localhost:3001/api/stored-servers';
     
     const response = await fetch(url, {
@@ -94,7 +94,7 @@ const handleSave = async () => {
           <div v-else class="space-y-2">
             <div 
               v-for="server in storedServers"
-              :key="server.id"
+              :key="server.name"
               class="flex items-center justify-between p-3 bg-slate-800 rounded border border-slate-700 hover:border-blue-500 cursor-pointer group"
               @click="emit('connect', server)"
             >
