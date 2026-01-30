@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, watch } from 'vue';
+import { Plus, X } from 'lucide-vue-next';
 import Sidebar from './components/Sidebar.vue';
 import TopBar from './components/TopBar.vue';
 import ConnectionModal from './components/ConnectionModal.vue';
@@ -11,7 +12,23 @@ const servers = ref<ServerInfo[]>([]);
 const selectedServerId = ref<string | null>(null);
 const selectedDatabase = ref<string | null>(null);
 const selectedTable = ref<string | null>(null);
-const activeTab = ref<'data' | 'query'>('query');
+
+interface QueryTab {
+  id: string;
+  name: string;
+  query: string;
+}
+
+const queryTabs = ref<QueryTab[]>([
+  { id: '1', name: 'Query 1', query: '' }
+]);
+const activeTab = ref<string>('1');
+const editingTabId = ref<string | null>(null);
+const editTabNameValue = ref('');
+
+const vFocus = {
+  mounted: (el: HTMLElement) => el.focus()
+};
 const isModalOpen = ref(false);
 const editingServer = ref<StoredServer | undefined>(undefined);
 const loadingServers = ref<string[]>([]);
@@ -122,7 +139,15 @@ const initApp = async () => {
     selectedServerId.value = state.selectedServerId;
     selectedDatabase.value = state.selectedDatabase;
     selectedTable.value = state.selectedTable;
-    activeTab.value = state.activeTab || 'query';
+    if (state.queryTabs && state.queryTabs.length > 0) {
+      queryTabs.value = state.queryTabs;
+    }
+    activeTab.value = state.activeTab || queryTabs.value[0].id;
+    
+    // Validar que la pestaña activa existe
+    if (activeTab.value !== 'data' && !queryTabs.value.find(t => t.id === activeTab.value)) {
+      activeTab.value = queryTabs.value[0].id;
+    }
     expandedServerIds.value = state.expandedServerIds || [];
     expandedDatabaseIds.value = state.expandedDatabaseIds || [];
   }
@@ -151,7 +176,7 @@ onMounted(() => {
   document.documentElement.style.setProperty('--sidebar-width', `${sidebarWidth.value}px`);
 });
 
-watch([servers, selectedServerId, selectedDatabase, selectedTable, activeTab, sidebarWidth, dbFilter, tableFilter, expandedServerIds, expandedDatabaseIds], (_, __, onCleanup) => {
+watch([servers, selectedServerId, selectedDatabase, selectedTable, activeTab, sidebarWidth, dbFilter, tableFilter, expandedServerIds, expandedDatabaseIds, queryTabs], (_, __, onCleanup) => {
   const saveState = async () => {
     const state = {
       activeServerIds: servers.value.map(s => s.id),
@@ -159,6 +184,7 @@ watch([servers, selectedServerId, selectedDatabase, selectedTable, activeTab, si
       selectedDatabase: selectedDatabase.value,
       selectedTable: selectedTable.value,
       activeTab: activeTab.value,
+      queryTabs: queryTabs.value,
       sidebarWidth: sidebarWidth.value,
       dbFilter: dbFilter.value,
       tableFilter: tableFilter.value,
@@ -245,18 +271,64 @@ const handleConfigServer = async (serverId: string) => {
   }
 };
 
+const lastActiveQueryTabId = ref<string>('1');
+
+watch(activeTab, (newVal) => {
+  if (newVal !== 'data') {
+    lastActiveQueryTabId.value = newVal;
+  }
+});
+
+const addQueryTab = () => {
+  const newId = Date.now().toString();
+  queryTabs.value.push({
+    id: newId,
+    name: `Query ${queryTabs.value.length + 1}`,
+    query: ''
+  });
+  activeTab.value = newId;
+};
+
+const startEditingTabName = (tab: QueryTab) => {
+  editingTabId.value = tab.id;
+  editTabNameValue.value = tab.name;
+};
+
+const saveTabName = () => {
+  if (editingTabId.value) {
+    const tab = queryTabs.value.find(t => t.id === editingTabId.value);
+    if (tab && editTabNameValue.value.trim()) {
+      tab.name = editTabNameValue.value.trim();
+    }
+  }
+  editingTabId.value = null;
+};
+
+const removeQueryTab = (id: string) => {
+  if (queryTabs.value.length <= 1) return;
+  const index = queryTabs.value.findIndex(t => t.id === id);
+  queryTabs.value = queryTabs.value.filter(t => t.id !== id);
+  if (activeTab.value === id) {
+    activeTab.value = queryTabs.value[Math.max(0, index - 1)].id;
+  }
+};
+
 const selectServer = (id: string) => {
   selectedServerId.value = id;
   selectedDatabase.value = null;
   selectedTable.value = null;
-  activeTab.value = 'query';
+  if (activeTab.value === 'data') {
+    activeTab.value = lastActiveQueryTabId.value;
+  }
 };
 
 const selectDatabase = (serverId: string, db: string) => {
   selectedServerId.value = serverId;
   selectedDatabase.value = db;
   selectedTable.value = null;
-  activeTab.value = 'query';
+  if (activeTab.value === 'data') {
+    activeTab.value = lastActiveQueryTabId.value;
+  }
 };
 
 const selectTable = (serverId: string, db: string, table: string) => {
@@ -298,21 +370,54 @@ const selectTable = (serverId: string, db: string, table: string) => {
       <main class="flex-1 flex flex-col p-4 overflow-hidden min-w-0">
         <div v-if="selectedServerId" class="w-full h-full flex flex-col min-h-0 min-w-0">
           <!-- Tabs Header -->
-          <div class="flex border-b border-slate-800 mb-4 flex-shrink-0">
+          <div class="flex border-b border-slate-800 mb-4 flex-shrink-0 items-center overflow-x-auto scrollbar-none">
             <button 
               v-if="selectedTable"
               @click="activeTab = 'data'"
-              class="px-4 py-2 text-sm font-medium border-b-2"
-              :class="activeTab === 'data' ? 'border-blue-500 text-blue-500' : 'border-transparent text-slate-400 hover:text-slate-200'"
+              class="px-4 py-2 text-sm font-medium border-b-2 whitespace-nowrap transition-colors"
+              :class="activeTab === 'data' ? 'border-blue-500 text-blue-500 bg-blue-500/5' : 'border-transparent text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'"
             >
               Datos
             </button>
-            <button 
-              @click="activeTab = 'query'"
-              class="px-4 py-2 text-sm font-medium border-b-2"
-              :class="activeTab === 'query' ? 'border-blue-500 text-blue-500' : 'border-transparent text-slate-400 hover:text-slate-200'"
+            <div 
+              v-for="tab in queryTabs" 
+              :key="tab.id"
+              class="group relative flex items-center border-b-2 transition-colors"
+              :class="(activeTab === tab.id || editingTabId === tab.id) ? 'border-blue-500 bg-blue-500/5' : 'border-transparent hover:bg-slate-800/50'"
             >
-              Query
+              <button 
+                v-if="editingTabId !== tab.id"
+                @click="activeTab = tab.id"
+                @dblclick="startEditingTabName(tab)"
+                class="pl-4 pr-2 py-2 text-sm font-medium whitespace-nowrap"
+                :class="activeTab === tab.id ? 'text-blue-500' : 'text-slate-400 hover:text-slate-200'"
+              >
+                {{ tab.name }}
+              </button>
+              <input
+                v-else
+                v-model="editTabNameValue"
+                @blur="saveTabName"
+                @keyup.enter="saveTabName"
+                @keyup.escape="editingTabId = null"
+                v-focus
+                class="px-4 py-2 text-sm font-medium bg-slate-800 text-blue-500 outline-none w-32"
+              />
+              <button 
+                v-if="queryTabs.length > 1"
+                @click.stop="removeQueryTab(tab.id)"
+                class="mr-1.5 p-1 text-slate-500 hover:text-red-400 hover:bg-slate-700/50 rounded transition-all opacity-0 group-hover:opacity-100"
+                title="Cerrar pestaña"
+              >
+                <X :size="14" />
+              </button>
+            </div>
+            <button 
+              @click="addQueryTab"
+              class="px-4 py-2 text-slate-400 hover:text-blue-500 hover:bg-slate-800/50 transition-colors border-b-2 border-transparent"
+              title="Nueva pestaña de consulta"
+            >
+              <Plus :size="18" />
             </button>
           </div>
 
@@ -329,10 +434,11 @@ const selectTable = (serverId: string, db: string, table: string) => {
             </KeepAlive>
             <KeepAlive>
               <QueryEditor 
-                v-if="activeTab === 'query'"
-                :key="`${selectedServerId}:${selectedDatabase}`"
-                :serverId="selectedServerId"
+                v-if="activeTab !== 'data'"
+                :key="activeTab"
+                :serverId="selectedServerId!"
                 :database="selectedDatabase"
+                v-model="queryTabs.find(t => t.id === activeTab)!.query"
               />
             </KeepAlive>
           </div>

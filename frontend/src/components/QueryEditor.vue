@@ -7,13 +7,13 @@ const props = defineProps<{
   database: string | null;
 }>();
 
-const query = ref('SELECT * FROM ... LIMIT 100;');
+const query = defineModel<string>({ default: '' });
 const loading = ref(false);
 const result = ref<any>(null);
 const error = ref<string | null>(null);
 
 const handleExecute = async () => {
-  if (!props.serverId) return;
+  if (!props.serverId || loading.value) return;
   loading.value = true;
   error.value = null;
   result.value = null;
@@ -82,6 +82,7 @@ const isArray = (val: any) => Array.isArray(val);
           class="w-full h-full bg-slate-900 text-slate-100 p-4 font-mono text-sm border border-slate-700 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500 resize-none"
           v-model="query"
           spellcheck="false"
+          @keydown.ctrl.enter.prevent="handleExecute"
         ></textarea>
       </div>
 
