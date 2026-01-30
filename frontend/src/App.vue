@@ -5,6 +5,7 @@ import Sidebar from './components/Sidebar.vue';
 import TopBar from './components/TopBar.vue';
 import ConnectionModal from './components/ConnectionModal.vue';
 import DataTable from './components/DataTable.vue';
+import TableSchema from './components/TableSchema.vue';
 import QueryEditor from './components/QueryEditor.vue';
 import type { ServerInfo, StoredServer } from '@shared/types/database';
 
@@ -197,7 +198,7 @@ const initApp = async () => {
     activeTab.value = state.activeTab || queryTabs.value[0].id;
     
     // Validar que la pestaña activa existe
-    if (activeTab.value !== 'data' && !queryTabs.value.find(t => t.id === activeTab.value)) {
+    if (activeTab.value !== 'data' && activeTab.value !== 'schema' && !queryTabs.value.find(t => t.id === activeTab.value)) {
       activeTab.value = queryTabs.value[0].id;
     }
     expandedServerNames.value = state.expandedServerNames || [];
@@ -337,7 +338,7 @@ const handleConfigServer = async (serverName: string) => {
 const lastActiveQueryTabId = ref<string>('1');
 
 watch(activeTab, (newVal) => {
-  if (newVal !== 'data') {
+  if (newVal !== 'data' && newVal !== 'schema') {
     lastActiveQueryTabId.value = newVal;
   }
 });
@@ -386,7 +387,7 @@ const selectServer = (name: string) => {
   selectedServerName.value = name;
   selectedDatabase.value = null;
   selectedTable.value = null;
-  if (activeTab.value === 'data') {
+  if (activeTab.value === 'data' || activeTab.value === 'schema') {
     activeTab.value = lastActiveQueryTabId.value;
   }
 };
@@ -400,7 +401,7 @@ const selectDatabase = (serverName: string, db: string) => {
   selectedServerName.value = serverName;
   selectedDatabase.value = db;
   selectedTable.value = null;
-  if (activeTab.value === 'data') {
+  if (activeTab.value === 'data' || activeTab.value === 'schema') {
     activeTab.value = lastActiveQueryTabId.value;
   }
 };
@@ -409,7 +410,7 @@ const selectTable = (serverName: string, db: string, table: string) => {
   selectedServerName.value = serverName;
   selectedDatabase.value = db;
   selectedTable.value = table;
-  activeTab.value = 'data';
+  activeTab.value = 'schema';
 };
 </script>
 
@@ -448,6 +449,14 @@ const selectTable = (serverName: string, db: string, table: string) => {
         <div v-if="selectedServerName" class="w-full h-full flex flex-col min-h-0 min-w-0">
           <!-- Tabs Header -->
           <div class="flex border-b border-slate-800 mb-4 flex-shrink-0 items-center overflow-x-auto scrollbar-none">
+            <button 
+              v-if="selectedTable"
+              @click="activeTab = 'schema'"
+              class="px-4 py-2 text-sm font-medium border-b-2 whitespace-nowrap transition-colors"
+              :class="activeTab === 'schema' ? 'border-blue-500 text-blue-500 bg-blue-500/5' : 'border-transparent text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'"
+            >
+              Schema
+            </button>
             <button 
               v-if="selectedTable"
               @click="activeTab = 'data'"
@@ -502,9 +511,18 @@ const selectTable = (serverName: string, db: string, table: string) => {
           <!-- Tab Content -->
           <div class="flex-1 min-h-0 flex flex-col min-w-0">
             <KeepAlive>
+              <TableSchema 
+                v-if="activeTab === 'schema' && selectedTable && selectedServerName && selectedDatabase"
+                :key="`schema:${selectedServerName}:${selectedDatabase}:${selectedTable}`"
+                :serverName="selectedServerName"
+                :database="selectedDatabase"
+                :table="selectedTable"
+              />
+            </KeepAlive>
+            <KeepAlive>
               <DataTable 
                 v-if="activeTab === 'data' && selectedTable && selectedServerName && selectedDatabase"
-                :key="`${selectedServerName}:${selectedDatabase}:${selectedTable}`"
+                :key="`data:${selectedServerName}:${selectedDatabase}:${selectedTable}`"
                 :serverName="selectedServerName"
                 :database="selectedDatabase"
                 :table="selectedTable"
@@ -512,7 +530,7 @@ const selectTable = (serverName: string, db: string, table: string) => {
             </KeepAlive>
             <KeepAlive>
               <QueryEditor 
-                v-if="activeTab !== 'data'"
+                v-if="activeTab !== 'data' && activeTab !== 'schema'"
                 :key="activeTab"
                 :serverName="selectedServerName!"
                 :serverType="selectedServerType"

@@ -1,5 +1,5 @@
 import mysql, { Connection } from 'mysql2/promise';
-import { IDatabaseDriver, ConnectionConfig, DatabaseInfo, TableInfo, TableDataResponse, SortConfig } from '@shared/types/database';
+import { IDatabaseDriver, ConnectionConfig, DatabaseInfo, TableInfo, TableDataResponse, SortConfig, ColumnInfo, TableIndex, ForeignKey } from '@shared/types/database';
 
 export class MySQLDriver implements IDatabaseDriver {
   private connection: Connection | null = null;
@@ -80,6 +80,148 @@ export class MySQLDriver implements IDatabaseDriver {
     });
 
     return schema;
+  }
+  
+  async getTableColumns(database: string, table: string): Promise<ColumnInfo[]> {
+    if (!this.connection) throw new Error('Not connected');
+
+    const query = `
+      SELECT 
+        COLUMN_NAME as name, 
+        COLUMN_TYPE as type, 
+        IS_NULLABLE as nullable, 
+        COLUMN_KEY as 'key', 
+        COLUMN_DEFAULT as 'default', 
+        EXTRA as extra,
+        COLUMN_COMMENT as comment,
+        COLLATION_NAME as collation,
+        GENERATION_EXPRESSION as expression
+      FROM information_schema.COLUMNS 
+      WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ? 
+      ORDER BY ORDINAL_POSITION
+    `;
+
+    const [rows]: any = await this.connection.execute(query, [database, table]);
+    
+    return rows.map((row: any) => {
+      // Función para obtener valor de forma insensible a mayúsculas
+      const getValue = (obj: any, key: string) => {
+        const foundKey = Object.keys(obj).find(k => k.toLowerCase() === key.toLowerCase());
+        return foundKey ? obj[foundKey] : undefined;
+      };
+
+      const extra = getValue(row, 'extra') || '';
+
+      return {
+        name: getValue(row, 'name'),
+        type: getValue(row, 'type'),
+        nullable: getValue(row, 'nullable') === 'YES',
+        key: getValue(row, 'key'),
+        default: getValue(row, 'default'),
+        extra: extra,
+        comment: getValue(row, 'comment'),
+        collation: getValue(row, 'collation'),
+        expression: getValue(row, 'expression'),
+        virtuality: extra.includes('VIRTUAL') ? 'VIRTUAL' : (extra.includes('STORED') ? 'STORED' : '')
+      };
+    });
+  }
+
+  async getTableIndexes(database: string, table: string): Promise<TableIndex[]> {
+    if (!this.connection) throw new Error('Not connected');
+
+    const query = `
+      SELECT 
+        INDEX_NAME as name,
+        COLUMN_NAME as column_name,
+        NON_UNIQUE as non_unique,
+        INDEX_TYPE as type
+      FROM information_schema.STATISTICS
+      WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ?
+      ORDER BY INDEX_NAME, SEQ_IN_INDEX
+    `;
+
+    const [rows]: any = await this.connection.execute(query, [database, table]);
+    
+    const indexesMap = new Map<string, TableIndex>();
+    
+    rows.forEach((row: any) => {
+      const name = row.name;
+      if (!indexesMap.has(name)) {
+        indexesMap.set(name, {
+          name,
+          columns: [],
+          unique: row.non_unique === 0,
+          type: row.type
+        });
+      }
+      indexesMap.get(name)!.columns.push(row.column_name);
+    });
+
+    return Array.from(indexesMap.values());
+  }
+
+  async getTableForeignKeys(database: string, table: string): Promise<ForeignKey[]> {
+    if (!this.connection) throw new Error('Not connected');
+
+    const query = `
+      SELECT
+        k.CONSTRAINT_NAME as name,
+        k.COLUMN_NAME as column_name,
+        k.REFERENCED_TABLE_NAME as referenced_table,
+        k.REFERENCED_COLUMN_NAME as referenced_column,
+        r.UPDATE_RULE as update_rule,
+        r.DELETE_RULE as delete_rule
+      FROM information_schema.KEY_COLUMN_USAGE k
+      JOIN information_schema.REFERENTIAL_CONSTRAINTS r 
+        ON k.CONSTRAINT_NAME = r.CONSTRAINT_NAME 
+        AND k.CONSTRAINT_SCHEMA = r.CONSTRAINT_SCHEMA
+      WHERE k.TABLE_SCHEMA = ? 
+        AND k.TABLE_NAME = ? 
+        AND k.REFERENCED_TABLE_NAME IS NOT NULL
+      ORDER BY k.CONSTRAINT_NAME, k.ORDINAL_POSITION
+    `;
+
+    const [rows]: any = await this.connection.execute(query, [database, table]);
+    
+    const fksMap = new Map<string, ForeignKey>();
+    
+    rows.forEach((row: any) => {
+      const name = row.name;
+      if (!fksMap.has(name)) {
+        fksMap.set(name, {
+          name,
+          columns: [],
+          referencedTable: row.referenced_table,
+          referencedColumns: [],
+          updateRule: row.update_rule,
+          deleteRule: row.delete_rule
+        });
+      }
+      fksMap.get(name)!.columns.push(row.column_name);
+      fksMap.get(name)!.referencedColumns.push(row.referenced_column);
+    });
+
+    return Array.from(fksMap.values());
+  }
+
+  async getTableCreateStatement(database: string, table: string): Promise<string> {
+    if (!this.connection) throw new Error('Not connected');
+
+    const escapedDb = database.replace(/`/g, '``');
+    const escapedTable = table.replace(/`/g, '``');
+    const fullTableName = `\`${escapedDb}\`.\`${escapedTable}\``;
+
+    const [rows]: any = await this.connection.execute(`SHOW CREATE TABLE ${fullTableName}`);
+    
+    if (rows && rows.length > 0) {
+      // MySQL returns 'Table' and 'Create Table' columns
+      const row = rows[0];
+      const createTableKey = Object.keys(row).find(k => k.toLowerCase() === 'create table');
+      return createTableKey ? row[createTableKey] : '';
+    }
+    
+    return '';
   }
 
   async getTableData(database: string, table: string, limit: number, offset: number, sort?: SortConfig[], filter?: string): Promise<TableDataResponse> {

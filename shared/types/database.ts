@@ -1,3 +1,32 @@
+export interface ColumnInfo {
+  name: string;
+  type: string;
+  nullable: boolean;
+  key?: string;
+  default?: string | null;
+  extra?: string;
+  comment?: string;
+  collation?: string;
+  expression?: string;
+  virtuality?: string;
+}
+
+export interface TableIndex {
+  name: string;
+  columns: string[];
+  unique: boolean;
+  type: string;
+}
+
+export interface ForeignKey {
+  name: string;
+  columns: string[];
+  referencedTable: string;
+  referencedColumns: string[];
+  updateRule?: string;
+  deleteRule?: string;
+}
+
 export interface TableInfo {
   name: string;
   size?: number; // Size in bytes
@@ -65,6 +94,10 @@ export interface IDatabaseDriver {
   getDatabases(): Promise<DatabaseInfo[]>;
   getTables(database: string): Promise<TableInfo[]>;
   getSchema(database: string): Promise<Record<string, string[]>>;
+  getTableColumns(database: string, table: string): Promise<ColumnInfo[]>;
+  getTableIndexes(database: string, table: string): Promise<TableIndex[]>;
+  getTableForeignKeys(database: string, table: string): Promise<ForeignKey[]>;
+  getTableCreateStatement(database: string, table: string): Promise<string>;
   getTableData(database: string, table: string, limit: number, offset: number, sort?: SortConfig[], filter?: string): Promise<TableDataResponse>;
   executeQuery(sql: string): Promise<any>;
 }
