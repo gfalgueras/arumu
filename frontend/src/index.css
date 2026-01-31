@@ -1,5 +1,9 @@
 @import "tailwindcss";
 
+@theme {
+  --dark-mode: selector;
+}
+
 @layer base {
   ::-webkit-scrollbar {
     width: 6px;

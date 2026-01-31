@@ -99,26 +99,26 @@ const getExpandedTableIdsForServer = (serverName: string) => {
 
 <template>
   <div 
-    class="h-screen bg-slate-900 flex flex-col border-r border-slate-700 select-none relative overflow-x-hidden flex-shrink-0"
+    class="h-screen bg-slate-100 dark:bg-slate-900 flex flex-col border-r border-slate-200 dark:border-slate-700 select-none relative overflow-x-hidden flex-shrink-0"
     style="width: var(--sidebar-width, 256px)"
   >
-    <div class="p-4 space-y-3 border-b border-slate-700">
+    <div class="p-4 space-y-3 border-b border-slate-200 dark:border-slate-700">
       <div class="relative">
-        <Search class="absolute left-2 top-2.5 text-slate-500" :size="16" />
+        <Search class="absolute left-2 top-2.5 text-slate-400 dark:text-slate-500" :size="16" />
         <input 
           type="text" 
           :placeholder="$t('sidebar.search_db')" 
-          class="w-full bg-slate-800 text-slate-200 pl-8 pr-2 py-2 rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+          class="w-full bg-slate-200 dark:bg-slate-800 text-slate-900 dark:text-slate-200 pl-8 pr-2 py-2 rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
           :value="dbFilter"
           @input="emit('update:dbFilter', ($event.target as HTMLInputElement).value)"
         />
       </div>
       <div class="relative">
-        <Search class="absolute left-2 top-2.5 text-slate-500" :size="16" />
+        <Search class="absolute left-2 top-2.5 text-slate-400 dark:text-slate-500" :size="16" />
         <input 
           type="text" 
           :placeholder="$t('sidebar.search_table')" 
-          class="w-full bg-slate-800 text-slate-200 pl-8 pr-2 py-2 rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+          class="w-full bg-slate-200 dark:bg-slate-800 text-slate-900 dark:text-slate-200 pl-8 pr-2 py-2 rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
           :value="tableFilter"
           @input="emit('update:tableFilter', ($event.target as HTMLInputElement).value)"
         />
@@ -127,10 +127,10 @@ const getExpandedTableIdsForServer = (serverName: string) => {
 
     <div class="flex-1 overflow-y-auto overflow-x-hidden py-2 flex flex-col">
       <div v-if="servers.length === 0" class="flex-1 flex flex-col items-center justify-center px-4 space-y-4">
-        <p class="text-sm text-slate-500 italic">{{ $t('sidebar.no_connections') }}</p>
+        <p class="text-sm text-slate-400 dark:text-slate-500 italic">{{ $t('sidebar.no_connections') }}</p>
         <button 
           @click="emit('openConnection')"
-          class="w-full py-2 px-4 bg-blue-600/10 hover:bg-blue-600/20 text-blue-400 border border-blue-600/30 rounded text-sm flex items-center justify-center gap-2 group"
+          class="w-full py-2 px-4 bg-blue-600/10 hover:bg-blue-600/20 text-blue-600 dark:text-blue-400 border border-blue-600/30 rounded text-sm flex items-center justify-center gap-2 group"
         >
           <Server :size="14" class="group-hover:scale-110" />
           <span>{{ $t('sidebar.open_connection') }}</span>
@@ -184,13 +184,13 @@ const getExpandedTableIdsForServer = (serverName: string) => {
       @config="emit('configServer', contextMenu.serverName)"
     />
     
-    <div class="p-4 bg-slate-950 text-xs text-slate-500 border-t border-slate-800">
+    <div class="p-4 bg-slate-200 dark:bg-slate-950 text-xs text-slate-500 dark:text-slate-500 border-t border-slate-300 dark:border-slate-800">
       {{ $t('sidebar.version') }}
     </div>
 
     <!-- Resize Handle -->
     <div 
-      class="absolute top-0 right-0 w-1 h-full cursor-col-resize hover:bg-blue-500/50 z-10"
+      class="absolute top-0 right-0 w-1 h-full cursor-col-resize hover:bg-blue-500 dark:hover:bg-blue-500/50 z-10"
       @mousedown="emit('resizeMouseDown', $event)"
     />
   </div>

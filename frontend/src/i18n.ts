@@ -158,6 +158,10 @@ const translations: Record<string, any> = {
       title: 'Application Settings',
       language_label: 'Interface Language',
       browser_default: 'Browser Default',
+      theme_label: 'Interface Theme',
+      theme_system: 'System Default',
+      theme_light: 'Light',
+      theme_dark: 'Dark',
     }
   },
   es: {
@@ -317,6 +321,10 @@ const translations: Record<string, any> = {
       title: 'Configuración de la Aplicación',
       language_label: 'Idioma de la Interfaz',
       browser_default: 'Predeterminado del Navegador',
+      theme_label: 'Tema de la Interfaz',
+      theme_system: 'Predeterminado del Sistema',
+      theme_light: 'Claro',
+      theme_dark: 'Oscuro',
     }
   }
 };

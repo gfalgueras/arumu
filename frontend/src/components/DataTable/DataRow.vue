@@ -19,13 +19,13 @@ const isNull = (val: any) => val === null;
 </script>
 
 <template>
-  <tr class="hover:bg-slate-800/40 border-b border-slate-800/50 last:border-0">
+  <tr class="hover:bg-slate-100 dark:hover:bg-slate-800/40 border-b border-slate-100 dark:border-slate-800/50 last:border-0 transition-colors">
     <td 
       v-for="col in columns"
       :key="col" 
-      class="px-4 py-1.5 text-sm text-slate-300 truncate border-r border-slate-800/30 last:border-r-0"
+      class="px-4 py-1.5 text-sm text-slate-700 dark:text-slate-300 truncate border-r border-slate-100 dark:border-slate-800/30 last:border-r-0"
     >
-      <span v-if="isNull(row[col])" class="text-slate-600 italic text-xs">NULL</span>
+      <span v-if="isNull(row[col])" class="text-slate-400 dark:text-slate-600 italic text-xs">NULL</span>
       <template v-else>{{ formatCellValue(row[col]) }}</template>
     </td>
   </tr>

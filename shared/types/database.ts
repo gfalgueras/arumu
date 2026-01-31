@@ -100,6 +100,7 @@ export interface TypeGroup {
 
 export interface AppSettings {
   language?: string;
+  theme?: 'system' | 'light' | 'dark';
 }
 
 export interface IDatabaseDriver {

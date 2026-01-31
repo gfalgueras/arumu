@@ -57,37 +57,37 @@ onUnmounted(() => {
   <div ref="containerRef" class="relative">
     <div 
       @click="toggleOpen"
-      class="min-h-[38px] w-full bg-slate-900 border rounded px-1.5 py-1 text-sm flex flex-wrap gap-1 items-center cursor-pointer transition-colors"
+      class="min-h-[38px] w-full bg-white dark:bg-slate-900 border rounded px-1.5 py-1 text-sm flex flex-wrap gap-1 items-center cursor-pointer transition-colors shadow-sm"
       :class="[
-        isOpen ? 'border-blue-500 ring-1 ring-blue-500' : 'border-slate-700 hover:border-slate-600',
-        disabled ? 'opacity-50 cursor-not-allowed' : 'text-slate-200'
+        isOpen ? 'border-blue-500 ring-1 ring-blue-500' : 'border-slate-300 dark:border-slate-700 hover:border-slate-400 dark:hover:border-slate-600',
+        disabled ? 'opacity-50 cursor-not-allowed' : 'text-slate-700 dark:text-slate-200'
       ]"
     >
-      <div v-if="modelValue.length === 0" class="text-slate-500 px-1.5 select-none">{{ placeholder || $t('common.select') || 'Select...' }}</div>
+      <div v-if="modelValue.length === 0" class="text-slate-400 dark:text-slate-500 px-1.5 select-none">{{ placeholder || $t('common.select') || 'Select...' }}</div>
       
       <div 
         v-for="val in modelValue" 
         :key="val"
-        class="flex items-center gap-1 bg-blue-500/20 text-blue-300 border border-blue-500/30 px-2 py-0.5 rounded-md text-[11px] font-medium"
+        class="flex items-center gap-1 bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-500/30 px-2 py-0.5 rounded-md text-[11px] font-medium"
       >
         {{ val }}
         <button 
           v-if="!disabled"
           @click.stop="removeOption(val)"
-          class="hover:text-blue-100 transition-colors"
+          class="hover:text-blue-900 dark:hover:text-blue-100 transition-colors"
         >
           <X :size="12" />
         </button>
       </div>
 
-      <div class="ml-auto pr-1 text-slate-500">
+      <div class="ml-auto pr-1 text-slate-400 dark:text-slate-500">
         <ChevronDown :size="16" class="transition-transform duration-200" :class="{ 'rotate-180': isOpen }" />
       </div>
     </div>
 
     <div 
       v-if="isOpen && !disabled" 
-      class="absolute z-50 w-full mt-1 bg-slate-800 border border-slate-700 rounded-md shadow-xl max-h-60 overflow-auto scrollbar-thin scrollbar-thumb-slate-600"
+      class="absolute z-50 w-full mt-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-md shadow-xl max-h-60 overflow-auto scrollbar-thin scrollbar-thumb-slate-300 dark:scrollbar-thumb-slate-600"
     >
       <div 
         v-for="opt in options" 
@@ -95,16 +95,16 @@ onUnmounted(() => {
         @click="selectOption(opt)"
         class="px-3 py-2 text-sm cursor-pointer transition-colors flex items-center justify-between group"
         :class="[
-          modelValue.includes(opt) ? 'bg-blue-500/10 text-blue-400 font-medium' : 'text-slate-300 hover:bg-slate-700'
+          modelValue.includes(opt) ? 'bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 font-medium' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'
         ]"
       >
         <span>{{ opt }}</span>
         <div 
           v-if="modelValue.includes(opt)" 
-          class="w-2 h-2 rounded-full bg-blue-500"
+          class="w-2 h-2 rounded-full bg-blue-600 dark:bg-blue-500"
         ></div>
       </div>
-      <div v-if="options.length === 0" class="px-3 py-4 text-center text-slate-500 text-xs italic">
+      <div v-if="options.length === 0" class="px-3 py-4 text-center text-slate-400 dark:text-slate-500 text-xs italic">
         {{ $t('common.no_options') || 'No options available' }}
       </div>
     </div>

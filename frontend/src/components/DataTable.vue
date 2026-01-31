@@ -146,11 +146,11 @@ const totalWidth = computed(() => data.value?.columns.reduce((acc, col) => acc +
 
 <template>
   <div class="flex-1 flex flex-col min-h-0 w-full min-w-0 relative" :class="resizingColumn ? 'cursor-col-resize select-none' : ''">
-    <div v-if="loading" class="absolute inset-0 bg-slate-900/50 flex items-center justify-center z-10 rounded-lg">
+    <div v-if="loading" class="absolute inset-0 bg-slate-50/50 dark:bg-slate-900/50 flex items-center justify-center z-10 rounded-lg">
       <Loader2 class="animate-spin text-blue-500" :size="48" />
     </div>
 
-    <div v-if="error" class="flex-1 flex items-center justify-center text-red-400 p-8">
+    <div v-if="error" class="flex-1 flex items-center justify-center text-red-600 dark:text-red-400 p-8">
       <div class="text-center">
         <p class="text-xl font-bold mb-2">Error</p>
         <p>{{ error }}</p>
@@ -159,45 +159,45 @@ const totalWidth = computed(() => data.value?.columns.reduce((acc, col) => acc +
 
     <template v-else>
       <!-- Pagination Bar -->
-      <div class="flex items-center justify-between p-2 bg-slate-800/50 border-b border-slate-700 rounded-t-lg min-h-[48px]">
+      <div class="flex items-center justify-between p-2 bg-slate-100 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700 rounded-t-lg min-h-[48px]">
         <div class="flex items-center gap-2 px-1">
           <FilterInput :initialValue="appliedFilter" @apply="handleApplyFilter" :isLoading="loading" />
         </div>
 
         <div class="flex items-center gap-4">
-          <div class="text-xs text-slate-400">
+          <div class="text-xs text-slate-500 dark:text-slate-400">
             <template v-if="data">
-              {{ $t('data_table.showing') }} <span class="text-slate-200 font-medium">{{ page * limit + 1 }} - {{ Math.min((page + 1) * limit, data.total) }}</span> {{ $t('data_table.of') }} <span class="text-slate-200 font-medium">{{ data.total }}</span> {{ $t('data_table.rows') }}
+              {{ $t('data_table.showing') }} <span class="text-slate-900 dark:text-slate-200 font-medium">{{ page * limit + 1 }} - {{ Math.min((page + 1) * limit, data.total) }}</span> {{ $t('data_table.of') }} <span class="text-slate-900 dark:text-slate-200 font-medium">{{ data.total }}</span> {{ $t('data_table.rows') }}
             </template>
             <template v-else>{{ $t('data_table.loading') }}</template>
           </div>
-          <div class="flex items-center gap-1 border-l border-slate-700 pl-4">
+          <div class="flex items-center gap-1 border-l border-slate-300 dark:border-slate-700 pl-4">
             <button 
               :disabled="page === 0 || loading"
               @click="page = 0"
-              class="p-1 hover:bg-slate-700 rounded disabled:opacity-30 disabled:cursor-not-allowed"
+              class="p-1 hover:bg-slate-200 dark:hover:bg-slate-700 rounded disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
             >
               <ChevronsLeft :size="18" />
             </button>
             <button 
               :disabled="page === 0 || loading"
               @click="page--"
-              class="p-1 hover:bg-slate-700 rounded disabled:opacity-30 disabled:cursor-not-allowed"
+              class="p-1 hover:bg-slate-200 dark:hover:bg-slate-700 rounded disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
             >
               <ChevronLeft :size="18" />
             </button>
-            <span class="text-sm px-2">{{ $t('data_table.page') }} {{ page + 1 }} {{ $t('data_table.of') }} {{ totalPages || 1 }}</span>
+            <span class="text-sm px-2 text-slate-700 dark:text-slate-300 font-medium">{{ $t('data_table.page') }} {{ page + 1 }} {{ $t('data_table.of') }} {{ totalPages || 1 }}</span>
             <button 
               :disabled="page >= totalPages - 1 || loading"
               @click="page++"
-              class="p-1 hover:bg-slate-700 rounded disabled:opacity-30 disabled:cursor-not-allowed"
+              class="p-1 hover:bg-slate-200 dark:hover:bg-slate-700 rounded disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
             >
               <ChevronRight :size="18" />
             </button>
             <button 
               :disabled="page >= totalPages - 1 || loading"
               @click="page = totalPages - 1"
-              class="p-1 hover:bg-slate-700 rounded disabled:opacity-30 disabled:cursor-not-allowed"
+              class="p-1 hover:bg-slate-200 dark:hover:bg-slate-700 rounded disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
             >
               <ChevronsRight :size="18" />
             </button>
@@ -206,7 +206,7 @@ const totalWidth = computed(() => data.value?.columns.reduce((acc, col) => acc +
       </div>
 
       <!-- Table Area -->
-      <div class="flex-1 overflow-auto bg-slate-900 rounded-b-lg scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-transparent">
+      <div class="flex-1 overflow-auto bg-white dark:bg-slate-900 rounded-b-lg border border-slate-200 dark:border-slate-700 border-t-0 scrollbar-thin scrollbar-thumb-slate-300 dark:scrollbar-thumb-slate-700 scrollbar-track-transparent">
         <table 
           ref="tableRef"
           class="text-left border-collapse table-fixed w-full"
@@ -220,22 +220,22 @@ const totalWidth = computed(() => data.value?.columns.reduce((acc, col) => acc +
               :ref="(el) => { if (el) colRefs[col] = el as HTMLTableColElement; }"
             />
           </colgroup>
-          <thead class="sticky top-0 z-20 bg-slate-800 shadow-sm">
+          <thead class="sticky top-0 z-20 bg-slate-100 dark:bg-slate-800 shadow-sm">
             <tr>
               <th 
                 v-for="col in data?.columns"
                 :key="col"
-                class="relative px-4 py-2 border-b border-slate-700 text-sm font-semibold text-slate-200 group/header"
+                class="relative px-4 py-2 border-b border-slate-200 dark:border-slate-700 text-sm font-semibold text-slate-700 dark:text-slate-200 group/header"
               >
                 <div 
-                  class="flex items-center cursor-pointer hover:text-white select-none"
+                  class="flex items-center cursor-pointer hover:text-blue-600 dark:hover:text-white select-none transition-colors"
                   @click="handleSort(col)"
                 >
                   <span class="truncate">{{ col }}</span>
-                  <div v-if="getSortIconInfo(col)" class="flex items-center gap-0.5 ml-1">
+                  <div v-if="getSortIconInfo(col)" class="flex items-center gap-0.5 ml-1 text-blue-600 dark:text-blue-400">
                     <ArrowDown v-if="getSortIconInfo(col)?.direction === 'DESC'" :size="14" />
                     <ArrowUp v-else :size="14" />
-                    <span v-if="sort.length > 1" class="text-[10px] bg-blue-600 rounded-full w-3.5 h-3.5 flex items-center justify-center font-bold">
+                    <span v-if="sort.length > 1" class="text-[10px] bg-blue-600 text-white rounded-full w-3.5 h-3.5 flex items-center justify-center font-bold">
                       {{ getSortIconInfo(col)?.index }}
                     </span>
                   </div>
@@ -245,12 +245,12 @@ const totalWidth = computed(() => data.value?.columns.reduce((acc, col) => acc +
                 <div
                   @mousedown.prevent="handleMouseDown($event, col)"
                   class="absolute top-0 right-0 w-1 h-full cursor-col-resize hover:bg-blue-500 z-10"
-                  :class="[resizingColumn?.name === col ? 'bg-blue-500' : 'bg-transparent group-hover/header:bg-slate-600']"
+                  :class="[resizingColumn?.name === col ? 'bg-blue-500' : 'bg-transparent group-hover/header:bg-slate-300 dark:group-hover/header:bg-slate-600']"
                 />
               </th>
             </tr>
           </thead>
-          <tbody>
+          <tbody class="divide-y divide-slate-100 dark:divide-slate-800/50">
             <DataRow 
               v-for="(row, i) in data?.rows"
               :key="i" 

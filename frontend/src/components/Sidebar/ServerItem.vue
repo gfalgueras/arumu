@@ -75,20 +75,20 @@ const handleSelect = () => {
 <template>
   <div v-if="shouldShow">
     <div 
-      class="flex items-center gap-2 py-2 px-4 hover:bg-slate-700 cursor-pointer overflow-hidden"
-      :class="isSelected ? 'bg-blue-600/20 border-l-2 border-blue-500' : 'text-slate-200'"
+      class="flex items-center gap-2 py-2 px-4 hover:bg-slate-200 dark:hover:bg-slate-700 cursor-pointer overflow-hidden"
+      :class="isSelected ? 'bg-blue-600/10 dark:bg-blue-600/20 border-l-2 border-blue-500' : 'text-slate-700 dark:text-slate-200'"
       @click.stop="handleSelect"
       @contextmenu.prevent="emit('contextMenu', $event, name)"
     >
       <div class="flex items-center gap-2 flex-1 min-w-0">
         <div 
-          class="flex-shrink-0 hover:bg-slate-600 rounded p-0.5 -m-0.5"
+          class="flex-shrink-0 hover:bg-slate-300 dark:hover:bg-slate-600 rounded p-0.5 -m-0.5"
           @click.stop="emit('toggle', !isOpen)"
         >
           <ChevronDown v-if="isOpen" :size="16" />
           <ChevronRight v-else :size="16" />
         </div>
-        <Server :size="18" class="flex-shrink-0" :class="isSelected ? 'text-blue-400' : 'text-emerald-400'" />
+        <Server :size="18" class="flex-shrink-0" :class="isSelected ? 'text-blue-600 dark:text-blue-400' : 'text-emerald-600 dark:text-emerald-400'" />
         <span class="font-semibold truncate">{{ name }}</span>
       </div>
       <Loader2 v-if="isLoading" :size="16" class="animate-spin text-blue-500 flex-shrink-0" />
@@ -115,10 +115,10 @@ const handleSelect = () => {
         @expandTable="(table) => emit('expandTable', db.name, table)"
         @toggleTable="(table, open) => emit('toggleTable', db.name, table, open)"
       />
-      <div v-if="!isLoading && filteredDatabases.length === 0 && databases.length > 0" class="pl-8 py-1 text-xs text-slate-500 italic">
+      <div v-if="!isLoading && filteredDatabases.length === 0 && databases.length > 0" class="pl-8 py-1 text-xs text-slate-500 dark:text-slate-500 italic">
         {{ $t('sidebar.no_databases_found') }}
       </div>
-      <div v-if="!isLoading && databases.length === 0 && isOpen" class="pl-8 py-1 text-xs text-slate-500 italic">
+      <div v-if="!isLoading && databases.length === 0 && isOpen" class="pl-8 py-1 text-xs text-slate-500 dark:text-slate-500 italic">
         {{ $t('sidebar.no_databases') }}
       </div>
     </div>

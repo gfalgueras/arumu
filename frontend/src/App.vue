@@ -178,15 +178,7 @@ const handleConnect = async (storedServer: StoredServer, closeAndRefresh = true)
 };
 
 const initApp = async () => {
-  // Load settings first to set language
-  try {
-    const settingsRes = await fetch('http://localhost:3001/api/app-settings');
-    const settings: AppSettings = await settingsRes.json();
-    setLocale(settings.language || 'auto');
-  } catch (err) {
-    console.error('Failed to load settings:', err);
-    setLocale('auto');
-  }
+  await loadSettings();
 
   const storedRes = await fetch('http://localhost:3001/api/stored-servers');
   const storedServers: StoredServer[] = await storedRes.json();
@@ -253,9 +245,42 @@ const initApp = async () => {
   }
 };
 
+const loadSettings = async () => {
+  try {
+    const settingsRes = await fetch('http://localhost:3001/api/app-settings');
+    const settings: AppSettings = await settingsRes.json();
+    setLocale(settings.language || 'auto');
+    applyTheme(settings.theme || 'system');
+  } catch (err) {
+    console.error('Failed to load settings:', err);
+    setLocale('auto');
+    applyTheme('system');
+  }
+};
+
+const applyTheme = (theme: AppSettings['theme']) => {
+  const isDark = theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+  if (isDark) {
+    document.documentElement.classList.add('dark');
+  } else {
+    document.documentElement.classList.remove('dark');
+  }
+};
+
 onMounted(() => {
   initApp();
   document.documentElement.style.setProperty('--sidebar-width', `${sidebarWidth.value}px`);
+  
+  // Listen for system theme changes
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+    fetch('http://localhost:3001/api/app-settings')
+      .then(res => res.json())
+      .then((settings: AppSettings) => {
+        if (!settings.theme || settings.theme === 'system') {
+          applyTheme('system');
+        }
+      });
+  });
 });
 
 watch([activeServerNames, selectedServerName, selectedDatabase, selectedTable, activeTab, sidebarWidth, queryEditorHeight, tableSchemaHeight, dbFilter, tableFilter, expandedServerNames, expandedDatabaseIds, expandedTableIds, queryTabs], (_, __, onCleanup) => {
@@ -437,7 +462,7 @@ const selectTable = (serverName: string, db: string, table: string) => {
 </script>
 
 <template>
-  <div class="flex h-screen w-screen bg-slate-950 text-slate-100 overflow-hidden" :class="isResizing ? 'cursor-col-resize select-none' : ''">
+  <div class="flex h-screen w-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 overflow-hidden" :class="isResizing ? 'cursor-col-resize select-none' : ''">
     <Sidebar 
       :servers="servers"
       :selectedServerName="selectedServerName"
@@ -471,12 +496,12 @@ const selectTable = (serverName: string, db: string, table: string) => {
       <main class="flex-1 flex flex-col p-4 overflow-hidden min-w-0">
         <div v-if="selectedServerName" class="w-full h-full flex flex-col min-h-0 min-w-0">
           <!-- Tabs Header -->
-          <div class="flex border-b border-slate-800 mb-4 flex-shrink-0 items-center overflow-x-auto scrollbar-none">
+          <div class="flex border-b border-slate-200 dark:border-slate-800 mb-4 flex-shrink-0 items-center overflow-x-auto scrollbar-none">
             <button 
               v-if="selectedTable"
               @click="activeTab = 'schema'"
               class="px-4 py-2 text-sm font-medium border-b-2 whitespace-nowrap transition-colors"
-              :class="activeTab === 'schema' ? 'border-blue-500 text-blue-500 bg-blue-500/5' : 'border-transparent text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'"
+              :class="activeTab === 'schema' ? 'border-blue-500 text-blue-500 bg-blue-500/5' : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/50'"
             >
               {{ $t('data_table.schema') }}
             </button>
@@ -484,7 +509,7 @@ const selectTable = (serverName: string, db: string, table: string) => {
               v-if="selectedTable"
               @click="activeTab = 'data'"
               class="px-4 py-2 text-sm font-medium border-b-2 whitespace-nowrap transition-colors"
-              :class="activeTab === 'data' ? 'border-blue-500 text-blue-500 bg-blue-500/5' : 'border-transparent text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'"
+              :class="activeTab === 'data' ? 'border-blue-500 text-blue-500 bg-blue-500/5' : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/50'"
             >
               {{ $t('data_table.data') }}
             </button>
@@ -493,14 +518,14 @@ const selectTable = (serverName: string, db: string, table: string) => {
               :key="tab.id"
               v-memo="[tab.id, tab.name, activeTab === tab.id, editingTabId === tab.id]"
               class="group relative flex items-center border-b-2 transition-colors"
-              :class="(activeTab === tab.id || editingTabId === tab.id) ? 'border-blue-500 bg-blue-500/5' : 'border-transparent hover:bg-slate-800/50'"
+              :class="(activeTab === tab.id || editingTabId === tab.id) ? 'border-blue-500 bg-blue-500/5' : 'border-transparent hover:bg-slate-100 dark:hover:bg-slate-800/50'"
             >
               <button 
                 v-if="editingTabId !== tab.id"
                 @click="activeTab = tab.id"
                 @dblclick="startEditingTabName(tab)"
                 class="pl-4 pr-2 py-2 text-sm font-medium whitespace-nowrap"
-                :class="activeTab === tab.id ? 'text-blue-500' : 'text-slate-400 hover:text-slate-200'"
+                :class="activeTab === tab.id ? 'text-blue-500' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'"
               >
                 {{ tab.name }}
               </button>
@@ -511,12 +536,12 @@ const selectTable = (serverName: string, db: string, table: string) => {
                 @keyup.enter="saveTabName"
                 @keyup.escape="editingTabId = null"
                 v-focus
-                class="px-4 py-2 text-sm font-medium bg-slate-800 text-blue-500 outline-none w-32"
+                class="px-4 py-2 text-sm font-medium bg-slate-100 dark:bg-slate-800 text-blue-500 outline-none w-32"
               />
               <button 
                 v-if="queryTabs.length > 1"
                 @click.stop="removeQueryTab(tab.id)"
-                class="mr-1.5 p-1 text-slate-500 hover:text-red-400 hover:bg-slate-700/50 rounded transition-all opacity-0 group-hover:opacity-100"
+                class="mr-1.5 p-1 text-slate-400 dark:text-slate-500 hover:text-red-600 dark:hover:text-red-400 hover:bg-slate-200 dark:hover:bg-slate-700/50 rounded transition-all opacity-0 group-hover:opacity-100"
                 :title="$t('query_editor.close_tab_title')"
               >
                 <X :size="14" />
@@ -524,7 +549,7 @@ const selectTable = (serverName: string, db: string, table: string) => {
             </div>
             <button 
               @click="addQueryTab"
-              class="px-4 py-2 text-slate-400 hover:text-blue-500 hover:bg-slate-800/50 transition-colors border-b-2 border-transparent"
+              class="px-4 py-2 text-slate-500 dark:text-slate-400 hover:text-blue-500 hover:bg-slate-100 dark:hover:bg-slate-800/50 transition-colors border-b-2 border-transparent"
               :title="$t('query_editor.new_tab_title')"
             >
               <Plus :size="18" />
@@ -567,18 +592,18 @@ const selectTable = (serverName: string, db: string, table: string) => {
         </div>
         <div v-else class="flex-1 flex flex-col items-center justify-center">
           <div class="max-w-2xl text-center space-y-4">
-            <h1 class="text-4xl font-bold text-blue-500">{{ $t('welcome.title') }}</h1>
-            <p class="text-slate-400 text-lg">
+            <h1 class="text-4xl font-bold text-blue-600 dark:text-blue-500">{{ $t('welcome.title') }}</h1>
+            <p class="text-slate-600 dark:text-slate-400 text-lg">
               {{ $t('welcome.subtitle') }}
             </p>
             <div class="grid grid-cols-2 gap-4 mt-8 mx-auto">
-              <div class="p-6 bg-slate-900 rounded-lg border border-slate-800 text-left">
-                <h3 class="font-semibold text-blue-400 mb-2">{{ $t('welcome.feature_backend_title') }}</h3>
-                <p class="text-sm text-slate-500">{{ $t('welcome.feature_backend_desc') }}</p>
+              <div class="p-6 bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 text-left">
+                <h3 class="font-semibold text-blue-600 dark:text-blue-400 mb-2">{{ $t('welcome.feature_backend_title') }}</h3>
+                <p class="text-sm text-slate-500 dark:text-slate-500">{{ $t('welcome.feature_backend_desc') }}</p>
               </div>
-              <div class="p-6 bg-slate-900 rounded-lg border border-slate-800 text-left">
-                <h3 class="font-semibold text-blue-400 mb-2">{{ $t('welcome.feature_ui_title') }}</h3>
-                <p class="text-sm text-slate-500">{{ $t('welcome.feature_ui_desc') }}</p>
+              <div class="p-6 bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 text-left">
+                <h3 class="font-semibold text-blue-600 dark:text-blue-400 mb-2">{{ $t('welcome.feature_ui_title') }}</h3>
+                <p class="text-sm text-slate-500 dark:text-slate-500">{{ $t('welcome.feature_ui_desc') }}</p>
               </div>
             </div>
           </div>
@@ -595,6 +620,7 @@ const selectTable = (serverName: string, db: string, table: string) => {
     <SettingsModal
       v-if="isSettingsOpen"
       @close="isSettingsOpen = false"
+      @updated="loadSettings"
     />
     <ErrorModal />
   </div>

@@ -29,7 +29,7 @@ const handleKeydown = (e: KeyboardEvent) => {
     <input 
       type="text" 
       :placeholder="$t('data_table.filter_placeholder')" 
-      class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-xs text-slate-200 focus:outline-none focus:ring-1 focus:ring-blue-500 w-48"
+      class="bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded px-2 py-1 text-xs text-slate-900 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-blue-500 w-48 transition-all"
       v-model="value"
       @keydown="handleKeydown"
       :disabled="isLoading"

@@ -771,11 +771,11 @@ const supportsUnsigned = (type: string) => {
 
 <template>
   <div class="flex-1 flex flex-col min-h-0 w-full gap-4 overflow-hidden">
-    <div v-if="loading && columns.length === 0" class="flex-1 flex items-center justify-center bg-slate-900 rounded-lg border border-slate-800">
+    <div v-if="loading && columns.length === 0" class="flex-1 flex items-center justify-center bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 shadow-sm">
       <Loader2 class="animate-spin text-blue-500" :size="48" />
     </div>
 
-    <div v-else-if="error" class="flex-1 flex items-center justify-center text-red-400 bg-slate-900 rounded-lg border border-slate-800 p-8">
+    <div v-else-if="error" class="flex-1 flex items-center justify-center text-red-600 dark:text-red-400 bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 p-8 shadow-sm">
       <div class="text-center">
         <p class="text-xl font-bold mb-2">Error</p>
         <p>{{ error }}</p>
@@ -785,26 +785,26 @@ const supportsUnsigned = (type: string) => {
     <template v-else>
       <div class="flex-1 flex flex-col min-h-0" ref="containerRef" :class="isResizing ? 'cursor-row-resize select-none' : ''">
         <!-- Top Block: Columns -->
-        <div :style="{ height: height + 'px' }" class="flex-shrink-0 flex flex-col min-h-[150px] bg-slate-900 rounded-lg border border-slate-800 overflow-hidden">
-          <div class="px-4 py-2 border-b border-slate-800 bg-slate-800/50 flex items-center justify-between">
+        <div :style="{ height: height + 'px' }" class="flex-shrink-0 flex flex-col min-h-[150px] bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm">
+          <div class="px-4 py-2 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 flex items-center justify-between">
              <div class="flex items-center gap-2">
-               <Columns :size="16" class="text-blue-400" />
-               <span class="text-sm font-semibold text-slate-300">{{ $t('table_schema.columns') }}</span>
+               <Columns :size="16" class="text-blue-600 dark:text-blue-400" />
+               <span class="text-sm font-semibold text-slate-700 dark:text-slate-300">{{ $t('table_schema.columns') }}</span>
              </div>
              <div class="flex items-center gap-2">
                <button 
                  @click="handleAddColumn"
-                 class="flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-medium transition-colors rounded text-blue-400 hover:text-blue-300 hover:bg-blue-400/10"
+                 class="flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-medium transition-colors rounded text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-400/10"
                  :title="$t('table_schema.add_column')"
                >
                  <Plus :size="14" />
                  {{ $t('table_schema.add_column') }}
                </button>
-               <div class="w-px h-4 bg-slate-700 mx-1"></div>
+               <div class="w-px h-4 bg-slate-200 dark:bg-slate-700 mx-1"></div>
                <button 
                  @click="moveColumnUp"
                  :disabled="selectedColumnIndex === null || selectedColumnIndex === 0"
-                 class="p-1 text-slate-400 hover:text-blue-400 transition-colors disabled:opacity-30 disabled:hover:text-slate-400"
+                 class="p-1 text-slate-400 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors disabled:opacity-30 disabled:hover:text-slate-400"
                  :title="$t('table_schema.move_up')"
                >
                  <ArrowUp :size="14" />
@@ -812,24 +812,24 @@ const supportsUnsigned = (type: string) => {
                <button 
                  @click="moveColumnDown"
                  :disabled="selectedColumnIndex === null || selectedColumnIndex === columns.length - 1"
-                 class="p-1 text-slate-400 hover:text-blue-400 transition-colors disabled:opacity-30 disabled:hover:text-slate-400"
+                 class="p-1 text-slate-400 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors disabled:opacity-30 disabled:hover:text-slate-400"
                  :title="$t('table_schema.move_down')"
                >
                  <ArrowDown :size="14" />
                </button>
-               <div class="w-px h-4 bg-slate-700 mx-1"></div>
-              <div v-if="createStatement" class="flex items-center rounded overflow-hidden border border-emerald-400/20 bg-emerald-400/5">
+               <div class="w-px h-4 bg-slate-200 dark:bg-slate-700 mx-1"></div>
+              <div v-if="createStatement" class="flex items-center rounded overflow-hidden border border-emerald-600/20 dark:border-emerald-400/20 bg-emerald-600/5 dark:bg-emerald-400/5 transition-colors">
                 <button 
                   @click="openCreateModal"
-                  class="px-2.5 py-1 text-[11px] font-medium text-emerald-400 hover:bg-emerald-400/10 transition-colors whitespace-nowrap"
+                  class="px-2.5 py-1 text-[11px] font-medium text-emerald-600 dark:text-emerald-400 hover:bg-emerald-600/10 dark:hover:bg-emerald-400/10 transition-colors whitespace-nowrap"
                   :title="$t('table_schema.view_create_title') || 'View CREATE TABLE SQL'"
                 >
                   {{ $t('table_schema.copy_create') }}
                 </button>
-                <div class="w-px h-3 bg-emerald-400/20"></div>
+                <div class="w-px h-3 bg-emerald-600/20 dark:bg-emerald-400/20"></div>
                 <button 
                   @click="handleCopyCreate"
-                  class="p-1 text-emerald-400 hover:bg-emerald-400/10 transition-colors"
+                  class="p-1 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-600/10 dark:hover:bg-emerald-400/10 transition-colors"
                   :title="$t('table_schema.copy_create_title') || 'Copy CREATE TABLE to clipboard'"
                 >
                   <Check v-if="copied" :size="14" />
@@ -837,22 +837,22 @@ const supportsUnsigned = (type: string) => {
                 </button>
               </div>
               <div class="flex items-center rounded overflow-hidden border transition-colors"
-                :class="hasPendingChanges ? 'border-amber-400/20 bg-amber-400/5' : 'border-slate-700 bg-slate-800/50'"
+                :class="hasPendingChanges ? 'border-amber-600/20 dark:border-amber-400/20 bg-amber-600/5 dark:bg-amber-400/5' : 'border-slate-300 dark:border-slate-700 bg-slate-100 dark:bg-slate-800/50'"
               >
                 <button 
                   @click="openAlterModal"
                   class="px-2.5 py-1 text-[11px] font-medium transition-colors whitespace-nowrap"
-                  :class="hasPendingChanges ? 'text-amber-400 hover:bg-amber-400/10' : 'text-slate-400 hover:bg-slate-700'"
+                  :class="hasPendingChanges ? 'text-amber-600 dark:text-amber-400 hover:bg-amber-600/10 dark:hover:bg-amber-400/10' : 'text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'"
                   :title="$t('table_schema.view_alter_title') || 'View ALTER TABLE SQL'"
                 >
                   {{ $t('table_schema.copy_alter') }}
                 </button>
-                <div class="w-px h-3" :class="hasPendingChanges ? 'bg-amber-400/20' : 'bg-slate-700'"></div>
+                <div class="w-px h-3" :class="hasPendingChanges ? 'bg-amber-600/20 dark:bg-amber-400/20' : 'bg-slate-300 dark:bg-slate-700'"></div>
                 <button 
                   @click="handleCopyAlter"
                   class="p-1 transition-colors"
                   :class="[
-                    copiedAlter ? 'text-emerald-400' : (hasPendingChanges ? 'text-amber-400 hover:bg-amber-400/10' : 'text-slate-400 hover:bg-slate-700')
+                    copiedAlter ? 'text-emerald-600 dark:text-emerald-400' : (hasPendingChanges ? 'text-amber-600 dark:text-amber-400 hover:bg-amber-600/10 dark:hover:bg-amber-400/10' : 'text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700')
                   ]"
                   :title="$t('table_schema.copy_alter_title') || 'Copy ALTER TABLE to clipboard'"
                 >
@@ -864,8 +864,8 @@ const supportsUnsigned = (type: string) => {
           </div>
 
           <!-- Pending Changes Bar -->
-          <div v-if="hasPendingChanges" class="px-4 py-2 bg-blue-500/10 border-b border-slate-800 flex items-center justify-between flex-shrink-0 animate-in fade-in slide-in-from-top-2 duration-300">
-            <div class="flex items-center gap-2 text-blue-400 text-xs font-medium">
+          <div v-if="hasPendingChanges" class="px-4 py-2 bg-blue-600/10 dark:bg-blue-500/10 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between flex-shrink-0 animate-in fade-in slide-in-from-top-2 duration-300">
+            <div class="flex items-center gap-2 text-blue-600 dark:text-blue-400 text-xs font-medium">
               <AlertCircle :size="14" />
               <span>{{ $t('table_schema.pending_changes') }}</span>
             </div>
@@ -873,14 +873,14 @@ const supportsUnsigned = (type: string) => {
               <button 
                 @click="handleDiscard"
                 :disabled="saving"
-                class="px-3 py-1 text-xs font-medium text-slate-400 hover:text-slate-100 transition-colors"
+                class="px-3 py-1 text-xs font-medium text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition-colors"
               >
                 {{ $t('common.discard') }}
               </button>
               <button 
                 @click="handleCommit"
                 :disabled="saving"
-                class="flex items-center gap-1.5 px-3 py-1 text-xs font-medium bg-blue-600 hover:bg-blue-500 text-white rounded transition-colors disabled:bg-slate-700 shadow-lg shadow-blue-500/20"
+                class="flex items-center gap-1.5 px-3 py-1 text-xs font-medium bg-blue-600 hover:bg-blue-500 text-white rounded transition-colors disabled:bg-slate-300 dark:disabled:bg-slate-700 shadow-lg shadow-blue-500/20"
               >
                 <Loader2 v-if="saving" :size="12" class="animate-spin" />
                 <Save v-else :size="12" />
@@ -889,27 +889,27 @@ const supportsUnsigned = (type: string) => {
             </div>
           </div>
 
-          <div class="flex-1 overflow-auto scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-transparent">
+          <div class="flex-1 overflow-auto scrollbar-thin scrollbar-thumb-slate-300 dark:scrollbar-thumb-slate-700 scrollbar-track-transparent">
             <table class="w-full text-left border-collapse table-auto">
-              <thead class="sticky top-0 z-10 bg-slate-800 shadow-sm">
+              <thead class="sticky top-0 z-10 bg-slate-50 dark:bg-slate-800 shadow-sm transition-colors">
                 <tr>
-                  <th class="px-4 py-2 text-sm font-semibold text-slate-200 border-b border-slate-700">{{ $t('table_schema.name') }}</th>
-                  <th class="px-4 py-2 text-sm font-semibold text-slate-200 border-b border-slate-700">{{ $t('table_schema.type') }}</th>
-                  <th class="px-4 py-2 text-sm font-semibold text-slate-200 border-b border-slate-700">{{ $t('table_schema.length') }}</th>
-                  <th class="px-4 py-2 text-sm font-semibold text-slate-200 border-b border-slate-700 text-center">{{ $t('table_schema.signed_unsigned') }}</th>
-                  <th class="px-4 py-2 text-sm font-semibold text-slate-200 border-b border-slate-700 text-center">{{ $t('table_schema.nullable') }}</th>
-                  <th class="px-4 py-2 text-sm font-semibold text-slate-200 border-b border-slate-700 text-center">{{ $t('table_schema.key') }}</th>
-                  <th class="px-4 py-2 text-sm font-semibold text-slate-200 border-b border-slate-700">{{ $t('table_schema.default') }}</th>
-                  <th class="px-4 py-2 text-sm font-semibold text-slate-200 border-b border-slate-700">{{ $t('table_schema.collation') }}</th>
-                  <th class="px-4 py-2 text-sm font-semibold text-slate-200 border-b border-slate-700">{{ $t('table_schema.expression') }}</th>
-                  <th class="px-4 py-2 text-sm font-semibold text-slate-200 border-b border-slate-700">{{ $t('table_schema.virtuality') }}</th>
-                  <th class="px-4 py-2 text-sm font-semibold text-slate-200 border-b border-slate-700">{{ $t('table_schema.extra') }}</th>
-                  <th class="px-4 py-2 text-sm font-semibold text-slate-200 border-b border-slate-700">{{ $t('table_schema.comment') }}</th>
+                  <th class="px-4 py-2 text-sm font-semibold text-slate-700 dark:text-slate-200 border-b border-slate-200 dark:border-slate-700">{{ $t('table_schema.name') }}</th>
+                  <th class="px-4 py-2 text-sm font-semibold text-slate-700 dark:text-slate-200 border-b border-slate-200 dark:border-slate-700">{{ $t('table_schema.type') }}</th>
+                  <th class="px-4 py-2 text-sm font-semibold text-slate-700 dark:text-slate-200 border-b border-slate-200 dark:border-slate-700">{{ $t('table_schema.length') }}</th>
+                  <th class="px-4 py-2 text-sm font-semibold text-slate-700 dark:text-slate-200 border-b border-slate-200 dark:border-slate-700 text-center">{{ $t('table_schema.signed_unsigned') }}</th>
+                  <th class="px-4 py-2 text-sm font-semibold text-slate-700 dark:text-slate-200 border-b border-slate-200 dark:border-slate-700 text-center">{{ $t('table_schema.nullable') }}</th>
+                  <th class="px-4 py-2 text-sm font-semibold text-slate-700 dark:text-slate-200 border-b border-slate-200 dark:border-slate-700 text-center">{{ $t('table_schema.key') }}</th>
+                  <th class="px-4 py-2 text-sm font-semibold text-slate-700 dark:text-slate-200 border-b border-slate-200 dark:border-slate-700">{{ $t('table_schema.default') }}</th>
+                  <th class="px-4 py-2 text-sm font-semibold text-slate-700 dark:text-slate-200 border-b border-slate-200 dark:border-slate-700">{{ $t('table_schema.collation') }}</th>
+                  <th class="px-4 py-2 text-sm font-semibold text-slate-700 dark:text-slate-200 border-b border-slate-200 dark:border-slate-700">{{ $t('table_schema.expression') }}</th>
+                  <th class="px-4 py-2 text-sm font-semibold text-slate-700 dark:text-slate-200 border-b border-slate-200 dark:border-slate-700">{{ $t('table_schema.virtuality') }}</th>
+                  <th class="px-4 py-2 text-sm font-semibold text-slate-700 dark:text-slate-200 border-b border-slate-200 dark:border-slate-700">{{ $t('table_schema.extra') }}</th>
+                  <th class="px-4 py-2 text-sm font-semibold text-slate-700 dark:text-slate-200 border-b border-slate-200 dark:border-slate-700">{{ $t('table_schema.comment') }}</th>
                 </tr>
               </thead>
-              <tbody>
-                <tr v-for="(col, idx) in columns" :key="col._id || col.name" @click="toggleColumnSelection(idx)" class="hover:bg-slate-800/40 border-b border-slate-800/50 last:border-0 transition-colors cursor-pointer" :class="{ 'bg-amber-500/5 border-l-2 border-amber-500/50': isColumnModified(col), 'bg-emerald-500/5 border-l-2 border-emerald-500/50': isColumnNew(col), 'bg-blue-500/10 ring-1 ring-inset ring-blue-500/30': selectedColumnIndex === idx }">
-                  <td class="px-4 py-2 text-sm font-medium text-slate-100 flex items-center gap-2 cursor-pointer" @dblclick="startEditColumn(col, 'name')" :class="{ 'text-amber-400': isColumnFieldModified(col, 'name') }">
+              <tbody class="divide-y divide-slate-100 dark:divide-slate-800/50">
+                <tr v-for="(col, idx) in columns" :key="col._id || col.name" @click="toggleColumnSelection(idx)" class="hover:bg-slate-50 dark:hover:bg-slate-800/40 border-b border-slate-100 dark:border-slate-800/50 last:border-0 transition-colors cursor-pointer" :class="{ 'bg-amber-500/5 border-l-2 border-amber-500/50': isColumnModified(col), 'bg-emerald-500/5 border-l-2 border-emerald-500/50': isColumnNew(col), 'bg-blue-500/10 ring-1 ring-inset ring-blue-500/30': selectedColumnIndex === idx }">
+                  <td class="px-4 py-2 text-sm font-medium text-slate-900 dark:text-slate-100 flex items-center gap-2 cursor-pointer" @dblclick="startEditColumn(col, 'name')" :class="{ 'text-amber-600 dark:text-amber-400': isColumnFieldModified(col, 'name') }">
                     <template v-if="editingColumn && editingColumnId === col._id && editingColumnField === 'name'">
                       <input 
                         v-model="editingColumn.name" 
@@ -918,16 +918,16 @@ const supportsUnsigned = (type: string) => {
                         @keyup.escape="cancelEditColumn"
                         v-focus
                         @click.stop
-                        class="bg-slate-900 border border-blue-500 rounded px-1 py-0.5 w-full outline-none text-sm"
+                        class="bg-white dark:bg-slate-900 border border-blue-500 rounded px-1 py-0.5 w-full outline-none text-sm text-slate-900 dark:text-slate-100 transition-colors"
                       />
                     </template>
                     <template v-else>
-                      <Key v-if="col.key === 'PRI'" :size="12" class="text-yellow-500" title="Primary Key" />
-                      <Key v-else-if="col.key" :size="12" class="text-slate-500" :title="col.key === 'UNI' ? 'Unique Key' : col.key === 'MUL' ? 'Multiple Key (Index)' : 'Index'" />
+                      <Key v-if="col.key === 'PRI'" :size="12" class="text-yellow-600 dark:text-yellow-500" title="Primary Key" />
+                      <Key v-else-if="col.key" :size="12" class="text-slate-400 dark:text-slate-500" :title="col.key === 'UNI' ? 'Unique Key' : col.key === 'MUL' ? 'Multiple Key (Index)' : 'Index'" />
                       {{ col.name }}
                     </template>
                   </td>
-                  <td class="px-4 py-2 text-sm font-mono cursor-pointer" @dblclick="startEditColumn(col, 'type')" :class="[isColumnFieldModified(col, 'type') ? 'text-amber-400' : getTypeColorClass(col.type)]">
+                  <td class="px-4 py-2 text-sm font-mono cursor-pointer" @dblclick="startEditColumn(col, 'type')" :class="[isColumnFieldModified(col, 'type') ? 'text-amber-600 dark:text-amber-400' : getTypeColorClass(col.type)]">
                     <template v-if="editingColumn && editingColumnId === col._id && editingColumnField === 'type'">
                       <select 
                         v-model="editingColumn.type" 
@@ -936,14 +936,14 @@ const supportsUnsigned = (type: string) => {
                         @keyup.escape="cancelEditColumn"
                         v-focus
                         @click.stop
-                        class="bg-slate-900 border border-blue-500 rounded px-1 py-0.5 w-full outline-none text-sm font-mono"
+                        class="bg-white dark:bg-slate-900 border border-blue-500 rounded px-1 py-0.5 w-full outline-none text-sm font-mono text-slate-900 dark:text-slate-100 transition-colors"
                         :class="getTypeColorClass(editingColumn.type)"
                       >
                         <option v-if="editingColumn?.type && !supportedTypes.some(g => g.types.includes(editingColumn!.type.toUpperCase()))" :value="editingColumn.type">
                           {{ editingColumn!.type.toUpperCase() }}
                         </option>
-                        <optgroup v-for="group in supportedTypes" :key="group.group" :label="group.group" class="text-slate-400 bg-slate-900">
-                          <option v-for="type in group.types" :key="type" :value="type" :class="getTypeColorClass(type)">{{ type }}</option>
+                        <optgroup v-for="group in supportedTypes" :key="group.group" :label="group.group" class="text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-900">
+                          <option v-for="type in group.types" :key="type" :value="type" :class="getTypeColorClass(type)" class="bg-white dark:bg-slate-900">{{ type }}</option>
                         </optgroup>
                       </select>
                     </template>
@@ -951,7 +951,7 @@ const supportsUnsigned = (type: string) => {
                       {{ col.type.toUpperCase() }}
                     </template>
                   </td>
-                  <td class="px-4 py-2 text-sm font-mono text-slate-400 cursor-pointer" @dblclick="startEditColumn(col, 'length')" :class="{ 'text-amber-400': isColumnFieldModified(col, 'length') }">
+                  <td class="px-4 py-2 text-sm font-mono text-slate-500 dark:text-slate-400 cursor-pointer" @dblclick="startEditColumn(col, 'length')" :class="{ 'text-amber-600 dark:text-amber-400': isColumnFieldModified(col, 'length') }">
                     <template v-if="editingColumn && editingColumnId === col._id && editingColumnField === 'length'">
                       <input 
                         v-model="editingColumn.length" 
@@ -960,7 +960,7 @@ const supportsUnsigned = (type: string) => {
                         @keyup.escape="cancelEditColumn"
                         v-focus
                         @click.stop
-                        class="bg-slate-900 border border-blue-500 rounded px-1 py-0.5 w-full outline-none text-sm font-mono"
+                        class="bg-white dark:bg-slate-900 border border-blue-500 rounded px-1 py-0.5 w-full outline-none text-sm font-mono text-slate-900 dark:text-slate-100 transition-colors"
                         placeholder="Length..."
                       />
                     </template>
@@ -972,7 +972,7 @@ const supportsUnsigned = (type: string) => {
                     class="px-4 py-2 text-sm text-center" 
                     :class="[
                       supportsUnsigned(col.type) ? 'cursor-pointer' : 'cursor-not-allowed opacity-40',
-                      { 'text-amber-400': isColumnFieldModified(col, 'unsigned') }
+                      { 'text-amber-600 dark:text-amber-400': isColumnFieldModified(col, 'unsigned') }
                     ]"
                     @dblclick="supportsUnsigned(col.type) && startEditColumn(col, 'unsigned')"
                   >
@@ -983,7 +983,7 @@ const supportsUnsigned = (type: string) => {
                         @blur="saveColumnEdit"
                         v-focus
                         @click.stop
-                        class="bg-slate-900 border border-blue-500 rounded px-1 py-0.5 w-full outline-none text-sm text-slate-200"
+                        class="bg-white dark:bg-slate-900 border border-blue-500 rounded px-1 py-0.5 w-full outline-none text-sm text-slate-900 dark:text-slate-200 transition-colors"
                       >
                         <option :value="true">UNSIGNED</option>
                         <option :value="false">SIGNED</option>
@@ -991,13 +991,13 @@ const supportsUnsigned = (type: string) => {
                     </template>
                     <template v-else>
                       <template v-if="supportsUnsigned(col.type)">
-                        <span v-if="col.unsigned" class="text-blue-400 text-xs font-semibold px-1.5 py-0.5 rounded bg-blue-400/10">UNSIGNED</span>
+                        <span v-if="col.unsigned" class="text-blue-600 dark:text-blue-400 text-xs font-semibold px-1.5 py-0.5 rounded bg-blue-600/10 dark:bg-blue-400/10">UNSIGNED</span>
                         <span v-else class="text-slate-500 text-xs font-semibold px-1.5 py-0.5 rounded bg-slate-500/10">SIGNED</span>
                       </template>
-                      <span v-else class="text-slate-600 text-[10px]">—</span>
+                      <span v-else class="text-slate-400 dark:text-slate-600 text-[10px]">—</span>
                     </template>
                   </td>
-                  <td class="px-4 py-2 text-sm text-center cursor-pointer" @dblclick="startEditColumn(col, 'nullable')" :class="{ 'text-amber-400': isColumnFieldModified(col, 'nullable') }">
+                  <td class="px-4 py-2 text-sm text-center cursor-pointer" @dblclick="startEditColumn(col, 'nullable')" :class="{ 'text-amber-600 dark:text-amber-400': isColumnFieldModified(col, 'nullable') }">
                     <template v-if="editingColumn && editingColumnId === col._id && editingColumnField === 'nullable'">
                       <select 
                         v-model="editingColumn.nullable" 
@@ -1005,27 +1005,27 @@ const supportsUnsigned = (type: string) => {
                         @blur="saveColumnEdit"
                         v-focus
                         @click.stop
-                        class="bg-slate-900 border border-blue-500 rounded px-1 py-0.5 w-full outline-none text-sm text-slate-200"
+                        class="bg-white dark:bg-slate-900 border border-blue-500 rounded px-1 py-0.5 w-full outline-none text-sm text-slate-900 dark:text-slate-200 transition-colors"
                       >
                         <option :value="true">YES</option>
                         <option :value="false">NO</option>
                       </select>
                     </template>
                     <template v-else>
-                      <span v-if="col.nullable" class="text-blue-400 text-xs font-semibold px-1.5 py-0.5 rounded bg-blue-400/10">YES</span>
+                      <span v-if="col.nullable" class="text-blue-600 dark:text-blue-400 text-xs font-semibold px-1.5 py-0.5 rounded bg-blue-600/10 dark:bg-blue-400/10">YES</span>
                       <span v-else class="text-slate-500 text-xs font-semibold px-1.5 py-0.5 rounded bg-slate-500/10">NO</span>
                     </template>
                   </td>
                   <td class="px-4 py-2 text-sm text-center font-mono text-xs">
                     <span 
                       v-if="col.key" 
-                      class="bg-slate-800 px-1.5 py-0.5 rounded border border-slate-700 text-slate-300 cursor-help"
+                      class="bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 cursor-help"
                       :title="col.key === 'PRI' ? 'Primary Key' : col.key === 'UNI' ? 'Unique Key' : col.key === 'MUL' ? 'Multiple Key (Index)' : col.key"
                     >
                       {{ col.key }}
                     </span>
                   </td>
-                  <td class="px-4 py-2 text-sm text-slate-400 font-mono italic cursor-pointer" @dblclick="startEditColumn(col, 'default')" :class="{ 'text-amber-400': isColumnFieldModified(col, 'default') }">
+                  <td class="px-4 py-2 text-sm text-slate-500 dark:text-slate-400 font-mono italic cursor-pointer" @dblclick="startEditColumn(col, 'default')" :class="{ 'text-amber-600 dark:text-amber-400': isColumnFieldModified(col, 'default') }">
                     <template v-if="editingColumn && editingColumnId === col._id && editingColumnField === 'default'">
                       <input 
                         v-model="editingColumn.default" 
@@ -1034,7 +1034,7 @@ const supportsUnsigned = (type: string) => {
                         @keyup.escape="cancelEditColumn"
                         v-focus
                         @click.stop
-                        class="bg-slate-900 border border-blue-500 rounded px-1 py-0.5 w-full outline-none text-sm"
+                        class="bg-white dark:bg-slate-900 border border-blue-500 rounded px-1 py-0.5 w-full outline-none text-sm text-slate-900 dark:text-slate-100"
                         placeholder="NULL"
                       />
                     </template>
@@ -1042,18 +1042,18 @@ const supportsUnsigned = (type: string) => {
                       {{ col.default === null ? 'NULL' : col.default }}
                     </template>
                   </td>
-                  <td class="px-4 py-2 text-sm text-slate-500 font-mono text-xs">
+                  <td class="px-4 py-2 text-sm text-slate-500 dark:text-slate-500 font-mono text-xs">
                     {{ col.collation }}
                   </td>
-                  <td class="px-4 py-2 text-sm text-slate-500 font-mono text-xs max-w-xs truncate" :title="col.expression">
+                  <td class="px-4 py-2 text-sm text-slate-500 dark:text-slate-500 font-mono text-xs max-w-xs truncate" :title="col.expression">
                     {{ col.expression }}
                   </td>
                   <td class="px-4 py-2 text-sm text-center">
-                    <span v-if="col.virtuality" class="text-purple-400 text-[10px] font-bold px-1.5 py-0.5 rounded bg-purple-400/10 border border-purple-400/20">
+                    <span v-if="col.virtuality" class="text-purple-600 dark:text-purple-400 text-[10px] font-bold px-1.5 py-0.5 rounded bg-purple-600/10 dark:bg-purple-400/10 border border-purple-600/20 dark:border-purple-400/20">
                       {{ col.virtuality }}
                     </span>
                   </td>
-                  <td class="px-4 py-2 text-sm text-slate-500 font-mono text-xs cursor-pointer" @dblclick="startEditColumn(col, 'extra')" :class="{ 'text-amber-400': isColumnFieldModified(col, 'extra') }">
+                  <td class="px-4 py-2 text-sm text-slate-500 dark:text-slate-500 font-mono text-xs cursor-pointer" @dblclick="startEditColumn(col, 'extra')" :class="{ 'text-amber-600 dark:text-amber-400': isColumnFieldModified(col, 'extra') }">
                     <template v-if="editingColumn && editingColumnId === col._id && editingColumnField === 'extra'">
                       <input 
                         v-model="editingColumn.extra" 
@@ -1062,14 +1062,14 @@ const supportsUnsigned = (type: string) => {
                         @keyup.escape="cancelEditColumn"
                         v-focus
                         @click.stop
-                        class="bg-slate-900 border border-blue-500 rounded px-1 py-0.5 w-full outline-none text-sm"
+                        class="bg-white dark:bg-slate-900 border border-blue-500 rounded px-1 py-0.5 w-full outline-none text-sm text-slate-900 dark:text-slate-100"
                       />
                     </template>
                     <template v-else>
                       {{ col.extra }}
                     </template>
                   </td>
-                  <td class="px-4 py-2 text-sm text-slate-400 italic text-xs max-w-sm truncate cursor-pointer" @dblclick="startEditColumn(col, 'comment')" :title="col.comment" :class="{ 'text-amber-400': isColumnFieldModified(col, 'comment') }">
+                  <td class="px-4 py-2 text-sm text-slate-500 dark:text-slate-400 italic text-xs max-w-sm truncate cursor-pointer" @dblclick="startEditColumn(col, 'comment')" :title="col.comment" :class="{ 'text-amber-600 dark:text-amber-400': isColumnFieldModified(col, 'comment') }">
                     <template v-if="editingColumn && editingColumnId === col._id && editingColumnField === 'comment'">
                       <input 
                         v-model="editingColumn.comment" 
@@ -1078,7 +1078,7 @@ const supportsUnsigned = (type: string) => {
                         @keyup.escape="cancelEditColumn"
                         v-focus
                         @click.stop
-                        class="bg-slate-900 border border-blue-500 rounded px-1 py-0.5 w-full outline-none text-sm"
+                        class="bg-white dark:bg-slate-900 border border-blue-500 rounded px-1 py-0.5 w-full outline-none text-sm text-slate-900 dark:text-slate-100"
                       />
                     </template>
                     <template v-else>
@@ -1096,22 +1096,22 @@ const supportsUnsigned = (type: string) => {
           class="h-3 flex items-center justify-center cursor-row-resize group"
           @mousedown="startResizing"
         >
-          <div class="w-full h-px bg-slate-800 group-hover:bg-blue-500 transition-colors relative flex items-center justify-center">
-            <div class="absolute bg-slate-900 border border-slate-700 rounded px-1 py-0.5 group-hover:border-blue-500 transition-colors">
-              <GripHorizontal :size="12" class="text-slate-500 group-hover:text-blue-400" />
+          <div class="w-full h-px bg-slate-200 dark:bg-slate-800 group-hover:bg-blue-500 transition-colors relative flex items-center justify-center">
+            <div class="absolute bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded px-1 py-0.5 group-hover:border-blue-500 transition-colors">
+              <GripHorizontal :size="12" class="text-slate-400 dark:text-slate-500 group-hover:text-blue-600 dark:group-hover:text-blue-400" />
             </div>
           </div>
         </div>
 
         <!-- Bottom Block: Tabs (Indexes, FKs) -->
-        <div class="flex-1 flex flex-col min-h-0 bg-slate-900 rounded-lg border border-slate-800 overflow-hidden">
+        <div class="flex-1 flex flex-col min-h-0 bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm">
         <!-- Tabs Header -->
-        <div class="flex border-b border-slate-800 flex-shrink-0 bg-slate-800/50 justify-between items-center pr-2">
+        <div class="flex border-b border-slate-200 dark:border-slate-800 flex-shrink-0 bg-slate-50 dark:bg-slate-800/50 justify-between items-center pr-2">
           <div class="flex">
             <button 
               @click="bottomTab = 'indexes'"
               class="px-4 py-2 text-sm font-medium border-b-2 transition-colors flex items-center gap-2"
-              :class="bottomTab === 'indexes' ? 'border-blue-500 text-blue-500 bg-blue-500/5' : 'border-transparent text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'"
+              :class="bottomTab === 'indexes' ? 'border-blue-500 text-blue-500 bg-blue-500/5' : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/50'"
             >
               <List :size="14" />
               {{ $t('table_schema.indexes') }}
@@ -1119,7 +1119,7 @@ const supportsUnsigned = (type: string) => {
             <button 
               @click="bottomTab = 'fks'"
               class="px-4 py-2 text-sm font-medium border-b-2 transition-colors flex items-center gap-2"
-              :class="bottomTab === 'fks' ? 'border-blue-500 text-blue-500 bg-blue-500/5' : 'border-transparent text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'"
+              :class="bottomTab === 'fks' ? 'border-blue-500 text-blue-500 bg-blue-500/5' : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/50'"
             >
               <Link :size="14" />
               {{ $t('table_schema.fks') }}
@@ -1152,14 +1152,14 @@ const supportsUnsigned = (type: string) => {
         <!-- Pending Changes Bar (Removed from here, moved up) -->
 
         <!-- Tab Content -->
-        <div class="flex-1 overflow-auto scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-transparent">
+        <div class="flex-1 overflow-auto scrollbar-thin scrollbar-thumb-slate-300 dark:scrollbar-thumb-slate-700 scrollbar-track-transparent">
           <div v-if="bottomTab === 'indexes'">
             <!-- Add Index Form -->
-            <div v-if="showAddIndex" class="p-4 bg-slate-800/30 border-b border-slate-800">
+            <div v-if="showAddIndex" class="p-4 bg-slate-50 dark:bg-slate-800/30 border-b border-slate-200 dark:border-slate-800">
               <div class="flex flex-wrap gap-4 items-end">
                 <div class="flex-1 min-w-[200px]">
                   <label class="block text-[11px] font-semibold text-slate-500 uppercase mb-1">{{ $t('table_schema.index_name') || 'Index Name' }}</label>
-                  <input v-model="newIndex.name" type="text" class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1.5 text-sm text-slate-200 focus:border-blue-500 outline-none" :placeholder="$t('common.optional') || 'Optional'" />
+                  <input v-model="newIndex.name" type="text" class="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded px-2 py-1.5 text-sm text-slate-900 dark:text-slate-200 focus:border-blue-500 outline-none" :placeholder="$t('common.optional') || 'Optional'" />
                 </div>
                 <div class="flex-[2] min-w-[300px]">
                   <label class="block text-[11px] font-semibold text-slate-500 uppercase mb-1">{{ $t('table_schema.columns_label') }}</label>
@@ -1168,7 +1168,7 @@ const supportsUnsigned = (type: string) => {
                 <div class="w-40">
                   <label class="block text-[11px] font-semibold text-slate-500 uppercase mb-1">{{ $t('table_schema.index_type') || 'Index Type' }}</label>
                   <div class="relative">
-                    <select v-model="newIndex.type" class="w-full appearance-none bg-slate-900 border border-slate-700 rounded px-2 py-1.5 pr-8 text-sm text-slate-200 focus:border-blue-500 outline-none cursor-pointer">
+                    <select v-model="newIndex.type" class="w-full appearance-none bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded px-2 py-1.5 pr-8 text-sm text-slate-900 dark:text-slate-200 focus:border-blue-500 outline-none cursor-pointer">
                       <option value="INDEX">INDEX</option>
                       <option value="UNIQUE">UNIQUE</option>
                       <option value="PRIMARY">PRIMARY</option>
@@ -1192,18 +1192,18 @@ const supportsUnsigned = (type: string) => {
             </div>
 
             <table class="w-full text-left border-collapse table-auto">
-              <thead class="sticky top-0 z-10 bg-slate-800 shadow-sm">
+              <thead class="sticky top-0 z-10 bg-slate-100 dark:bg-slate-800 shadow-sm">
                 <tr>
-                  <th class="px-4 py-2 text-sm font-semibold text-slate-200 border-b border-slate-700">{{ $t('table_schema.name') }}</th>
-                  <th class="px-4 py-2 text-sm font-semibold text-slate-200 border-b border-slate-700">{{ $t('table_schema.columns_label') }}</th>
-                  <th class="px-4 py-2 text-sm font-semibold text-slate-200 border-b border-slate-700">{{ $t('table_schema.type') }}</th>
-                  <th class="px-4 py-2 text-sm font-semibold text-slate-200 border-b border-slate-700">{{ $t('table_schema.method') || 'Method' }}</th>
-                  <th class="px-4 py-2 text-sm font-semibold text-slate-200 border-b border-slate-700 w-10"></th>
+                  <th class="px-4 py-2 text-sm font-semibold text-slate-700 dark:text-slate-200 border-b border-slate-200 dark:border-slate-700">{{ $t('table_schema.name') }}</th>
+                  <th class="px-4 py-2 text-sm font-semibold text-slate-700 dark:text-slate-200 border-b border-slate-200 dark:border-slate-700">{{ $t('table_schema.columns_label') }}</th>
+                  <th class="px-4 py-2 text-sm font-semibold text-slate-700 dark:text-slate-200 border-b border-slate-200 dark:border-slate-700">{{ $t('table_schema.type') }}</th>
+                  <th class="px-4 py-2 text-sm font-semibold text-slate-700 dark:text-slate-200 border-b border-slate-200 dark:border-slate-700">{{ $t('table_schema.method') || 'Method' }}</th>
+                  <th class="px-4 py-2 text-sm font-semibold text-slate-700 dark:text-slate-200 border-b border-slate-200 dark:border-slate-700 w-10"></th>
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="idx in sortedIndexes" :key="idx.name" class="hover:bg-slate-800/40 border-b border-slate-800/50 last:border-0 transition-colors group relative" :class="{ 'bg-emerald-500/5 border-l-2 border-emerald-500/50': isIndexNew(idx), 'bg-amber-500/5 border-l-2 border-amber-500/50': !isIndexNew(idx) && isIndexModified(idx) }">
-                  <td class="px-4 py-2 text-sm font-medium text-slate-100 cursor-pointer" @dblclick="startEditIndex(idx, 'name')" :class="{ 'text-amber-400': !isIndexNew(idx) && isIndexFieldModified(idx, 'name') }">
+                <tr v-for="idx in sortedIndexes" :key="idx.name" class="hover:bg-slate-100 dark:hover:bg-slate-800/40 border-b border-slate-100 dark:border-slate-800/50 last:border-0 transition-colors group relative" :class="{ 'bg-emerald-500/5 border-l-2 border-emerald-500/50': isIndexNew(idx), 'bg-amber-500/5 border-l-2 border-amber-500/50': !isIndexNew(idx) && isIndexModified(idx) }">
+                  <td class="px-4 py-2 text-sm font-medium text-slate-900 dark:text-slate-100 cursor-pointer" @dblclick="startEditIndex(idx, 'name')" :class="{ 'text-amber-400': !isIndexNew(idx) && isIndexFieldModified(idx, 'name') }">
                     <template v-if="editingIndex && originalIndexName === idx.name && editingIndexField === 'name'">
                       <input 
                         v-model="editingIndex.name" 
@@ -1211,14 +1211,14 @@ const supportsUnsigned = (type: string) => {
                         @keyup.enter="saveIndexEdit"
                         @keyup.escape="cancelEditIndex"
                         v-focus
-                        class="bg-slate-900 border border-blue-500 rounded px-1 py-0.5 w-full outline-none text-sm"
+                        class="bg-white dark:bg-slate-900 border border-blue-500 rounded px-1 py-0.5 w-full outline-none text-sm text-slate-900 dark:text-slate-100"
                       />
                     </template>
                     <template v-else>
                       {{ idx.name }}
                     </template>
                   </td>
-                  <td class="px-4 py-2 text-sm text-blue-400 font-mono cursor-pointer" @dblclick="startEditIndex(idx, 'columns')" :class="{ 'text-amber-400': !isIndexNew(idx) && isIndexFieldModified(idx, 'columns') }">
+                  <td class="px-4 py-2 text-sm text-blue-600 dark:text-blue-400 font-mono cursor-pointer" @dblclick="startEditIndex(idx, 'columns')" :class="{ 'text-amber-600 dark:text-amber-400': !isIndexNew(idx) && isIndexFieldModified(idx, 'columns') }">
                     <template v-if="editingIndex && originalIndexName === idx.name && editingIndexField === 'columns'">
                        <MultiSelect 
                          v-model="editingIndex.columns" 
@@ -1238,7 +1238,7 @@ const supportsUnsigned = (type: string) => {
                         @change="saveIndexEdit"
                         @blur="saveIndexEdit"
                         v-focus
-                        class="bg-slate-900 border border-blue-500 rounded px-1 py-0.5 w-full outline-none text-sm text-slate-200"
+                        class="bg-white dark:bg-slate-900 border border-blue-500 rounded px-1 py-0.5 w-full outline-none text-sm text-slate-900 dark:text-slate-100"
                       >
                         <option value="INDEX">INDEX</option>
                         <option value="UNIQUE">UNIQUE</option>
@@ -1249,20 +1249,34 @@ const supportsUnsigned = (type: string) => {
                     </template>
                     <template v-else>
                       <span 
-                        class="text-[10px] font-bold px-1.5 py-0.5 rounded border uppercase"
+                        class="text-[10px] font-bold px-1.5 py-0.5 rounded border border-slate-200 dark:border-slate-700 uppercase"
                         :class="[
-                          idx.type === 'PRIMARY' ? 'text-yellow-500 bg-yellow-500/10 border-yellow-500/20' :
-                          idx.type === 'UNIQUE' ? 'text-emerald-500 bg-emerald-500/10 border-emerald-500/20' :
-                          idx.type === 'FULLTEXT' ? 'text-purple-400 bg-purple-400/10 border-purple-400/20' :
-                          idx.type === 'SPATIAL' ? 'text-orange-400 bg-orange-400/10 border-orange-400/20' :
-                          'text-slate-400 bg-slate-400/10 border-slate-400/20'
+                          idx.type === 'PRIMARY' ? 'text-yellow-600 dark:text-yellow-500 bg-yellow-500/10 border-yellow-500/20' :
+                          idx.type === 'UNIQUE' ? 'text-emerald-600 dark:text-emerald-500 bg-emerald-500/10 border-emerald-500/20' :
+                          idx.type === 'FULLTEXT' ? 'text-purple-600 dark:text-purple-400 bg-purple-400/10 border-purple-400/20' :
+                          idx.type === 'SPATIAL' ? 'text-orange-600 dark:text-orange-500 bg-orange-400/10 border-orange-400/20' :
+                          'text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-400/10 border-slate-200 dark:border-slate-400/20'
                         ]"
                       >
                         {{ idx.type }}
                       </span>
                     </template>
                   </td>
-                  <td class="px-4 py-2 text-sm text-slate-400 font-mono text-xs">{{ idx.method }}</td>
+                  <td class="px-4 py-2 text-sm text-slate-600 dark:text-slate-400 font-mono text-xs cursor-pointer" @dblclick="startEditIndex(idx, 'method')" :class="{ 'text-amber-400': !isIndexNew(idx) && isIndexFieldModified(idx, 'method') }">
+                    <template v-if="editingIndex && originalIndexName === idx.name && editingIndexField === 'method'">
+                      <input 
+                        v-model="editingIndex.method" 
+                        @blur="saveIndexEdit" 
+                        @keyup.enter="saveIndexEdit"
+                        @keyup.escape="cancelEditIndex"
+                        v-focus
+                        class="bg-white dark:bg-slate-900 border border-blue-500 rounded px-1 py-0.5 w-full outline-none text-sm text-slate-900 dark:text-slate-100"
+                      />
+                    </template>
+                    <template v-else>
+                      {{ idx.method }}
+                    </template>
+                  </td>
                   <td class="px-4 py-2 text-right">
                     <button 
                       @click="deleteIndex(idx)" 
@@ -1281,17 +1295,17 @@ const supportsUnsigned = (type: string) => {
           </div>
           <div v-else-if="bottomTab === 'fks'">
             <!-- Add FK Form -->
-            <div v-if="showAddFK" class="p-4 bg-slate-800/30 border-b border-slate-800 space-y-4">
+            <div v-if="showAddFK" class="p-4 bg-slate-50 dark:bg-slate-800/30 border-b border-slate-200 dark:border-slate-800 space-y-4">
               <!-- Row 1: Name, Update Rule, Delete Rule, Save Button -->
               <div class="flex flex-wrap gap-4 items-end">
                 <div class="flex-1 min-w-[200px]">
                   <label class="block text-[11px] font-semibold text-slate-500 uppercase mb-1">{{ $t('table_schema.fk_name') || 'FK Name' }}</label>
-                  <input v-model="newFK.name" type="text" class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1.5 text-sm text-slate-200 focus:border-blue-500 outline-none" :placeholder="$t('common.optional') || 'Optional'" />
+                  <input v-model="newFK.name" type="text" class="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded px-2 py-1.5 text-sm text-slate-900 dark:text-slate-200 focus:border-blue-500 outline-none" :placeholder="$t('common.optional') || 'Optional'" />
                 </div>
                 <div class="w-40">
                   <label class="block text-[11px] font-semibold text-slate-500 uppercase mb-1">{{ $t('table_schema.update_rule') }}</label>
                   <div class="relative">
-                    <select v-model="newFK.updateRule" class="w-full appearance-none bg-slate-900 border border-slate-700 rounded px-2 py-1.5 pr-8 text-sm text-slate-200 focus:border-blue-500 outline-none cursor-pointer">
+                    <select v-model="newFK.updateRule" class="w-full appearance-none bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded px-2 py-1.5 pr-8 text-sm text-slate-900 dark:text-slate-200 focus:border-blue-500 outline-none cursor-pointer">
                       <option value="CASCADE">CASCADE</option>
                       <option value="NO ACTION">NO ACTION</option>
                       <option value="RESTRICT">RESTRICT</option>
@@ -1303,7 +1317,7 @@ const supportsUnsigned = (type: string) => {
                 <div class="w-40">
                   <label class="block text-[11px] font-semibold text-slate-500 uppercase mb-1">{{ $t('table_schema.delete_rule') }}</label>
                   <div class="relative">
-                    <select v-model="newFK.deleteRule" class="w-full appearance-none bg-slate-900 border border-slate-700 rounded px-2 py-1.5 pr-8 text-sm text-slate-200 focus:border-blue-500 outline-none cursor-pointer">
+                    <select v-model="newFK.deleteRule" class="w-full appearance-none bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded px-2 py-1.5 pr-8 text-sm text-slate-900 dark:text-slate-200 focus:border-blue-500 outline-none cursor-pointer">
                       <option value="CASCADE">CASCADE</option>
                       <option value="NO ACTION">NO ACTION</option>
                       <option value="RESTRICT">RESTRICT</option>
@@ -1333,7 +1347,7 @@ const supportsUnsigned = (type: string) => {
                 <div class="flex-1 min-w-[200px]">
                   <label class="block text-[11px] font-semibold text-slate-500 uppercase mb-1">{{ $t('table_schema.ref_table') }}</label>
                   <div class="relative">
-                    <select v-model="newFK.referencedTable" class="w-full appearance-none bg-slate-900 border border-slate-700 rounded px-2 py-1.5 pr-8 text-sm text-slate-200 focus:border-blue-500 outline-none cursor-pointer">
+                    <select v-model="newFK.referencedTable" class="w-full appearance-none bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded px-2 py-1.5 pr-8 text-sm text-slate-900 dark:text-slate-200 focus:border-blue-500 outline-none cursor-pointer">
                       <option value="">{{ $t('table_schema.select_table') || 'Select table...' }}</option>
                       <option v-for="t in availableTables" :key="t" :value="t">{{ t }}</option>
                     </select>
@@ -1353,20 +1367,20 @@ const supportsUnsigned = (type: string) => {
             </div>
 
             <table class="w-full text-left border-collapse table-auto">
-              <thead class="sticky top-0 z-10 bg-slate-800 shadow-sm">
+              <thead class="sticky top-0 z-10 bg-slate-100 dark:bg-slate-800 shadow-sm">
                 <tr>
-                  <th class="px-4 py-2 text-sm font-semibold text-slate-200 border-b border-slate-700">{{ $t('table_schema.name') }}</th>
-                  <th class="px-4 py-2 text-sm font-semibold text-slate-200 border-b border-slate-700">{{ $t('table_schema.columns_label') }}</th>
-                  <th class="px-4 py-2 text-sm font-semibold text-slate-200 border-b border-slate-700">{{ $t('table_schema.ref_table') }}</th>
-                  <th class="px-4 py-2 text-sm font-semibold text-slate-200 border-b border-slate-700">{{ $t('table_schema.ref_columns') }}</th>
-                  <th class="px-4 py-2 text-sm font-semibold text-slate-200 border-b border-slate-700">{{ $t('table_schema.update_rule') }}</th>
-                  <th class="px-4 py-2 text-sm font-semibold text-slate-200 border-b border-slate-700">{{ $t('table_schema.delete_rule') }}</th>
-                  <th class="px-4 py-2 text-sm font-semibold text-slate-200 border-b border-slate-700 w-10"></th>
+                  <th class="px-4 py-2 text-sm font-semibold text-slate-700 dark:text-slate-200 border-b border-slate-200 dark:border-slate-700">{{ $t('table_schema.name') }}</th>
+                  <th class="px-4 py-2 text-sm font-semibold text-slate-700 dark:text-slate-200 border-b border-slate-200 dark:border-slate-700">{{ $t('table_schema.columns_label') }}</th>
+                  <th class="px-4 py-2 text-sm font-semibold text-slate-700 dark:text-slate-200 border-b border-slate-200 dark:border-slate-700">{{ $t('table_schema.ref_table') }}</th>
+                  <th class="px-4 py-2 text-sm font-semibold text-slate-700 dark:text-slate-200 border-b border-slate-200 dark:border-slate-700">{{ $t('table_schema.ref_columns') }}</th>
+                  <th class="px-4 py-2 text-sm font-semibold text-slate-700 dark:text-slate-200 border-b border-slate-200 dark:border-slate-700">{{ $t('table_schema.update_rule') }}</th>
+                  <th class="px-4 py-2 text-sm font-semibold text-slate-700 dark:text-slate-200 border-b border-slate-200 dark:border-slate-700">{{ $t('table_schema.delete_rule') }}</th>
+                  <th class="px-4 py-2 text-sm font-semibold text-slate-700 dark:text-slate-200 border-b border-slate-200 dark:border-slate-700 w-10"></th>
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="fk in foreignKeys" :key="fk.name" class="hover:bg-slate-800/40 border-b border-slate-800/50 last:border-0 transition-colors group relative" :class="{ 'bg-emerald-500/5 border-l-2 border-emerald-500/50': isFKNew(fk), 'bg-amber-500/5 border-l-2 border-amber-500/50': !isFKNew(fk) && isFKModified(fk) }">
-                  <td class="px-4 py-2 text-sm font-medium text-slate-100 cursor-pointer" @dblclick="startEditFK(fk, 'name')" :class="{ 'text-amber-400': !isFKNew(fk) && isFKFieldModified(fk, 'name') }">
+                <tr v-for="fk in foreignKeys" :key="fk.name" class="hover:bg-slate-100 dark:hover:bg-slate-800/40 border-b border-slate-100 dark:border-slate-800/50 last:border-0 transition-colors group relative" :class="{ 'bg-emerald-500/5 border-l-2 border-emerald-500/50': isFKNew(fk), 'bg-amber-500/5 border-l-2 border-amber-500/50': !isFKNew(fk) && isFKModified(fk) }">
+                  <td class="px-4 py-2 text-sm font-medium text-slate-900 dark:text-slate-100 cursor-pointer" @dblclick="startEditFK(fk, 'name')" :class="{ 'text-amber-400': !isFKNew(fk) && isFKFieldModified(fk, 'name') }">
                     <template v-if="editingFK && originalFKName === fk.name && editingFKField === 'name'">
                       <input 
                         v-model="editingFK.name" 
@@ -1374,7 +1388,7 @@ const supportsUnsigned = (type: string) => {
                         @keyup.enter="saveFKEdit"
                         @keyup.escape="cancelEditFK"
                         v-focus
-                        class="bg-slate-900 border border-blue-500 rounded px-1 py-0.5 w-full outline-none text-sm"
+                        class="bg-white dark:bg-slate-900 border border-blue-500 rounded px-1 py-0.5 w-full outline-none text-sm text-slate-900 dark:text-slate-100"
                       />
                     </template>
                     <template v-else>
@@ -1394,14 +1408,14 @@ const supportsUnsigned = (type: string) => {
                       {{ fk.columns.join(', ') }}
                     </template>
                   </td>
-                  <td class="px-4 py-2 text-sm text-emerald-400 cursor-pointer" @dblclick="startEditFK(fk, 'referencedTable')" :class="{ 'text-amber-400': !isFKNew(fk) && isFKFieldModified(fk, 'referencedTable') }">
+                  <td class="px-4 py-2 text-sm text-emerald-600 dark:text-emerald-400 cursor-pointer" @dblclick="startEditFK(fk, 'referencedTable')" :class="{ 'text-amber-600 dark:text-amber-400': !isFKNew(fk) && isFKFieldModified(fk, 'referencedTable') }">
                     <template v-if="editingFK && originalFKName === fk.name && editingFKField === 'referencedTable'">
                       <select 
                         v-model="editingFK.referencedTable" 
                         @change="saveFKEdit"
                         @blur="saveFKEdit"
                         v-focus
-                        class="bg-slate-900 border border-blue-500 rounded px-1 py-0.5 w-full outline-none text-sm text-slate-200"
+                        class="bg-white dark:bg-slate-900 border border-blue-500 rounded px-1 py-0.5 w-full outline-none text-sm text-slate-900 dark:text-slate-100"
                       >
                         <option v-for="t in availableTables" :key="t" :value="t">{{ t }}</option>
                       </select>
@@ -1410,7 +1424,7 @@ const supportsUnsigned = (type: string) => {
                       {{ fk.referencedTable }}
                     </template>
                   </td>
-                  <td class="px-4 py-2 text-sm text-blue-400 font-mono cursor-pointer" @dblclick="startEditFK(fk, 'referencedColumns')" :class="{ 'text-amber-400': !isFKNew(fk) && isFKFieldModified(fk, 'referencedColumns') }">
+                  <td class="px-4 py-2 text-sm text-blue-600 dark:text-blue-400 font-mono cursor-pointer" @dblclick="startEditFK(fk, 'referencedColumns')" :class="{ 'text-amber-400': !isFKNew(fk) && isFKFieldModified(fk, 'referencedColumns') }">
                     <template v-if="editingFK && originalFKName === fk.name && editingFKField === 'referencedColumns'">
                        <MultiSelect 
                          v-model="editingFK.referencedColumns" 
@@ -1423,14 +1437,14 @@ const supportsUnsigned = (type: string) => {
                       {{ fk.referencedColumns.join(', ') }}
                     </template>
                   </td>
-                  <td class="px-4 py-2 text-sm text-slate-400 font-mono text-[10px] cursor-pointer" @dblclick="startEditFK(fk, 'updateRule')" :class="{ 'text-amber-400': !isFKNew(fk) && isFKFieldModified(fk, 'updateRule') }">
+                  <td class="px-4 py-2 text-sm text-slate-600 dark:text-slate-400 font-mono text-[10px] cursor-pointer" @dblclick="startEditFK(fk, 'updateRule')" :class="{ 'text-amber-600 dark:text-amber-400': !isFKNew(fk) && isFKFieldModified(fk, 'updateRule') }">
                     <template v-if="editingFK && originalFKName === fk.name && editingFKField === 'updateRule'">
                       <select 
                         v-model="editingFK.updateRule" 
                         @change="saveFKEdit"
                         @blur="saveFKEdit"
                         v-focus
-                        class="bg-slate-900 border border-blue-500 rounded px-1 py-0.5 w-full outline-none text-xs text-slate-200"
+                        class="bg-white dark:bg-slate-900 border border-blue-500 rounded px-1 py-0.5 w-full outline-none text-xs text-slate-900 dark:text-slate-200"
                       >
                         <option value="CASCADE">CASCADE</option>
                         <option value="NO ACTION">NO ACTION</option>
@@ -1439,17 +1453,17 @@ const supportsUnsigned = (type: string) => {
                       </select>
                     </template>
                     <template v-else>
-                      {{ fk.updateRule }}
+                      <span class="bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded border border-slate-200 dark:border-slate-700 font-mono text-[10px]">{{ fk.updateRule }}</span>
                     </template>
                   </td>
-                  <td class="px-4 py-2 text-sm text-slate-400 font-mono text-[10px] cursor-pointer" @dblclick="startEditFK(fk, 'deleteRule')" :class="{ 'text-amber-400': !isFKNew(fk) && isFKFieldModified(fk, 'deleteRule') }">
+                  <td class="px-4 py-2 text-sm text-slate-600 dark:text-slate-400 font-mono text-[10px] cursor-pointer" @dblclick="startEditFK(fk, 'deleteRule')" :class="{ 'text-amber-400': !isFKNew(fk) && isFKFieldModified(fk, 'deleteRule') }">
                     <template v-if="editingFK && originalFKName === fk.name && editingFKField === 'deleteRule'">
                       <select 
                         v-model="editingFK.deleteRule" 
                         @change="saveFKEdit"
                         @blur="saveFKEdit"
                         v-focus
-                        class="bg-slate-900 border border-blue-500 rounded px-1 py-0.5 w-full outline-none text-xs text-slate-200"
+                        class="bg-white dark:bg-slate-900 border border-blue-500 rounded px-1 py-0.5 w-full outline-none text-xs text-slate-900 dark:text-slate-200"
                       >
                         <option value="CASCADE">CASCADE</option>
                         <option value="NO ACTION">NO ACTION</option>
@@ -1458,7 +1472,7 @@ const supportsUnsigned = (type: string) => {
                       </select>
                     </template>
                     <template v-else>
-                      {{ fk.deleteRule }}
+                      <span class="bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded border border-slate-200 dark:border-slate-700 font-mono text-[10px]">{{ fk.deleteRule }}</span>
                     </template>
                   </td>
                   <td class="px-4 py-2 text-right">
