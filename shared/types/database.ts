@@ -81,6 +81,7 @@ export interface AppState {
   queryTabs: { id: string; name: string; query: string }[];
   sidebarWidth: number;
   queryEditorHeight?: number;
+  tableSchemaHeight?: number;
   dbFilter: string;
   tableFilter: string;
   expandedServerNames: string[];
@@ -100,4 +101,6 @@ export interface IDatabaseDriver {
   getTableCreateStatement(database: string, table: string): Promise<string>;
   getTableData(database: string, table: string, limit: number, offset: number, sort?: SortConfig[], filter?: string): Promise<TableDataResponse>;
   executeQuery(sql: string): Promise<any>;
+  addIndex(database: string, table: string, index: TableIndex): Promise<void>;
+  addForeignKey(database: string, table: string, fk: ForeignKey): Promise<void>;
 }

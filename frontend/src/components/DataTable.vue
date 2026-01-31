@@ -2,6 +2,7 @@
 import { ref, onMounted, onUnmounted, watch, computed, shallowRef } from 'vue';
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, ArrowUp, ArrowDown, Loader2 } from 'lucide-vue-next';
 import type { SortConfig, TableDataResponse } from '@shared/types/database';
+import { showError } from '../errorService';
 import DataRow from './DataTable/DataRow.vue';
 import FilterInput from './DataTable/FilterInput.vue';
 
@@ -51,6 +52,7 @@ const fetchData = async () => {
     data.value = result;
   } catch (err: any) {
     error.value = err.message;
+    showError('Error al cargar datos', err.message);
   } finally {
     loading.value = false;
   }

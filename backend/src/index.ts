@@ -411,6 +411,34 @@ app.get('/api/servers/:serverName/databases/:dbName/tables/:tableName/indexes', 
   }
 });
 
+app.post('/api/servers/:serverName/databases/:dbName/tables/:tableName/indexes', async (req, res) => {
+  const { serverName, dbName, tableName } = req.params;
+  const server = activeServers.find(s => s.name === serverName);
+  if (!server) {
+    return res.status(404).json({ error: 'Server not found' });
+  }
+
+  const driver = new MySQLDriver();
+  try {
+    if (server.config) {
+      const config = {
+        ...server.config,
+        database: dbName
+      };
+      await driver.connect(config);
+      await driver.addIndex(dbName, tableName, req.body);
+      res.sendStatus(201);
+    } else {
+      res.status(400).json({ error: 'Server configuration missing' });
+    }
+  } catch (error: any) {
+    console.error('Error adding table index:', error);
+    res.status(500).json({ error: error.message });
+  } finally {
+    await driver.disconnect();
+  }
+});
+
 app.get('/api/servers/:serverName/databases/:dbName/tables/:tableName/foreign-keys', async (req, res) => {
   const { serverName, dbName, tableName } = req.params;
   const server = activeServers.find(s => s.name === serverName);
@@ -433,6 +461,34 @@ app.get('/api/servers/:serverName/databases/:dbName/tables/:tableName/foreign-ke
     }
   } catch (error: any) {
     console.error('Error fetching table foreign keys:', error);
+    res.status(500).json({ error: error.message });
+  } finally {
+    await driver.disconnect();
+  }
+});
+
+app.post('/api/servers/:serverName/databases/:dbName/tables/:tableName/foreign-keys', async (req, res) => {
+  const { serverName, dbName, tableName } = req.params;
+  const server = activeServers.find(s => s.name === serverName);
+  if (!server) {
+    return res.status(404).json({ error: 'Server not found' });
+  }
+
+  const driver = new MySQLDriver();
+  try {
+    if (server.config) {
+      const config = {
+        ...server.config,
+        database: dbName
+      };
+      await driver.connect(config);
+      await driver.addForeignKey(dbName, tableName, req.body);
+      res.sendStatus(201);
+    } else {
+      res.status(400).json({ error: 'Server configuration missing' });
+    }
+  } catch (error: any) {
+    console.error('Error adding table foreign key:', error);
     res.status(500).json({ error: error.message });
   } finally {
     await driver.disconnect();

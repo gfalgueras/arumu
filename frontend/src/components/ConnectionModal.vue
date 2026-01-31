@@ -2,6 +2,7 @@
 import { ref, onMounted } from 'vue';
 import { Plus, X, Server } from 'lucide-vue-next';
 import type { StoredServer } from '@shared/types/database';
+import { showError } from '../errorService';
 
 const props = defineProps<{
   editServer?: StoredServer;
@@ -71,7 +72,7 @@ const handleSave = async () => {
     }
   } catch (error: any) {
     console.error('Error saving connection:', error);
-    alert('Error saving connection: ' + error.message);
+    showError('Error al guardar conexión', error.message);
   }
 };
 </script>

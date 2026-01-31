@@ -4,9 +4,11 @@ import { Plus, X } from 'lucide-vue-next';
 import Sidebar from './components/Sidebar.vue';
 import TopBar from './components/TopBar.vue';
 import ConnectionModal from './components/ConnectionModal.vue';
+import ErrorModal from './components/ErrorModal.vue';
 import DataTable from './components/DataTable.vue';
 import TableSchema from './components/TableSchema.vue';
 import QueryEditor from './components/QueryEditor.vue';
+import { showError } from './errorService';
 import type { ServerInfo, StoredServer } from '@shared/types/database';
 
 const servers = shallowRef<ServerInfo[]>([]);
@@ -45,6 +47,7 @@ const expandedDatabaseIds = ref<string[]>([]);
 const expandedTableIds = ref<string[]>([]);
 const loadingTables = ref<string[]>([]);
 const queryEditorHeight = ref(300);
+const tableSchemaHeight = ref(400);
 
 const fetchServers = async () => {
   const res = await fetch('http://localhost:3001/api/servers');
@@ -63,8 +66,9 @@ const handleExpandServer = async (serverName: string) => {
     servers.value = servers.value.map(s => 
       s.name === serverName ? { ...s, databases } : s
     );
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error fetching databases:', error);
+    showError('Error al listar bases de datos', error.message);
   } finally {
     loadingServers.value = loadingServers.value.filter(id => id !== serverName);
   }
@@ -92,8 +96,9 @@ const handleExpandDatabase = async (serverName: string, dbName: string) => {
       }
       return s;
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error fetching tables:', error);
+    showError('Error al listar tablas', error.message);
   } finally {
     loadingDatabases.value = loadingDatabases.value.filter(k => k !== key);
   }
@@ -123,8 +128,9 @@ const handleExpandTable = async (serverName: string, dbName: string, tableName: 
       }
       return s;
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error fetching columns:', error);
+    showError('Error al listar columnas', error.message);
   } finally {
     loadingTables.value = loadingTables.value.filter(k => k !== key);
   }
@@ -160,11 +166,11 @@ const handleConnect = async (storedServer: StoredServer, closeAndRefresh = true)
       }
     } else {
       const errorData = await res.json();
-      alert('Error al conectar: ' + (errorData.error || 'Error desconocido'));
+      showError('Error de conexión', errorData.error || 'Error desconocido');
     }
   } catch (error: any) {
     console.error('Connection error:', error);
-    alert('Error de red al conectar: ' + error.message);
+    showError('Error de red al conectar', error.message);
   }
 };
 
@@ -187,6 +193,7 @@ const initApp = async () => {
 
     sidebarWidth.value = state.sidebarWidth || 256;
     queryEditorHeight.value = state.queryEditorHeight || 300;
+    tableSchemaHeight.value = state.tableSchemaHeight || 400;
     dbFilter.value = state.dbFilter || '';
     tableFilter.value = state.tableFilter || '';
     selectedServerName.value = state.selectedServerName;
@@ -238,7 +245,7 @@ onMounted(() => {
   document.documentElement.style.setProperty('--sidebar-width', `${sidebarWidth.value}px`);
 });
 
-watch([activeServerNames, selectedServerName, selectedDatabase, selectedTable, activeTab, sidebarWidth, queryEditorHeight, dbFilter, tableFilter, expandedServerNames, expandedDatabaseIds, expandedTableIds, queryTabs], (_, __, onCleanup) => {
+watch([activeServerNames, selectedServerName, selectedDatabase, selectedTable, activeTab, sidebarWidth, queryEditorHeight, tableSchemaHeight, dbFilter, tableFilter, expandedServerNames, expandedDatabaseIds, expandedTableIds, queryTabs], (_, __, onCleanup) => {
   const saveState = async () => {
     const state = {
       activeServerNames: activeServerNames.value,
@@ -249,6 +256,7 @@ watch([activeServerNames, selectedServerName, selectedDatabase, selectedTable, a
       queryTabs: queryTabs.value,
       sidebarWidth: sidebarWidth.value,
       queryEditorHeight: queryEditorHeight.value,
+      tableSchemaHeight: tableSchemaHeight.value,
       dbFilter: dbFilter.value,
       tableFilter: tableFilter.value,
       expandedServerNames: expandedServerNames.value,
@@ -311,11 +319,11 @@ const handleCloseConnection = async () => {
       selectedTable.value = null;
     } else {
       const errorData = await res.json();
-      alert('Error closing connection: ' + (errorData.error || 'Unknown error'));
+      showError('Error al cerrar conexión', errorData.error || 'Error desconocido');
     }
   } catch (error: any) {
     console.error('Error closing connection:', error);
-    alert('Error closing connection: ' + error.message);
+    showError('Error al cerrar conexión', error.message);
   }
 };
 
@@ -328,10 +336,11 @@ const handleConfigServer = async (serverName: string) => {
       editingServer.value = serverToEdit;
       isModalOpen.value = true;
     } else {
-      alert('No se pudo encontrar la configuración guardada para este servidor.');
+      showError('Configuración no encontrada', 'No se pudo encontrar la configuración guardada para este servidor.');
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error fetching server config:', error);
+    showError('Error al obtener configuración', error.message);
   }
 };
 
@@ -517,6 +526,7 @@ const selectTable = (serverName: string, db: string, table: string) => {
                 :serverName="selectedServerName"
                 :database="selectedDatabase"
                 :table="selectedTable"
+                v-model:height="tableSchemaHeight"
               />
             </KeepAlive>
             <KeepAlive>
@@ -568,5 +578,6 @@ const selectTable = (serverName: string, db: string, table: string) => {
       @connect="handleConnect"
       :editServer="editingServer"
     />
+    <ErrorModal />
   </div>
 </template>

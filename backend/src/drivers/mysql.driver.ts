@@ -294,4 +294,49 @@ export class MySQLDriver implements IDatabaseDriver {
     const [result] = await this.connection.execute(sql);
     return result;
   }
+
+  async addIndex(database: string, table: string, index: TableIndex): Promise<void> {
+    if (!this.connection) throw new Error('Not connected');
+    
+    const escapedDb = database.replace(/`/g, '``');
+    const escapedTable = table.replace(/`/g, '``');
+    const fullTableName = `\`${escapedDb}\`.\`${escapedTable}\``;
+    
+    const columns = index.columns.map(col => `\`${col.replace(/`/g, '``')}\``).join(', ');
+    const unique = index.unique ? 'UNIQUE' : '';
+    const indexName = index.name ? `\`${index.name.replace(/`/g, '``')}\`` : '';
+    
+    let sql = '';
+    if (indexName) {
+      sql = `CREATE ${unique} INDEX ${indexName} ON ${fullTableName} (${columns})`;
+    } else {
+      sql = `ALTER TABLE ${fullTableName} ADD ${unique} INDEX (${columns})`;
+    }
+    await this.connection.execute(sql);
+  }
+
+  async addForeignKey(database: string, table: string, fk: ForeignKey): Promise<void> {
+    if (!this.connection) throw new Error('Not connected');
+    
+    const escapedDb = database.replace(/`/g, '``');
+    const escapedTable = table.replace(/`/g, '``');
+    const fullTableName = `\`${escapedDb}\`.\`${escapedTable}\``;
+    
+    const columns = fk.columns.map(col => `\`${col.replace(/`/g, '``')}\``).join(', ');
+    const refTable = `\`${escapedDb}\`.\`${fk.referencedTable.replace(/`/g, '``')}\``;
+    const refColumns = fk.referencedColumns.map(col => `\`${col.replace(/`/g, '``')}\``).join(', ');
+    
+    const constraintName = fk.name ? `CONSTRAINT \`${fk.name.replace(/`/g, '``')}\`` : '';
+    
+    let sql = `ALTER TABLE ${fullTableName} ADD ${constraintName} FOREIGN KEY (${columns}) REFERENCES ${refTable} (${refColumns})`;
+    
+    if (fk.updateRule) {
+      sql += ` ON UPDATE ${fk.updateRule}`;
+    }
+    if (fk.deleteRule) {
+      sql += ` ON DELETE ${fk.deleteRule}`;
+    }
+    
+    await this.connection.execute(sql);
+  }
 }
