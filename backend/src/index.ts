@@ -439,6 +439,27 @@ app.post('/api/servers/:serverName/databases/:dbName/tables/:tableName/indexes',
   }
 });
 
+app.delete('/api/servers/:serverName/databases/:dbName/tables/:tableName/indexes/:indexName', async (req, res) => {
+  const { serverName, dbName, tableName, indexName } = req.params;
+  const server = activeServers.find(s => s.name === serverName);
+  if (!server) return res.status(404).json({ error: 'Server not found' });
+
+  const driver = new MySQLDriver();
+  try {
+    if (server.config) {
+      await driver.connect({ ...server.config, database: dbName });
+      await driver.dropIndex(dbName, tableName, indexName);
+      res.sendStatus(204);
+    } else {
+      res.status(400).json({ error: 'Server configuration missing' });
+    }
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  } finally {
+    await driver.disconnect();
+  }
+});
+
 app.get('/api/servers/:serverName/databases/:dbName/tables/:tableName/foreign-keys', async (req, res) => {
   const { serverName, dbName, tableName } = req.params;
   const server = activeServers.find(s => s.name === serverName);
@@ -489,6 +510,73 @@ app.post('/api/servers/:serverName/databases/:dbName/tables/:tableName/foreign-k
     }
   } catch (error: any) {
     console.error('Error adding table foreign key:', error);
+    res.status(500).json({ error: error.message });
+  } finally {
+    await driver.disconnect();
+  }
+});
+
+app.delete('/api/servers/:serverName/databases/:dbName/tables/:tableName/foreign-keys/:fkName', async (req, res) => {
+  const { serverName, dbName, tableName, fkName } = req.params;
+  const server = activeServers.find(s => s.name === serverName);
+  if (!server) return res.status(404).json({ error: 'Server not found' });
+
+  const driver = new MySQLDriver();
+  try {
+    if (server.config) {
+      await driver.connect({ ...server.config, database: dbName });
+      await driver.dropForeignKey(dbName, tableName, fkName);
+      res.sendStatus(204);
+    } else {
+      res.status(400).json({ error: 'Server configuration missing' });
+    }
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  } finally {
+    await driver.disconnect();
+  }
+});
+
+app.post('/api/servers/:serverName/databases/:dbName/tables/:tableName/columns', async (req, res) => {
+  const { serverName, dbName, tableName } = req.params;
+  const { column, afterColumn } = req.body;
+  const server = activeServers.find(s => s.name === serverName);
+  if (!server) return res.status(404).json({ error: 'Server not found' });
+
+  const driver = new MySQLDriver();
+  try {
+    if (server.config) {
+      await driver.connect({ ...server.config, database: dbName });
+      await driver.addColumn(dbName, tableName, column, afterColumn);
+      res.sendStatus(201);
+    } else {
+      res.status(400).json({ error: 'Server configuration missing' });
+    }
+  } catch (error: any) {
+    console.error('Error adding column:', error);
+    res.status(500).json({ error: error.message });
+  } finally {
+    await driver.disconnect();
+  }
+});
+
+app.put('/api/servers/:serverName/databases/:dbName/tables/:tableName/columns/:columnName', async (req, res) => {
+  const { serverName, dbName, tableName, columnName } = req.params;
+  const { column, afterColumn } = req.body;
+  const server = activeServers.find(s => s.name === serverName);
+  if (!server) return res.status(404).json({ error: 'Server not found' });
+
+  const driver = new MySQLDriver();
+  try {
+    if (server.config) {
+      await driver.connect({ ...server.config, database: dbName });
+      await driver.updateColumn(dbName, tableName, columnName, column, afterColumn);
+      res.sendStatus(204);
+    } else {
+      res.status(400).json({ error: 'Server configuration missing' });
+    }
+  } catch (error: any) {
+    console.error('Error updating column:', error);
     res.status(500).json({ error: error.message });
   } finally {
     await driver.disconnect();
@@ -576,6 +664,26 @@ app.get('/api/servers/:serverName/databases/:dbName/tables/:tableName/columns', 
     }
   } catch (error: any) {
     console.error('Error fetching columns:', error);
+    res.status(500).json({ error: error.message });
+  } finally {
+    await driver.disconnect();
+  }
+});
+
+app.get('/api/servers/:name/types', async (req, res) => {
+  const server = activeServers.find(s => s.name === req.params.name);
+  if (!server) return res.status(404).json({ error: 'Server not found' });
+
+  const driver = new MySQLDriver();
+  try {
+    if (server.config) {
+      await driver.connect(server.config);
+      const types = await driver.getSupportedTypes();
+      res.json(types);
+    } else {
+      res.status(400).json({ error: 'Server configuration missing' });
+    }
+  } catch (error: any) {
     res.status(500).json({ error: error.message });
   } finally {
     await driver.disconnect();

@@ -1,5 +1,5 @@
 import mysql, { Connection } from 'mysql2/promise';
-import { IDatabaseDriver, ConnectionConfig, DatabaseInfo, TableInfo, TableDataResponse, SortConfig, ColumnInfo, TableIndex, ForeignKey } from '@shared/types/database';
+import { IDatabaseDriver, ConnectionConfig, DatabaseInfo, TableInfo, TableDataResponse, SortConfig, ColumnInfo, TableIndex, ForeignKey, TypeGroup } from '@shared/types/database';
 
 export class MySQLDriver implements IDatabaseDriver {
   private connection: Connection | null = null;
@@ -111,10 +111,17 @@ export class MySQLDriver implements IDatabaseDriver {
       };
 
       const extra = getValue(row, 'extra') || '';
+      const fullType = getValue(row, 'type') || '';
+      const unsigned = fullType.toLowerCase().includes('unsigned');
+      
+      const typeMatch = fullType.match(/^([a-z]+)(?:\(([^)]+)\))?/i);
+      const type = typeMatch ? typeMatch[1].toUpperCase() : fullType.split(' ')[0].toUpperCase();
+      const length = typeMatch ? typeMatch[2] : null;
 
       return {
         name: getValue(row, 'name'),
-        type: getValue(row, 'type'),
+        type: type,
+        length: length,
         nullable: getValue(row, 'nullable') === 'YES',
         key: getValue(row, 'key'),
         default: getValue(row, 'default'),
@@ -122,7 +129,8 @@ export class MySQLDriver implements IDatabaseDriver {
         comment: getValue(row, 'comment'),
         collation: getValue(row, 'collation'),
         expression: getValue(row, 'expression'),
-        virtuality: extra.includes('VIRTUAL') ? 'VIRTUAL' : (extra.includes('STORED') ? 'STORED' : '')
+        virtuality: extra.includes('VIRTUAL') ? 'VIRTUAL' : (extra.includes('STORED') ? 'STORED' : ''),
+        unsigned: unsigned
       };
     });
   }
@@ -148,11 +156,23 @@ export class MySQLDriver implements IDatabaseDriver {
     rows.forEach((row: any) => {
       const name = row.name;
       if (!indexesMap.has(name)) {
+        let trueType = 'INDEX';
+        if (name === 'PRIMARY') {
+          trueType = 'PRIMARY';
+        } else if (row.type === 'FULLTEXT') {
+          trueType = 'FULLTEXT';
+        } else if (row.type === 'SPATIAL') {
+          trueType = 'SPATIAL';
+        } else if (row.non_unique === 0) {
+          trueType = 'UNIQUE';
+        }
+
         indexesMap.set(name, {
           name,
           columns: [],
           unique: row.non_unique === 0,
-          type: row.type
+          type: trueType,
+          method: row.type
         });
       }
       indexesMap.get(name)!.columns.push(row.column_name);
@@ -303,14 +323,22 @@ export class MySQLDriver implements IDatabaseDriver {
     const fullTableName = `\`${escapedDb}\`.\`${escapedTable}\``;
     
     const columns = index.columns.map(col => `\`${col.replace(/`/g, '``')}\``).join(', ');
-    const unique = index.unique ? 'UNIQUE' : '';
-    const indexName = index.name ? `\`${index.name.replace(/`/g, '``')}\`` : '';
+    
+    let indexKeyword = 'INDEX';
+    if (index.type === 'UNIQUE') indexKeyword = 'UNIQUE INDEX';
+    else if (index.type === 'FULLTEXT') indexKeyword = 'FULLTEXT INDEX';
+    else if (index.type === 'SPATIAL') indexKeyword = 'SPATIAL INDEX';
+    else if (index.type === 'PRIMARY') indexKeyword = 'PRIMARY KEY';
+
+    const indexName = (index.name && index.type !== 'PRIMARY') ? `\`${index.name.replace(/`/g, '``')}\`` : '';
     
     let sql = '';
-    if (indexName) {
-      sql = `CREATE ${unique} INDEX ${indexName} ON ${fullTableName} (${columns})`;
+    if (index.type === 'PRIMARY') {
+      sql = `ALTER TABLE ${fullTableName} ADD PRIMARY KEY (${columns})`;
+    } else if (indexName) {
+      sql = `CREATE ${indexKeyword} ${indexName} ON ${fullTableName} (${columns})`;
     } else {
-      sql = `ALTER TABLE ${fullTableName} ADD ${unique} INDEX (${columns})`;
+      sql = `ALTER TABLE ${fullTableName} ADD ${indexKeyword} (${columns})`;
     }
     await this.connection.execute(sql);
   }
@@ -338,5 +366,170 @@ export class MySQLDriver implements IDatabaseDriver {
     }
     
     await this.connection.execute(sql);
+  }
+
+  async dropIndex(database: string, table: string, indexName: string): Promise<void> {
+    if (!this.connection) throw new Error('Not connected');
+    const escapedDb = database.replace(/`/g, '``');
+    const escapedTable = table.replace(/`/g, '``');
+    const fullTableName = `\`${escapedDb}\`.\`${escapedTable}\``;
+    
+    // For primary keys, the name is ignored and we use DROP PRIMARY KEY
+    if (indexName === 'PRIMARY') {
+      await this.connection.execute(`ALTER TABLE ${fullTableName} DROP PRIMARY KEY`);
+    } else {
+      await this.connection.execute(`ALTER TABLE ${fullTableName} DROP INDEX \`${indexName.replace(/`/g, '``')}\``);
+    }
+  }
+
+  async dropForeignKey(database: string, table: string, fkName: string): Promise<void> {
+    if (!this.connection) throw new Error('Not connected');
+    const escapedDb = database.replace(/`/g, '``');
+    const escapedTable = table.replace(/`/g, '``');
+    const fullTableName = `\`${escapedDb}\`.\`${escapedTable}\``;
+    
+    await this.connection.execute(`ALTER TABLE ${fullTableName} DROP FOREIGN KEY \`${fkName.replace(/`/g, '``')}\``);
+  }
+
+  async addColumn(database: string, table: string, column: ColumnInfo, afterColumn?: string): Promise<void> {
+    if (!this.connection) throw new Error('Not connected');
+    const escapedDb = database.replace(/`/g, '``');
+    const escapedTable = table.replace(/`/g, '``');
+    const fullTableName = `\`${escapedDb}\`.\`${escapedTable}\``;
+
+    const newColName = `\`${column.name.replace(/`/g, '``')}\``;
+    
+    let columnType = column.type;
+    if (column.length) {
+      columnType += `(${column.length})`;
+    }
+    
+    let sql = `ALTER TABLE ${fullTableName} ADD COLUMN ${newColName} ${columnType}`;
+    
+    if (column.unsigned) {
+      sql += ' UNSIGNED';
+    }
+
+    if (!column.nullable) {
+      sql += ' NOT NULL';
+    } else {
+      sql += ' NULL';
+    }
+
+    if (column.default !== undefined) {
+      if (column.default === null) {
+        sql += ' DEFAULT NULL';
+      } else if (column.default.toUpperCase() === 'CURRENT_TIMESTAMP') {
+        sql += ' DEFAULT CURRENT_TIMESTAMP';
+      } else {
+        sql += ` DEFAULT '${column.default.replace(/'/g, "''")}'`;
+      }
+    }
+
+    if (column.extra) {
+      sql += ` ${column.extra}`;
+    }
+
+    if (column.comment) {
+      sql += ` COMMENT '${column.comment.replace(/'/g, "''")}'`;
+    }
+
+    if (afterColumn !== undefined) {
+      if (afterColumn === '') {
+        sql += ' FIRST';
+      } else {
+        sql += ` AFTER \`${afterColumn.replace(/`/g, '``')}\``;
+      }
+    }
+
+    await this.connection.execute(sql);
+  }
+
+  async updateColumn(database: string, table: string, oldColumnName: string, newColumn: ColumnInfo, afterColumn?: string): Promise<void> {
+    if (!this.connection) throw new Error('Not connected');
+    const escapedDb = database.replace(/`/g, '``');
+    const escapedTable = table.replace(/`/g, '``');
+    const fullTableName = `\`${escapedDb}\`.\`${escapedTable}\``;
+
+    const oldColName = `\`${oldColumnName.replace(/`/g, '``')}\``;
+    const newColName = `\`${newColumn.name.replace(/`/g, '``')}\``;
+    
+    let columnType = newColumn.type;
+    if (newColumn.length) {
+      columnType += `(${newColumn.length})`;
+    }
+    
+    let sql = `ALTER TABLE ${fullTableName} CHANGE COLUMN ${oldColName} ${newColName} ${columnType}`;
+    
+    if (newColumn.unsigned) {
+      sql += ' UNSIGNED';
+    }
+
+    if (!newColumn.nullable) {
+      sql += ' NOT NULL';
+    } else {
+      sql += ' NULL';
+    }
+
+    if (newColumn.default !== undefined) {
+      if (newColumn.default === null) {
+        sql += ' DEFAULT NULL';
+      } else if (newColumn.default.toUpperCase() === 'CURRENT_TIMESTAMP') {
+        sql += ' DEFAULT CURRENT_TIMESTAMP';
+      } else {
+        sql += ` DEFAULT '${newColumn.default.replace(/'/g, "''")}'`;
+      }
+    }
+
+    if (newColumn.extra) {
+      sql += ` ${newColumn.extra}`;
+    }
+
+    if (newColumn.comment) {
+      sql += ` COMMENT '${newColumn.comment.replace(/'/g, "''")}'`;
+    }
+
+    if (afterColumn !== undefined) {
+      if (afterColumn === '') {
+        sql += ' FIRST';
+      } else {
+        sql += ` AFTER \`${afterColumn.replace(/`/g, '``')}\``;
+      }
+    }
+
+    await this.connection.execute(sql);
+  }
+
+  async getSupportedTypes(): Promise<TypeGroup[]> {
+    return [
+      {
+        group: 'Entero',
+        types: ['TINYINT', 'SMALLINT', 'MEDIUMINT', 'INT', 'BIGINT', 'BIT']
+      },
+      {
+        group: 'Real',
+        types: ['DECIMAL', 'FLOAT', 'DOUBLE']
+      },
+      {
+        group: 'Texto',
+        types: ['CHAR', 'VARCHAR', 'TINYTEXT', 'TEXT', 'MEDIUMTEXT', 'LONGTEXT']
+      },
+      {
+        group: 'Binario',
+        types: ['BINARY', 'VARBINARY', 'TINYBLOB', 'BLOB', 'MEDIUMBLOB', 'LONGBLOB']
+      },
+      {
+        group: 'Tiempo',
+        types: ['DATE', 'DATETIME', 'TIMESTAMP', 'TIME', 'YEAR']
+      },
+      {
+        group: 'Geometria',
+        types: ['GEOMETRY', 'POINT', 'LINESTRING', 'POLYGON', 'MULTIPOINT', 'MULTILINESTRING', 'MULTIPOLYGON', 'GEOMETRYCOLLECTION']
+      },
+      {
+        group: 'Otros',
+        types: ['ENUM', 'SET', 'JSON']
+      }
+    ];
   }
 }

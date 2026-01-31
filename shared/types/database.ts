@@ -9,6 +9,9 @@ export interface ColumnInfo {
   collation?: string;
   expression?: string;
   virtuality?: string;
+  unsigned?: boolean;
+  length?: string | number | null;
+  _id?: string;
 }
 
 export interface TableIndex {
@@ -16,6 +19,7 @@ export interface TableIndex {
   columns: string[];
   unique: boolean;
   type: string;
+  method?: string;
 }
 
 export interface ForeignKey {
@@ -89,6 +93,11 @@ export interface AppState {
   expandedTableIds: string[]; // Formato "serverName:dbName:tableName"
 }
 
+export interface TypeGroup {
+  group: string;
+  types: string[];
+}
+
 export interface IDatabaseDriver {
   connect(config: ConnectionConfig): Promise<void>;
   disconnect(): Promise<void>;
@@ -103,4 +112,9 @@ export interface IDatabaseDriver {
   executeQuery(sql: string): Promise<any>;
   addIndex(database: string, table: string, index: TableIndex): Promise<void>;
   addForeignKey(database: string, table: string, fk: ForeignKey): Promise<void>;
+  dropIndex(database: string, table: string, indexName: string): Promise<void>;
+  dropForeignKey(database: string, table: string, fkName: string): Promise<void>;
+  addColumn(database: string, table: string, column: ColumnInfo, afterColumn?: string): Promise<void>;
+  updateColumn(database: string, table: string, oldColumnName: string, newColumn: ColumnInfo, afterColumn?: string): Promise<void>;
+  getSupportedTypes(): Promise<TypeGroup[]>;
 }

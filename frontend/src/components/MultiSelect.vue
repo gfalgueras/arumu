@@ -9,7 +9,7 @@ const props = defineProps<{
   disabled?: boolean;
 }>();
 
-const emit = defineEmits(['update:modelValue']);
+const emit = defineEmits(['update:modelValue', 'close']);
 
 const isOpen = ref(false);
 const containerRef = ref<HTMLElement | null>(null);
@@ -17,6 +17,9 @@ const containerRef = ref<HTMLElement | null>(null);
 const toggleOpen = () => {
   if (props.disabled) return;
   isOpen.value = !isOpen.value;
+  if (!isOpen.value) {
+    emit('close');
+  }
 };
 
 const selectOption = (option: string) => {
@@ -33,7 +36,10 @@ const removeOption = (option: string) => {
 
 const handleClickOutside = (event: MouseEvent) => {
   if (containerRef.value && !containerRef.value.contains(event.target as Node)) {
-    isOpen.value = false;
+    if (isOpen.value) {
+      isOpen.value = false;
+      emit('close');
+    }
   }
 };
 
