@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue';
 import { X, ChevronDown } from 'lucide-vue-next';
+import { $t } from '../i18n';
 
 const props = defineProps<{
   modelValue: string[];
@@ -62,7 +63,7 @@ onUnmounted(() => {
         disabled ? 'opacity-50 cursor-not-allowed' : 'text-slate-200'
       ]"
     >
-      <div v-if="modelValue.length === 0" class="text-slate-500 px-1.5 select-none">{{ placeholder || 'Seleccionar...' }}</div>
+      <div v-if="modelValue.length === 0" class="text-slate-500 px-1.5 select-none">{{ placeholder || $t('common.select') || 'Select...' }}</div>
       
       <div 
         v-for="val in modelValue" 
@@ -104,7 +105,7 @@ onUnmounted(() => {
         ></div>
       </div>
       <div v-if="options.length === 0" class="px-3 py-4 text-center text-slate-500 text-xs italic">
-        No hay opciones disponibles
+        {{ $t('common.no_options') || 'No options available' }}
       </div>
     </div>
   </div>

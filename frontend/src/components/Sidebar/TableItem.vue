@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { watch } from 'vue';
 import { Table, ChevronRight, ChevronDown, Columns, Loader2 } from 'lucide-vue-next';
+import { $t } from '../../i18n';
 
 const props = defineProps<{
   name: string;
@@ -65,7 +66,7 @@ const formatSize = (bytes?: number) => {
         <span class="truncate">{{ col }}</span>
       </div>
       <div v-if="!isLoading && (!columns || columns.length === 0)" class="pl-16 py-1 text-xs text-slate-500 italic">
-        No columns
+        {{ $t('sidebar.no_columns') }}
       </div>
     </div>
   </div>

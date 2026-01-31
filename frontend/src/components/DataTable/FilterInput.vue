@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue';
+import { $t } from '../../i18n';
 
 const props = defineProps<{
   initialValue: string;
@@ -27,7 +28,7 @@ const handleKeydown = (e: KeyboardEvent) => {
   <div class="relative">
     <input 
       type="text" 
-      placeholder="Filter data..." 
+      :placeholder="$t('data_table.filter_placeholder')" 
       class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-xs text-slate-200 focus:outline-none focus:ring-1 focus:ring-blue-500 w-48"
       v-model="value"
       @keydown="handleKeydown"

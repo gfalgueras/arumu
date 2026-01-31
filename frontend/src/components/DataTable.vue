@@ -3,6 +3,7 @@ import { ref, onMounted, onUnmounted, watch, computed, shallowRef } from 'vue';
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, ArrowUp, ArrowDown, Loader2 } from 'lucide-vue-next';
 import type { SortConfig, TableDataResponse } from '@shared/types/database';
 import { showError } from '../errorService';
+import { $t } from '../i18n';
 import DataRow from './DataTable/DataRow.vue';
 import FilterInput from './DataTable/FilterInput.vue';
 
@@ -52,7 +53,7 @@ const fetchData = async () => {
     data.value = result;
   } catch (err: any) {
     error.value = err.message;
-    showError('Error al cargar datos', err.message);
+    showError($t('data_table.error_load'), err.message);
   } finally {
     loading.value = false;
   }
@@ -166,9 +167,9 @@ const totalWidth = computed(() => data.value?.columns.reduce((acc, col) => acc +
         <div class="flex items-center gap-4">
           <div class="text-xs text-slate-400">
             <template v-if="data">
-              Showing <span class="text-slate-200 font-medium">{{ page * limit + 1 }} - {{ Math.min((page + 1) * limit, data.total) }}</span> of <span class="text-slate-200 font-medium">{{ data.total }}</span> rows
+              {{ $t('data_table.showing') }} <span class="text-slate-200 font-medium">{{ page * limit + 1 }} - {{ Math.min((page + 1) * limit, data.total) }}</span> {{ $t('data_table.of') }} <span class="text-slate-200 font-medium">{{ data.total }}</span> {{ $t('data_table.rows') }}
             </template>
-            <template v-else>Loading...</template>
+            <template v-else>{{ $t('data_table.loading') }}</template>
           </div>
           <div class="flex items-center gap-1 border-l border-slate-700 pl-4">
             <button 
@@ -185,7 +186,7 @@ const totalWidth = computed(() => data.value?.columns.reduce((acc, col) => acc +
             >
               <ChevronLeft :size="18" />
             </button>
-            <span class="text-sm px-2">Page {{ page + 1 }} of {{ totalPages || 1 }}</span>
+            <span class="text-sm px-2">{{ $t('data_table.page') }} {{ page + 1 }} {{ $t('data_table.of') }} {{ totalPages || 1 }}</span>
             <button 
               :disabled="page >= totalPages - 1 || loading"
               @click="page++"
@@ -259,7 +260,7 @@ const totalWidth = computed(() => data.value?.columns.reduce((acc, col) => acc +
             />
             <tr v-if="data && data.rows.length === 0">
               <td :colspan="data.columns.length" class="px-4 py-8 text-center text-slate-500 italic">
-                No data found in this table.
+                {{ $t('data_table.no_data') }}
               </td>
             </tr>
           </tbody>

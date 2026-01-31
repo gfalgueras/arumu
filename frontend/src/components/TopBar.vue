@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { Power, PowerOff } from 'lucide-vue-next';
+import { Power, PowerOff, Settings } from 'lucide-vue-next';
+import { $t } from '../i18n';
 
 defineProps<{
   canClose: boolean;
@@ -8,6 +9,7 @@ defineProps<{
 const emit = defineEmits<{
   (e: 'openConnection'): void;
   (e: 'closeConnection'): void;
+  (e: 'openSettings'): void;
 }>();
 </script>
 
@@ -16,7 +18,7 @@ const emit = defineEmits<{
     <button 
       @click="emit('openConnection')"
       class="p-1.5 hover:bg-slate-800 rounded text-emerald-400"
-      title="Open Connection"
+      :title="$t('topbar.open_conn_title')"
     >
       <Power :size="18" />
     </button>
@@ -25,10 +27,17 @@ const emit = defineEmits<{
       :disabled="!canClose"
       class="p-1.5 rounded"
       :class="canClose ? 'hover:bg-slate-800 text-red-400' : 'text-slate-600 cursor-not-allowed'"
-      title="Close Connection"
+      :title="$t('topbar.close_conn_title')"
     >
       <PowerOff :size="18" />
     </button>
     <div class="h-4 w-px bg-slate-700 mx-2" />
+    <button 
+      @click="emit('openSettings')"
+      class="p-1.5 hover:bg-slate-800 rounded text-slate-400 hover:text-blue-400 transition-colors"
+      :title="$t('topbar.options_title')"
+    >
+      <Settings :size="18" />
+    </button>
   </div>
 </template>

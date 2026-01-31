@@ -2,6 +2,7 @@
 import { computed, watch } from 'vue';
 import { Server, ChevronRight, ChevronDown, Loader2 } from 'lucide-vue-next';
 import DatabaseItem from './DatabaseItem.vue';
+import { $t } from '../../i18n';
 
 const props = defineProps<{
   name: string;
@@ -115,10 +116,10 @@ const handleSelect = () => {
         @toggleTable="(table, open) => emit('toggleTable', db.name, table, open)"
       />
       <div v-if="!isLoading && filteredDatabases.length === 0 && databases.length > 0" class="pl-8 py-1 text-xs text-slate-500 italic">
-        No databases found
+        {{ $t('sidebar.no_databases_found') }}
       </div>
       <div v-if="!isLoading && databases.length === 0 && isOpen" class="pl-8 py-1 text-xs text-slate-500 italic">
-        No databases
+        {{ $t('sidebar.no_databases') }}
       </div>
     </div>
   </div>

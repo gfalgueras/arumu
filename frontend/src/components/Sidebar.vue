@@ -3,6 +3,7 @@ import { ref } from 'vue';
 import { Search, Server } from 'lucide-vue-next';
 import ContextMenu from './Sidebar/ContextMenu.vue';
 import ServerItem from './Sidebar/ServerItem.vue';
+import { $t } from '../i18n';
 
 const props = defineProps<{
   servers: any[];
@@ -106,7 +107,7 @@ const getExpandedTableIdsForServer = (serverName: string) => {
         <Search class="absolute left-2 top-2.5 text-slate-500" :size="16" />
         <input 
           type="text" 
-          placeholder="Search database..." 
+          :placeholder="$t('sidebar.search_db')" 
           class="w-full bg-slate-800 text-slate-200 pl-8 pr-2 py-2 rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
           :value="dbFilter"
           @input="emit('update:dbFilter', ($event.target as HTMLInputElement).value)"
@@ -116,7 +117,7 @@ const getExpandedTableIdsForServer = (serverName: string) => {
         <Search class="absolute left-2 top-2.5 text-slate-500" :size="16" />
         <input 
           type="text" 
-          placeholder="Search table..." 
+          :placeholder="$t('sidebar.search_table')" 
           class="w-full bg-slate-800 text-slate-200 pl-8 pr-2 py-2 rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
           :value="tableFilter"
           @input="emit('update:tableFilter', ($event.target as HTMLInputElement).value)"
@@ -126,13 +127,13 @@ const getExpandedTableIdsForServer = (serverName: string) => {
 
     <div class="flex-1 overflow-y-auto overflow-x-hidden py-2 flex flex-col">
       <div v-if="servers.length === 0" class="flex-1 flex flex-col items-center justify-center px-4 space-y-4">
-        <p class="text-sm text-slate-500 italic">No connections active</p>
+        <p class="text-sm text-slate-500 italic">{{ $t('sidebar.no_connections') }}</p>
         <button 
           @click="emit('openConnection')"
           class="w-full py-2 px-4 bg-blue-600/10 hover:bg-blue-600/20 text-blue-400 border border-blue-600/30 rounded text-sm flex items-center justify-center gap-2 group"
         >
           <Server :size="14" class="group-hover:scale-110" />
-          <span>Open Connection</span>
+          <span>{{ $t('sidebar.open_connection') }}</span>
         </button>
       </div>
       <template v-else>
@@ -184,7 +185,7 @@ const getExpandedTableIdsForServer = (serverName: string) => {
     />
     
     <div class="p-4 bg-slate-950 text-xs text-slate-500 border-t border-slate-800">
-      SQL Manager v1.0.0
+      {{ $t('sidebar.version') }}
     </div>
 
     <!-- Resize Handle -->

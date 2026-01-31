@@ -2,6 +2,7 @@
 import { computed, watch } from 'vue';
 import { Database, ChevronRight, ChevronDown, Loader2 } from 'lucide-vue-next';
 import TableItem from './TableItem.vue';
+import { $t } from '../../i18n';
 
 const props = defineProps<{
   name: string;
@@ -98,10 +99,10 @@ const handleSelect = () => {
         @expand="emit('expandTable', table.name)"
       />
       <div v-if="!isLoading && filteredTables.length === 0 && tables.length > 0" class="pl-12 py-1 text-xs text-slate-500 italic">
-        No tables found
+        {{ $t('sidebar.no_tables_found') }}
       </div>
       <div v-if="!isLoading && tables.length === 0" class="pl-12 py-1 text-xs text-slate-500 italic">
-        No tables
+        {{ $t('sidebar.no_tables') }}
       </div>
     </div>
   </div>

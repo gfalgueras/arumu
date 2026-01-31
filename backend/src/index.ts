@@ -18,6 +18,7 @@ const USER_HOME = process.env.HOME || process.env.USERPROFILE || '';
 const CONFIG_DIR = path.join(USER_HOME, '.sqlmanager');
 const CONNECTIONS_FILE = path.join(CONFIG_DIR, 'connections.json');
 const APP_STATE_FILE = path.join(CONFIG_DIR, 'state.json');
+const APP_SETTINGS_FILE = path.join(CONFIG_DIR, 'settings.json');
 const OLD_CONNECTIONS_FILE = path.join(process.cwd(), 'connections.json');
 
 // Ensure directory exists
@@ -62,6 +63,18 @@ const getAppState = () => {
 
 const saveAppState = (state: any) => {
   fs.writeFileSync(APP_STATE_FILE, JSON.stringify(state, null, 2));
+};
+
+// Helper to read/write app settings
+const getAppSettings = () => {
+  if (!fs.existsSync(APP_SETTINGS_FILE)) {
+    return {};
+  }
+  return JSON.parse(fs.readFileSync(APP_SETTINGS_FILE, 'utf-8'));
+};
+
+const saveAppSettings = (settings: any) => {
+  fs.writeFileSync(APP_SETTINGS_FILE, JSON.stringify(settings, null, 2));
 };
 
 // Servidores activos (en memoria)
@@ -256,6 +269,20 @@ app.post('/api/app-state', (req, res) => {
   } catch (error: any) {
     console.error('Error saving app state:', error);
     res.status(500).json({ error: 'Failed to save app state: ' + error.message });
+  }
+});
+
+app.get('/api/app-settings', (req, res) => {
+  res.json(getAppSettings());
+});
+
+app.post('/api/app-settings', (req, res) => {
+  try {
+    saveAppSettings(req.body);
+    res.sendStatus(204);
+  } catch (error: any) {
+    console.error('Error saving app settings:', error);
+    res.status(500).json({ error: 'Failed to save app settings: ' + error.message });
   }
 });
 

@@ -1,0 +1,3072 @@
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+
+analizando "\\(" - No hay suficientes ).
+En línea: 1 Carácter: 107
++ ... ^<{]*<", "'[^']*'" | Where-Object { $_.Line -notmatch "\$t\(" } | Sel ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException

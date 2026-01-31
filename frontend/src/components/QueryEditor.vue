@@ -6,6 +6,7 @@ import { sql, MySQL, PostgreSQL, SQLite } from '@codemirror/lang-sql';
 import { oneDark } from '@codemirror/theme-one-dark';
 import { keymap } from '@codemirror/view';
 import { autocompletion, completionKeymap } from '@codemirror/autocomplete';
+import { $t } from '../i18n';
 
 const props = defineProps<{
   serverName: string;
@@ -157,14 +158,14 @@ const isArray = (val: any) => Array.isArray(val);
       >
         <Loader2 v-if="loading" :size="16" class="animate-spin" />
         <Play v-else :size="16" />
-        <span>Execute</span>
+        <span>{{ $t('query_editor.execute') }}</span>
       </button>
       <div class="flex items-center gap-2 text-slate-400 text-sm border-l border-slate-700 pl-4">
         <DatabaseIcon :size="14" />
-        <span>{{ database || 'No database selected' }}</span>
+        <span>{{ database || $t('query_editor.no_db') }}</span>
         <Loader2 v-if="fetchingSchema" :size="12" class="animate-spin ml-2 text-blue-500" />
         <span v-else-if="Object.keys(schema).length > 0" class="ml-2 text-[10px] bg-slate-800 px-1.5 py-0.5 rounded border border-slate-700 text-slate-500 font-mono">
-          {{ Object.keys(schema).length }} tables
+          {{ Object.keys(schema).length }} {{ $t('query_editor.tables_count') }}
         </span>
       </div>
     </div>
@@ -214,7 +215,7 @@ const isArray = (val: any) => Array.isArray(val);
         <div v-if="error" class="p-4 flex items-start gap-3 text-red-400 bg-red-400/10">
           <AlertCircle :size="20" class="flex-shrink-0 mt-0.5" />
           <div class="space-y-1">
-            <p class="font-bold">Query Error</p>
+            <p class="font-bold">{{ $t('query_editor.query_error') }}</p>
             <p class="text-sm font-mono whitespace-pre-wrap">{{ error }}</p>
           </div>
         </div>
@@ -239,7 +240,7 @@ const isArray = (val: any) => Array.isArray(val);
                   </tr>
                 </tbody>
               </table>
-              <div v-else class="p-8 text-center text-slate-500 italic">Query returned no results.</div>
+              <div v-else class="p-8 text-center text-slate-500 italic">{{ $t('query_editor.no_results') }}</div>
             </div>
             <div v-else class="p-4 overflow-auto font-mono text-sm text-blue-300">
               <pre>{{ JSON.stringify(result, null, 2) }}</pre>
@@ -248,12 +249,12 @@ const isArray = (val: any) => Array.isArray(val);
         </template>
 
         <div v-if="!result && !error && !loading" class="flex-1 flex items-center justify-center text-slate-600 italic text-sm">
-          Execute a query to see results here
+          {{ $t('query_editor.results_hint') }}
         </div>
 
         <div v-if="loading" class="flex-1 flex flex-col items-center justify-center gap-3 text-slate-400">
           <Loader2 class="animate-spin text-blue-500" :size="32" />
-          <span>Executing query...</span>
+          <span>{{ $t('query_editor.executing') }}</span>
         </div>
       </div>
     </div>

@@ -98,6 +98,10 @@ export interface TypeGroup {
   types: string[];
 }
 
+export interface AppSettings {
+  language?: string;
+}
+
 export interface IDatabaseDriver {
   connect(config: ConnectionConfig): Promise<void>;
   disconnect(): Promise<void>;

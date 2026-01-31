@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { X, Copy, Check } from 'lucide-vue-next';
 import { ref } from 'vue';
+import { $t } from '../i18n';
 
 const props = defineProps<{
   title: string;
@@ -45,7 +46,7 @@ const handleCopy = async () => {
             >
               <Check v-if="copied" :size="14" />
               <Copy v-else :size="14" />
-              {{ copied ? 'Copied!' : 'Copy to clipboard' }}
+              {{ copied ? $t('common.copied') : ($t('common.copy_to_clipboard') || 'Copy to clipboard') }}
             </button>
             <button @click="emit('close')" class="text-slate-400 hover:text-slate-100 transition-colors p-1 hover:bg-slate-800 rounded">
               <X :size="20" />

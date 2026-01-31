@@ -5,6 +5,7 @@ import type { ColumnInfo, TableIndex, ForeignKey, TypeGroup } from '@shared/type
 import MultiSelect from './MultiSelect.vue';
 import CodeModal from './CodeModal.vue';
 import { showError } from '../errorService';
+import { $t } from '../i18n';
 
 const props = defineProps<{
   serverName: string;
@@ -239,7 +240,7 @@ const fetchSchemaData = async () => {
     allDatabaseSchema.value = schemaData;
   } catch (err: any) {
     error.value = err.message;
-    showError('Error al cargar estructura de tabla', err.message);
+    showError($t('table_schema.error_load_structure'), err.message);
   } finally {
     loading.value = false;
   }
@@ -452,7 +453,7 @@ const handleCommit = async () => {
       });
       if (!res.ok) {
         const err = await res.json();
-        throw new Error(`Error al actualizar columna ${oldName}: ${err.error || 'Desconocido'}`);
+        throw new Error(`${$t('table_schema.error_update_column')} ${oldName}: ${err.error || $t('common.unknown')}`);
       }
     }
 
@@ -465,7 +466,7 @@ const handleCommit = async () => {
       });
       if (!res.ok) {
         const err = await res.json();
-        throw new Error(`Error al añadir columna ${col.name}: ${err.error || 'Desconocido'}`);
+        throw new Error(`${$t('table_schema.error_add_column')} ${col.name}: ${err.error || $t('common.unknown')}`);
       }
     }
 
@@ -478,7 +479,7 @@ const handleCommit = async () => {
        });
        if (!res.ok) {
          const err = await res.json();
-         throw new Error(`Error al añadir índice: ${err.error || 'Desconocido'}`);
+         throw new Error(`${$t('table_schema.error_add_index')}: ${err.error || $t('common.unknown')}`);
        }
     }
     for (const fk of fksToAdd) {
@@ -489,13 +490,13 @@ const handleCommit = async () => {
        });
        if (!res.ok) {
          const err = await res.json();
-         throw new Error(`Error al añadir FK: ${err.error || 'Desconocido'}`);
+         throw new Error(`${$t('table_schema.error_add_fk')}: ${err.error || $t('common.unknown')}`);
        }
     }
 
     await fetchSchemaData();
   } catch (err: any) {
-    showError('Error al guardar cambios', err.message);
+    showError($t('table_schema.error_save_changes'), err.message);
   } finally {
     saving.value = false;
   }
@@ -788,23 +789,23 @@ const supportsUnsigned = (type: string) => {
           <div class="px-4 py-2 border-b border-slate-800 bg-slate-800/50 flex items-center justify-between">
              <div class="flex items-center gap-2">
                <Columns :size="16" class="text-blue-400" />
-               <span class="text-sm font-semibold text-slate-300">Columns</span>
+               <span class="text-sm font-semibold text-slate-300">{{ $t('table_schema.columns') }}</span>
              </div>
              <div class="flex items-center gap-2">
                <button 
                  @click="handleAddColumn"
                  class="flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-medium transition-colors rounded text-blue-400 hover:text-blue-300 hover:bg-blue-400/10"
-                 title="Add New Column"
+                 :title="$t('table_schema.add_column')"
                >
                  <Plus :size="14" />
-                 Add Column
+                 {{ $t('table_schema.add_column') }}
                </button>
                <div class="w-px h-4 bg-slate-700 mx-1"></div>
                <button 
                  @click="moveColumnUp"
                  :disabled="selectedColumnIndex === null || selectedColumnIndex === 0"
                  class="p-1 text-slate-400 hover:text-blue-400 transition-colors disabled:opacity-30 disabled:hover:text-slate-400"
-                 title="Move Up"
+                 :title="$t('table_schema.move_up')"
                >
                  <ArrowUp :size="14" />
                </button>
@@ -812,7 +813,7 @@ const supportsUnsigned = (type: string) => {
                  @click="moveColumnDown"
                  :disabled="selectedColumnIndex === null || selectedColumnIndex === columns.length - 1"
                  class="p-1 text-slate-400 hover:text-blue-400 transition-colors disabled:opacity-30 disabled:hover:text-slate-400"
-                 title="Move Down"
+                 :title="$t('table_schema.move_down')"
                >
                  <ArrowDown :size="14" />
                </button>
@@ -821,15 +822,15 @@ const supportsUnsigned = (type: string) => {
                 <button 
                   @click="openCreateModal"
                   class="px-2.5 py-1 text-[11px] font-medium text-emerald-400 hover:bg-emerald-400/10 transition-colors whitespace-nowrap"
-                  title="View CREATE TABLE SQL"
+                  :title="$t('table_schema.view_create_title') || 'View CREATE TABLE SQL'"
                 >
-                  Copy CREATE
+                  {{ $t('table_schema.copy_create') }}
                 </button>
                 <div class="w-px h-3 bg-emerald-400/20"></div>
                 <button 
                   @click="handleCopyCreate"
                   class="p-1 text-emerald-400 hover:bg-emerald-400/10 transition-colors"
-                  title="Copy CREATE TABLE to clipboard"
+                  :title="$t('table_schema.copy_create_title') || 'Copy CREATE TABLE to clipboard'"
                 >
                   <Check v-if="copied" :size="14" />
                   <Copy v-else :size="14" />
@@ -842,9 +843,9 @@ const supportsUnsigned = (type: string) => {
                   @click="openAlterModal"
                   class="px-2.5 py-1 text-[11px] font-medium transition-colors whitespace-nowrap"
                   :class="hasPendingChanges ? 'text-amber-400 hover:bg-amber-400/10' : 'text-slate-400 hover:bg-slate-700'"
-                  title="View ALTER TABLE SQL"
+                  :title="$t('table_schema.view_alter_title') || 'View ALTER TABLE SQL'"
                 >
-                  Copy ALTER
+                  {{ $t('table_schema.copy_alter') }}
                 </button>
                 <div class="w-px h-3" :class="hasPendingChanges ? 'bg-amber-400/20' : 'bg-slate-700'"></div>
                 <button 
@@ -853,7 +854,7 @@ const supportsUnsigned = (type: string) => {
                   :class="[
                     copiedAlter ? 'text-emerald-400' : (hasPendingChanges ? 'text-amber-400 hover:bg-amber-400/10' : 'text-slate-400 hover:bg-slate-700')
                   ]"
-                  title="Copy ALTER TABLE to clipboard"
+                  :title="$t('table_schema.copy_alter_title') || 'Copy ALTER TABLE to clipboard'"
                 >
                   <Check v-if="copiedAlter" :size="14" />
                   <Copy v-else :size="14" />
@@ -866,7 +867,7 @@ const supportsUnsigned = (type: string) => {
           <div v-if="hasPendingChanges" class="px-4 py-2 bg-blue-500/10 border-b border-slate-800 flex items-center justify-between flex-shrink-0 animate-in fade-in slide-in-from-top-2 duration-300">
             <div class="flex items-center gap-2 text-blue-400 text-xs font-medium">
               <AlertCircle :size="14" />
-              <span>Tienes cambios pendientes en el esquema</span>
+              <span>{{ $t('table_schema.pending_changes') }}</span>
             </div>
             <div class="flex gap-2">
               <button 
@@ -874,7 +875,7 @@ const supportsUnsigned = (type: string) => {
                 :disabled="saving"
                 class="px-3 py-1 text-xs font-medium text-slate-400 hover:text-slate-100 transition-colors"
               >
-                Descartar
+                {{ $t('common.discard') }}
               </button>
               <button 
                 @click="handleCommit"
@@ -883,7 +884,7 @@ const supportsUnsigned = (type: string) => {
               >
                 <Loader2 v-if="saving" :size="12" class="animate-spin" />
                 <Save v-else :size="12" />
-                Guardar cambios
+                {{ $t('common.save_changes') }}
               </button>
             </div>
           </div>
@@ -892,18 +893,18 @@ const supportsUnsigned = (type: string) => {
             <table class="w-full text-left border-collapse table-auto">
               <thead class="sticky top-0 z-10 bg-slate-800 shadow-sm">
                 <tr>
-                  <th class="px-4 py-2 text-sm font-semibold text-slate-200 border-b border-slate-700">Name</th>
-                  <th class="px-4 py-2 text-sm font-semibold text-slate-200 border-b border-slate-700">Type</th>
-                  <th class="px-4 py-2 text-sm font-semibold text-slate-200 border-b border-slate-700">Length</th>
-                  <th class="px-4 py-2 text-sm font-semibold text-slate-200 border-b border-slate-700 text-center">Signed/Unsigned</th>
-                  <th class="px-4 py-2 text-sm font-semibold text-slate-200 border-b border-slate-700 text-center">Nullable</th>
-                  <th class="px-4 py-2 text-sm font-semibold text-slate-200 border-b border-slate-700 text-center">Key</th>
-                  <th class="px-4 py-2 text-sm font-semibold text-slate-200 border-b border-slate-700">Default</th>
-                  <th class="px-4 py-2 text-sm font-semibold text-slate-200 border-b border-slate-700">Collation</th>
-                  <th class="px-4 py-2 text-sm font-semibold text-slate-200 border-b border-slate-700">Expression</th>
-                  <th class="px-4 py-2 text-sm font-semibold text-slate-200 border-b border-slate-700">Virtuality</th>
-                  <th class="px-4 py-2 text-sm font-semibold text-slate-200 border-b border-slate-700">Extra</th>
-                  <th class="px-4 py-2 text-sm font-semibold text-slate-200 border-b border-slate-700">Comment</th>
+                  <th class="px-4 py-2 text-sm font-semibold text-slate-200 border-b border-slate-700">{{ $t('table_schema.name') }}</th>
+                  <th class="px-4 py-2 text-sm font-semibold text-slate-200 border-b border-slate-700">{{ $t('table_schema.type') }}</th>
+                  <th class="px-4 py-2 text-sm font-semibold text-slate-200 border-b border-slate-700">{{ $t('table_schema.length') }}</th>
+                  <th class="px-4 py-2 text-sm font-semibold text-slate-200 border-b border-slate-700 text-center">{{ $t('table_schema.signed_unsigned') }}</th>
+                  <th class="px-4 py-2 text-sm font-semibold text-slate-200 border-b border-slate-700 text-center">{{ $t('table_schema.nullable') }}</th>
+                  <th class="px-4 py-2 text-sm font-semibold text-slate-200 border-b border-slate-700 text-center">{{ $t('table_schema.key') }}</th>
+                  <th class="px-4 py-2 text-sm font-semibold text-slate-200 border-b border-slate-700">{{ $t('table_schema.default') }}</th>
+                  <th class="px-4 py-2 text-sm font-semibold text-slate-200 border-b border-slate-700">{{ $t('table_schema.collation') }}</th>
+                  <th class="px-4 py-2 text-sm font-semibold text-slate-200 border-b border-slate-700">{{ $t('table_schema.expression') }}</th>
+                  <th class="px-4 py-2 text-sm font-semibold text-slate-200 border-b border-slate-700">{{ $t('table_schema.virtuality') }}</th>
+                  <th class="px-4 py-2 text-sm font-semibold text-slate-200 border-b border-slate-700">{{ $t('table_schema.extra') }}</th>
+                  <th class="px-4 py-2 text-sm font-semibold text-slate-200 border-b border-slate-700">{{ $t('table_schema.comment') }}</th>
                 </tr>
               </thead>
               <tbody>
@@ -1113,7 +1114,7 @@ const supportsUnsigned = (type: string) => {
               :class="bottomTab === 'indexes' ? 'border-blue-500 text-blue-500 bg-blue-500/5' : 'border-transparent text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'"
             >
               <List :size="14" />
-              Indices
+              {{ $t('table_schema.indexes') }}
             </button>
             <button 
               @click="bottomTab = 'fks'"
@@ -1121,7 +1122,7 @@ const supportsUnsigned = (type: string) => {
               :class="bottomTab === 'fks' ? 'border-blue-500 text-blue-500 bg-blue-500/5' : 'border-transparent text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'"
             >
               <Link :size="14" />
-              Foreign Keys
+              {{ $t('table_schema.fks') }}
             </button>
           </div>
           <button 
@@ -1129,22 +1130,22 @@ const supportsUnsigned = (type: string) => {
             @click="showAddIndex = !showAddIndex"
             class="flex items-center gap-1 px-2 py-1 text-xs font-medium rounded transition-colors"
             :class="showAddIndex ? 'text-red-400 hover:text-red-300 hover:bg-red-400/10' : 'text-blue-400 hover:text-blue-300 hover:bg-blue-400/10'"
-            :title="showAddIndex ? 'Cancel' : 'Añadir índice'"
+            :title="showAddIndex ? $t('table_schema.cancel') : $t('table_schema.add_index_title') || 'Add index'"
           >
             <X v-if="showAddIndex" :size="14" />
             <Plus v-else :size="14" />
-            {{ showAddIndex ? 'Cancel' : 'Add' }}
+            {{ showAddIndex ? $t('table_schema.cancel') : $t('table_schema.add_index') }}
           </button>
           <button 
             v-else-if="bottomTab === 'fks'"
             @click="showAddFK = !showAddFK"
             class="flex items-center gap-1 px-2 py-1 text-xs font-medium rounded transition-colors"
             :class="showAddFK ? 'text-red-400 hover:text-red-300 hover:bg-red-400/10' : 'text-blue-400 hover:text-blue-300 hover:bg-blue-400/10'"
-            :title="showAddFK ? 'Cancelar' : 'Añadir foreign key'"
+            :title="showAddFK ? $t('table_schema.cancel') : $t('table_schema.add_fk_title') || 'Add foreign key'"
           >
             <X v-if="showAddFK" :size="14" />
             <Plus v-else :size="14" />
-            {{ showAddFK ? 'Cancelar' : 'Add' }}
+            {{ showAddFK ? $t('table_schema.cancel') : $t('table_schema.add_fk') }}
           </button>
         </div>
 
@@ -1157,22 +1158,25 @@ const supportsUnsigned = (type: string) => {
             <div v-if="showAddIndex" class="p-4 bg-slate-800/30 border-b border-slate-800">
               <div class="flex flex-wrap gap-4 items-end">
                 <div class="flex-1 min-w-[200px]">
-                  <label class="block text-[11px] font-semibold text-slate-500 uppercase mb-1">Nombre del índice</label>
-                  <input v-model="newIndex.name" type="text" class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1.5 text-sm text-slate-200 focus:border-blue-500 outline-none" placeholder="Opcional" />
+                  <label class="block text-[11px] font-semibold text-slate-500 uppercase mb-1">{{ $t('table_schema.index_name') || 'Index Name' }}</label>
+                  <input v-model="newIndex.name" type="text" class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1.5 text-sm text-slate-200 focus:border-blue-500 outline-none" :placeholder="$t('common.optional') || 'Optional'" />
                 </div>
                 <div class="flex-[2] min-w-[300px]">
-                  <label class="block text-[11px] font-semibold text-slate-500 uppercase mb-1">Columnas</label>
-                  <MultiSelect v-model="newIndex.columns" :options="columnNames" placeholder="Selecciona columnas..." />
+                  <label class="block text-[11px] font-semibold text-slate-500 uppercase mb-1">{{ $t('table_schema.columns_label') }}</label>
+                  <MultiSelect v-model="newIndex.columns" :options="columnNames" :placeholder="$t('table_schema.select_columns') || 'Select columns...'" />
                 </div>
                 <div class="w-40">
-                  <label class="block text-[11px] font-semibold text-slate-500 uppercase mb-1">Tipo de índice</label>
-                  <select v-model="newIndex.type" class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1.5 text-sm text-slate-200 focus:border-blue-500 outline-none">
-                    <option value="INDEX">INDEX</option>
-                    <option value="UNIQUE">UNIQUE</option>
-                    <option value="PRIMARY">PRIMARY</option>
-                    <option value="FULLTEXT">FULLTEXT</option>
-                    <option value="SPATIAL">SPATIAL</option>
-                  </select>
+                  <label class="block text-[11px] font-semibold text-slate-500 uppercase mb-1">{{ $t('table_schema.index_type') || 'Index Type' }}</label>
+                  <div class="relative">
+                    <select v-model="newIndex.type" class="w-full appearance-none bg-slate-900 border border-slate-700 rounded px-2 py-1.5 pr-8 text-sm text-slate-200 focus:border-blue-500 outline-none cursor-pointer">
+                      <option value="INDEX">INDEX</option>
+                      <option value="UNIQUE">UNIQUE</option>
+                      <option value="PRIMARY">PRIMARY</option>
+                      <option value="FULLTEXT">FULLTEXT</option>
+                      <option value="SPATIAL">SPATIAL</option>
+                    </select>
+                    <ChevronDown class="absolute right-2 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" :size="14" />
+                  </div>
                 </div>
                 <div class="ml-auto mb-1">
                   <button 
@@ -1181,7 +1185,7 @@ const supportsUnsigned = (type: string) => {
                     class="px-4 py-1.5 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-medium rounded transition-colors flex items-center gap-2"
                   >
                     <Loader2 v-if="saving" :size="14" class="animate-spin" />
-                    Guardar
+                    {{ $t('common.save') }}
                   </button>
                 </div>
               </div>
@@ -1190,10 +1194,10 @@ const supportsUnsigned = (type: string) => {
             <table class="w-full text-left border-collapse table-auto">
               <thead class="sticky top-0 z-10 bg-slate-800 shadow-sm">
                 <tr>
-                  <th class="px-4 py-2 text-sm font-semibold text-slate-200 border-b border-slate-700">Name</th>
-                  <th class="px-4 py-2 text-sm font-semibold text-slate-200 border-b border-slate-700">Columns</th>
-                  <th class="px-4 py-2 text-sm font-semibold text-slate-200 border-b border-slate-700">Type</th>
-                  <th class="px-4 py-2 text-sm font-semibold text-slate-200 border-b border-slate-700">Method</th>
+                  <th class="px-4 py-2 text-sm font-semibold text-slate-200 border-b border-slate-700">{{ $t('table_schema.name') }}</th>
+                  <th class="px-4 py-2 text-sm font-semibold text-slate-200 border-b border-slate-700">{{ $t('table_schema.columns_label') }}</th>
+                  <th class="px-4 py-2 text-sm font-semibold text-slate-200 border-b border-slate-700">{{ $t('table_schema.type') }}</th>
+                  <th class="px-4 py-2 text-sm font-semibold text-slate-200 border-b border-slate-700">{{ $t('table_schema.method') || 'Method' }}</th>
                   <th class="px-4 py-2 text-sm font-semibold text-slate-200 border-b border-slate-700 w-10"></th>
                 </tr>
               </thead>
@@ -1263,14 +1267,14 @@ const supportsUnsigned = (type: string) => {
                     <button 
                       @click="deleteIndex(idx)" 
                       class="p-1 text-slate-500 hover:text-red-400 hover:bg-red-400/10 rounded transition-all opacity-0 group-hover:opacity-100"
-                      title="Eliminar índice"
+                      :title="$t('table_schema.delete_index_title') || 'Delete index'"
                     >
                       <Trash2 :size="14" />
                     </button>
                   </td>
                 </tr>
                 <tr v-if="sortedIndexes.length === 0">
-                  <td colspan="5" class="px-4 py-8 text-center text-slate-500 italic text-sm">No indexes found</td>
+                  <td colspan="5" class="px-4 py-8 text-center text-slate-500 italic text-sm">{{ $t('table_schema.no_indexes') }}</td>
                 </tr>
               </tbody>
             </table>
@@ -1281,26 +1285,32 @@ const supportsUnsigned = (type: string) => {
               <!-- Row 1: Name, Update Rule, Delete Rule, Save Button -->
               <div class="flex flex-wrap gap-4 items-end">
                 <div class="flex-1 min-w-[200px]">
-                  <label class="block text-[11px] font-semibold text-slate-500 uppercase mb-1">Nombre FK</label>
-                  <input v-model="newFK.name" type="text" class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1.5 text-sm text-slate-200 focus:border-blue-500 outline-none" placeholder="Opcional" />
+                  <label class="block text-[11px] font-semibold text-slate-500 uppercase mb-1">{{ $t('table_schema.fk_name') || 'FK Name' }}</label>
+                  <input v-model="newFK.name" type="text" class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1.5 text-sm text-slate-200 focus:border-blue-500 outline-none" :placeholder="$t('common.optional') || 'Optional'" />
                 </div>
                 <div class="w-40">
-                  <label class="block text-[11px] font-semibold text-slate-500 uppercase mb-1">Update Rule</label>
-                  <select v-model="newFK.updateRule" class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1.5 text-sm text-slate-200 focus:border-blue-500 outline-none">
-                    <option value="CASCADE">CASCADE</option>
-                    <option value="NO ACTION">NO ACTION</option>
-                    <option value="RESTRICT">RESTRICT</option>
-                    <option value="SET NULL">SET NULL</option>
-                  </select>
+                  <label class="block text-[11px] font-semibold text-slate-500 uppercase mb-1">{{ $t('table_schema.update_rule') }}</label>
+                  <div class="relative">
+                    <select v-model="newFK.updateRule" class="w-full appearance-none bg-slate-900 border border-slate-700 rounded px-2 py-1.5 pr-8 text-sm text-slate-200 focus:border-blue-500 outline-none cursor-pointer">
+                      <option value="CASCADE">CASCADE</option>
+                      <option value="NO ACTION">NO ACTION</option>
+                      <option value="RESTRICT">RESTRICT</option>
+                      <option value="SET NULL">SET NULL</option>
+                    </select>
+                    <ChevronDown class="absolute right-2 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" :size="14" />
+                  </div>
                 </div>
                 <div class="w-40">
-                  <label class="block text-[11px] font-semibold text-slate-500 uppercase mb-1">Delete Rule</label>
-                  <select v-model="newFK.deleteRule" class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1.5 text-sm text-slate-200 focus:border-blue-500 outline-none">
-                    <option value="CASCADE">CASCADE</option>
-                    <option value="NO ACTION">NO ACTION</option>
-                    <option value="RESTRICT">RESTRICT</option>
-                    <option value="SET NULL">SET NULL</option>
-                  </select>
+                  <label class="block text-[11px] font-semibold text-slate-500 uppercase mb-1">{{ $t('table_schema.delete_rule') }}</label>
+                  <div class="relative">
+                    <select v-model="newFK.deleteRule" class="w-full appearance-none bg-slate-900 border border-slate-700 rounded px-2 py-1.5 pr-8 text-sm text-slate-200 focus:border-blue-500 outline-none cursor-pointer">
+                      <option value="CASCADE">CASCADE</option>
+                      <option value="NO ACTION">NO ACTION</option>
+                      <option value="RESTRICT">RESTRICT</option>
+                      <option value="SET NULL">SET NULL</option>
+                    </select>
+                    <ChevronDown class="absolute right-2 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" :size="14" />
+                  </div>
                 </div>
                 <div class="ml-auto">
                   <button 
@@ -1309,7 +1319,7 @@ const supportsUnsigned = (type: string) => {
                     class="px-6 py-1.5 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-medium rounded transition-colors flex items-center gap-2"
                   >
                     <Loader2 v-if="saving" :size="14" class="animate-spin" />
-                    Guardar FK
+                    {{ $t('common.save') }}
                   </button>
                 </div>
               </div>
@@ -1317,23 +1327,26 @@ const supportsUnsigned = (type: string) => {
               <!-- Row 2: Local Columns, Ref Table, Ref Columns, Cancel Button -->
               <div class="flex flex-wrap gap-4 items-end">
                 <div class="flex-1 min-w-[200px]">
-                  <label class="block text-[11px] font-semibold text-slate-500 uppercase mb-1">Columnas locales</label>
-                  <MultiSelect v-model="newFK.columns" :options="columnNames" placeholder="Selecciona columnas locales..." />
+                  <label class="block text-[11px] font-semibold text-slate-500 uppercase mb-1">{{ $t('table_schema.columns_label') }}</label>
+                  <MultiSelect v-model="newFK.columns" :options="columnNames" :placeholder="$t('table_schema.select_columns') || 'Select columns...'" />
                 </div>
                 <div class="flex-1 min-w-[200px]">
-                  <label class="block text-[11px] font-semibold text-slate-500 uppercase mb-1">Tabla referenciada</label>
-                  <select v-model="newFK.referencedTable" class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1.5 text-sm text-slate-200 focus:border-blue-500 outline-none">
-                    <option value="">Selecciona una tabla</option>
-                    <option v-for="t in availableTables" :key="t" :value="t">{{ t }}</option>
-                  </select>
+                  <label class="block text-[11px] font-semibold text-slate-500 uppercase mb-1">{{ $t('table_schema.ref_table') }}</label>
+                  <div class="relative">
+                    <select v-model="newFK.referencedTable" class="w-full appearance-none bg-slate-900 border border-slate-700 rounded px-2 py-1.5 pr-8 text-sm text-slate-200 focus:border-blue-500 outline-none cursor-pointer">
+                      <option value="">{{ $t('table_schema.select_table') || 'Select table...' }}</option>
+                      <option v-for="t in availableTables" :key="t" :value="t">{{ t }}</option>
+                    </select>
+                    <ChevronDown class="absolute right-2 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" :size="14" />
+                  </div>
                 </div>
                 <div class="flex-1 min-w-[200px]">
-                  <label class="block text-[11px] font-semibold text-slate-500 uppercase mb-1">Columnas referenciadas</label>
+                  <label class="block text-[11px] font-semibold text-slate-500 uppercase mb-1">{{ $t('table_schema.ref_columns') }}</label>
                   <MultiSelect 
                     v-model="newFK.referencedColumns" 
                     :options="getReferencedTableColumns(newFK.referencedTable)" 
                     :disabled="!newFK.referencedTable"
-                    :placeholder="!newFK.referencedTable ? 'Selecciona una tabla primero' : 'Selecciona columnas referenciadas...'" 
+                    :placeholder="!newFK.referencedTable ? ($t('table_schema.select_table_first') || 'Select table first') : ($t('table_schema.select_columns') || 'Select columns...')" 
                   />
                 </div>
               </div>
@@ -1342,12 +1355,12 @@ const supportsUnsigned = (type: string) => {
             <table class="w-full text-left border-collapse table-auto">
               <thead class="sticky top-0 z-10 bg-slate-800 shadow-sm">
                 <tr>
-                  <th class="px-4 py-2 text-sm font-semibold text-slate-200 border-b border-slate-700">Name</th>
-                  <th class="px-4 py-2 text-sm font-semibold text-slate-200 border-b border-slate-700">Columns</th>
-                  <th class="px-4 py-2 text-sm font-semibold text-slate-200 border-b border-slate-700">Ref Table</th>
-                  <th class="px-4 py-2 text-sm font-semibold text-slate-200 border-b border-slate-700">Ref Columns</th>
-                  <th class="px-4 py-2 text-sm font-semibold text-slate-200 border-b border-slate-700">Update Rule</th>
-                  <th class="px-4 py-2 text-sm font-semibold text-slate-200 border-b border-slate-700">Delete Rule</th>
+                  <th class="px-4 py-2 text-sm font-semibold text-slate-200 border-b border-slate-700">{{ $t('table_schema.name') }}</th>
+                  <th class="px-4 py-2 text-sm font-semibold text-slate-200 border-b border-slate-700">{{ $t('table_schema.columns_label') }}</th>
+                  <th class="px-4 py-2 text-sm font-semibold text-slate-200 border-b border-slate-700">{{ $t('table_schema.ref_table') }}</th>
+                  <th class="px-4 py-2 text-sm font-semibold text-slate-200 border-b border-slate-700">{{ $t('table_schema.ref_columns') }}</th>
+                  <th class="px-4 py-2 text-sm font-semibold text-slate-200 border-b border-slate-700">{{ $t('table_schema.update_rule') }}</th>
+                  <th class="px-4 py-2 text-sm font-semibold text-slate-200 border-b border-slate-700">{{ $t('table_schema.delete_rule') }}</th>
                   <th class="px-4 py-2 text-sm font-semibold text-slate-200 border-b border-slate-700 w-10"></th>
                 </tr>
               </thead>
@@ -1452,14 +1465,14 @@ const supportsUnsigned = (type: string) => {
                     <button 
                       @click="deleteFK(fk)" 
                       class="p-1 text-slate-500 hover:text-red-400 hover:bg-red-400/10 rounded transition-all opacity-0 group-hover:opacity-100"
-                      title="Eliminar Foreign Key"
+                      :title="$t('table_schema.delete_fk_title') || 'Delete foreign key'"
                     >
                       <Trash2 :size="14" />
                     </button>
                   </td>
                 </tr>
                 <tr v-if="foreignKeys.length === 0">
-                  <td colspan="7" class="px-4 py-8 text-center text-slate-500 italic text-sm">No foreign keys found</td>
+                  <td colspan="7" class="px-4 py-8 text-center text-slate-500 italic text-sm">{{ $t('table_schema.no_fks') }}</td>
                 </tr>
               </tbody>
             </table>

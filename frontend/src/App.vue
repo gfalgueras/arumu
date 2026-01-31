@@ -4,12 +4,14 @@ import { Plus, X } from 'lucide-vue-next';
 import Sidebar from './components/Sidebar.vue';
 import TopBar from './components/TopBar.vue';
 import ConnectionModal from './components/ConnectionModal.vue';
+import SettingsModal from './components/SettingsModal.vue';
 import ErrorModal from './components/ErrorModal.vue';
 import DataTable from './components/DataTable.vue';
 import TableSchema from './components/TableSchema.vue';
 import QueryEditor from './components/QueryEditor.vue';
 import { showError } from './errorService';
-import type { ServerInfo, StoredServer } from '@shared/types/database';
+import { $t, setLocale } from './i18n';
+import type { ServerInfo, StoredServer, AppSettings } from '@shared/types/database';
 
 const servers = shallowRef<ServerInfo[]>([]);
 const selectedServerName = ref<string | null>(null);
@@ -25,7 +27,7 @@ interface QueryTab {
 }
 
 const queryTabs = ref<QueryTab[]>([
-  { id: '1', name: 'Query 1', query: '' }
+  { id: '1', name: $t('query_editor.name_default') || 'Query 1', query: '' }
 ]);
 const activeTab = ref<string>('1');
 const editingTabId = ref<string | null>(null);
@@ -35,6 +37,7 @@ const vFocus = {
   mounted: (el: HTMLElement) => el.focus()
 };
 const isModalOpen = ref(false);
+const isSettingsOpen = ref(false);
 const editingServer = ref<StoredServer | undefined>(undefined);
 const loadingServers = ref<string[]>([]);
 const loadingDatabases = ref<string[]>([]);
@@ -68,7 +71,7 @@ const handleExpandServer = async (serverName: string) => {
     );
   } catch (error: any) {
     console.error('Error fetching databases:', error);
-    showError('Error al listar bases de datos', error.message);
+    showError($t('sidebar.error_databases'), error.message);
   } finally {
     loadingServers.value = loadingServers.value.filter(id => id !== serverName);
   }
@@ -98,7 +101,7 @@ const handleExpandDatabase = async (serverName: string, dbName: string) => {
     });
   } catch (error: any) {
     console.error('Error fetching tables:', error);
-    showError('Error al listar tablas', error.message);
+    showError($t('sidebar.error_tables'), error.message);
   } finally {
     loadingDatabases.value = loadingDatabases.value.filter(k => k !== key);
   }
@@ -130,7 +133,7 @@ const handleExpandTable = async (serverName: string, dbName: string, tableName: 
     });
   } catch (error: any) {
     console.error('Error fetching columns:', error);
-    showError('Error al listar columnas', error.message);
+    showError($t('sidebar.error_columns'), error.message);
   } finally {
     loadingTables.value = loadingTables.value.filter(k => k !== key);
   }
@@ -166,15 +169,25 @@ const handleConnect = async (storedServer: StoredServer, closeAndRefresh = true)
       }
     } else {
       const errorData = await res.json();
-      showError('Error de conexión', errorData.error || 'Error desconocido');
+      showError($t('conn_modal.error_connect'), errorData.error || 'Error desconocido');
     }
   } catch (error: any) {
     console.error('Connection error:', error);
-    showError('Error de red al conectar', error.message);
+    showError($t('conn_modal.error_network'), error.message);
   }
 };
 
 const initApp = async () => {
+  // Load settings first to set language
+  try {
+    const settingsRes = await fetch('http://localhost:3001/api/app-settings');
+    const settings: AppSettings = await settingsRes.json();
+    setLocale(settings.language || 'auto');
+  } catch (err) {
+    console.error('Failed to load settings:', err);
+    setLocale('auto');
+  }
+
   const storedRes = await fetch('http://localhost:3001/api/stored-servers');
   const storedServers: StoredServer[] = await storedRes.json();
 
@@ -319,11 +332,11 @@ const handleCloseConnection = async () => {
       selectedTable.value = null;
     } else {
       const errorData = await res.json();
-      showError('Error al cerrar conexión', errorData.error || 'Error desconocido');
+      showError($t('topbar.error_close_conn'), errorData.error || $t('common.unknown'));
     }
   } catch (error: any) {
     console.error('Error closing connection:', error);
-    showError('Error al cerrar conexión', error.message);
+    showError($t('topbar.error_close_conn'), error.message);
   }
 };
 
@@ -336,11 +349,11 @@ const handleConfigServer = async (serverName: string) => {
       editingServer.value = serverToEdit;
       isModalOpen.value = true;
     } else {
-      showError('Configuración no encontrada', 'No se pudo encontrar la configuración guardada para este servidor.');
+      showError($t('sidebar.error_config_not_found_title'), $t('sidebar.error_config_not_found_msg'));
     }
   } catch (error: any) {
     console.error('Error fetching server config:', error);
-    showError('Error al obtener configuración', error.message);
+    showError($t('sidebar.error_get_config'), error.message);
   }
 };
 
@@ -452,6 +465,7 @@ const selectTable = (serverName: string, db: string, table: string) => {
       <TopBar 
         @openConnection="isModalOpen = true"
         @closeConnection="handleCloseConnection"
+        @openSettings="isSettingsOpen = true"
         :canClose="!!selectedServerName"
       />
       <main class="flex-1 flex flex-col p-4 overflow-hidden min-w-0">
@@ -464,7 +478,7 @@ const selectTable = (serverName: string, db: string, table: string) => {
               class="px-4 py-2 text-sm font-medium border-b-2 whitespace-nowrap transition-colors"
               :class="activeTab === 'schema' ? 'border-blue-500 text-blue-500 bg-blue-500/5' : 'border-transparent text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'"
             >
-              Schema
+              {{ $t('data_table.schema') }}
             </button>
             <button 
               v-if="selectedTable"
@@ -472,7 +486,7 @@ const selectTable = (serverName: string, db: string, table: string) => {
               class="px-4 py-2 text-sm font-medium border-b-2 whitespace-nowrap transition-colors"
               :class="activeTab === 'data' ? 'border-blue-500 text-blue-500 bg-blue-500/5' : 'border-transparent text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'"
             >
-              Datos
+              {{ $t('data_table.data') }}
             </button>
             <div 
               v-for="tab in queryTabs" 
@@ -503,7 +517,7 @@ const selectTable = (serverName: string, db: string, table: string) => {
                 v-if="queryTabs.length > 1"
                 @click.stop="removeQueryTab(tab.id)"
                 class="mr-1.5 p-1 text-slate-500 hover:text-red-400 hover:bg-slate-700/50 rounded transition-all opacity-0 group-hover:opacity-100"
-                title="Cerrar pestaña"
+                :title="$t('query_editor.close_tab_title')"
               >
                 <X :size="14" />
               </button>
@@ -511,7 +525,7 @@ const selectTable = (serverName: string, db: string, table: string) => {
             <button 
               @click="addQueryTab"
               class="px-4 py-2 text-slate-400 hover:text-blue-500 hover:bg-slate-800/50 transition-colors border-b-2 border-transparent"
-              title="Nueva pestaña de consulta"
+              :title="$t('query_editor.new_tab_title')"
             >
               <Plus :size="18" />
             </button>
@@ -553,18 +567,18 @@ const selectTable = (serverName: string, db: string, table: string) => {
         </div>
         <div v-else class="flex-1 flex flex-col items-center justify-center">
           <div class="max-w-2xl text-center space-y-4">
-            <h1 class="text-4xl font-bold text-blue-500">SQL Manager</h1>
+            <h1 class="text-4xl font-bold text-blue-500">{{ $t('welcome.title') }}</h1>
             <p class="text-slate-400 text-lg">
-              Select a server, database and table from the sidebar to start managing your data.
+              {{ $t('welcome.subtitle') }}
             </p>
             <div class="grid grid-cols-2 gap-4 mt-8 mx-auto">
               <div class="p-6 bg-slate-900 rounded-lg border border-slate-800 text-left">
-                <h3 class="font-semibold text-blue-400 mb-2">Modular Backend</h3>
-                <p class="text-sm text-slate-500">Ready for MySQL, PostgreSQL, and SQLite.</p>
+                <h3 class="font-semibold text-blue-400 mb-2">{{ $t('welcome.feature_backend_title') }}</h3>
+                <p class="text-sm text-slate-500">{{ $t('welcome.feature_backend_desc') }}</p>
               </div>
               <div class="p-6 bg-slate-900 rounded-lg border border-slate-800 text-left">
-                <h3 class="font-semibold text-blue-400 mb-2">Modern UI</h3>
-                <p class="text-sm text-slate-500">Built with Vue, Tailwind CSS and Lucide icons.</p>
+                <h3 class="font-semibold text-blue-400 mb-2">{{ $t('welcome.feature_ui_title') }}</h3>
+                <p class="text-sm text-slate-500">{{ $t('welcome.feature_ui_desc') }}</p>
               </div>
             </div>
           </div>
@@ -577,6 +591,10 @@ const selectTable = (serverName: string, db: string, table: string) => {
       @close="isModalOpen = false; editingServer = undefined"
       @connect="handleConnect"
       :editServer="editingServer"
+    />
+    <SettingsModal
+      v-if="isSettingsOpen"
+      @close="isSettingsOpen = false"
     />
     <ErrorModal />
   </div>
