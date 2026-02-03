@@ -573,6 +573,7 @@ const selectTable = (serverName: string, db: string, table: string) => {
                 v-if="activeTab === 'data' && selectedTable && selectedServerName && selectedDatabase"
                 :key="`data:${selectedServerName}:${selectedDatabase}:${selectedTable}`"
                 :serverName="selectedServerName"
+                :serverType="selectedServerType"
                 :database="selectedDatabase"
                 :table="selectedTable"
               />

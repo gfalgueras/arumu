@@ -9,6 +9,7 @@ import FilterInput from './DataTable/FilterInput.vue';
 
 const props = defineProps<{
   serverName: string;
+  serverType: 'mysql' | 'postgres' | 'sqlite';
   database: string;
   table: string;
 }>();
@@ -161,7 +162,14 @@ const totalWidth = computed(() => data.value?.columns.reduce((acc, col) => acc +
       <!-- Pagination Bar -->
       <div class="flex items-center justify-between p-2 bg-slate-100 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700 rounded-t-lg min-h-[48px]">
         <div class="flex items-center gap-2 px-1">
-          <FilterInput :initialValue="appliedFilter" @apply="handleApplyFilter" :isLoading="loading" />
+          <FilterInput 
+            :initialValue="appliedFilter" 
+            @apply="handleApplyFilter" 
+            :isLoading="loading"
+            :serverType="serverType"
+            :columns="data?.columns || []"
+            :table="table"
+          />
         </div>
 
         <div class="flex items-center gap-4">
