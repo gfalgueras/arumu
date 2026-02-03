@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, watch, computed } from 'vue';
 import CodeMirror from 'vue-codemirror6';
-import { sql, MySQL, PostgreSQL, SQLite } from '@codemirror/lang-sql';
+import { sql, MySQL, PostgreSQL, SQLite, SQLDialect } from '@codemirror/lang-sql';
 import { oneDark } from '@codemirror/theme-one-dark';
 import { keymap, EditorView } from '@codemirror/view';
 import { autocompletion, completionKeymap } from '@codemirror/autocomplete';
@@ -30,8 +30,12 @@ watch(() => props.initialValue, (newVal) => {
 });
 
 const extensions = computed(() => {
-  const dialect = props.serverType === 'postgres' ? PostgreSQL : 
-                  props.serverType === 'sqlite' ? SQLite : MySQL;
+  const baseDialect = props.serverType === 'postgres' ? PostgreSQL : 
+                      props.serverType === 'sqlite' ? SQLite : MySQL;
+  const dialect = SQLDialect.define({
+    ...baseDialect.spec,
+    identifierQuotes: ''
+  });
   
   const schema: Record<string, string[]> = {};
   if (props.columns.length > 0 && props.table) {

@@ -2,7 +2,7 @@
 import { ref, computed, watch, onUnmounted, shallowRef } from 'vue';
 import { Play, Loader2, AlertCircle, Database as DatabaseIcon, GripHorizontal } from 'lucide-vue-next';
 import CodeMirror from 'vue-codemirror6';
-import { sql, MySQL, PostgreSQL, SQLite } from '@codemirror/lang-sql';
+import { sql, MySQL, PostgreSQL, SQLite, SQLDialect } from '@codemirror/lang-sql';
 import { oneDark } from '@codemirror/theme-one-dark';
 import { keymap } from '@codemirror/view';
 import { autocompletion, completionKeymap } from '@codemirror/autocomplete';
@@ -73,8 +73,12 @@ watch(() => [props.serverName, props.database], async () => {
 }, { immediate: true });
 
 const extensions = computed(() => {
-  const dialect = props.serverType === 'postgres' ? PostgreSQL : 
-                  props.serverType === 'sqlite' ? SQLite : MySQL;
+  const baseDialect = props.serverType === 'postgres' ? PostgreSQL : 
+                      props.serverType === 'sqlite' ? SQLite : MySQL;
+  const dialect = SQLDialect.define({
+    ...baseDialect.spec,
+    caseInsensitiveIdentifiers: true,
+  });
   
   return [
     sql({ 
