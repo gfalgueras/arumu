@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain } from 'electron';
+import { app, BrowserWindow, ipcMain, Menu } from 'electron';
 import path from 'path';
 import fs from 'fs';
 import { MySQLDriver } from '../backend/src/drivers/mysql.driver';
@@ -102,6 +102,25 @@ function createWindow() {
 }
 
 app.whenReady().then(() => {
+  // Configurar el menú de la aplicación
+  const template: Electron.MenuItemConstructorOptions[] = [
+    {
+      label: 'File',
+      submenu: [
+        {
+          label: 'Exit',
+          accelerator: process.platform === 'darwin' ? 'Cmd+Q' : 'Alt+F4',
+          click: () => {
+            app.quit();
+          }
+        }
+      ]
+    }
+  ];
+
+  const menu = Menu.buildFromTemplate(template);
+  Menu.setApplicationMenu(menu);
+
   // IPC Handlers
   ipcMain.handle('api:getServers', () => {
     return activeServers.map(s => ({

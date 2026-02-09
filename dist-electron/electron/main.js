@@ -97,6 +97,23 @@ function createWindow() {
     }
 }
 electron_1.app.whenReady().then(() => {
+    // Configurar el menú de la aplicación
+    const template = [
+        {
+            label: 'File',
+            submenu: [
+                {
+                    label: 'Exit',
+                    accelerator: process.platform === 'darwin' ? 'Cmd+Q' : 'Alt+F4',
+                    click: () => {
+                        electron_1.app.quit();
+                    }
+                }
+            ]
+        }
+    ];
+    const menu = electron_1.Menu.buildFromTemplate(template);
+    electron_1.Menu.setApplicationMenu(menu);
     // IPC Handlers
     electron_1.ipcMain.handle('api:getServers', () => {
         return activeServers.map(s => ({
