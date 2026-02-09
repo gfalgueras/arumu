@@ -11,6 +11,7 @@ import TableSchema from './components/TableSchema.vue';
 import QueryEditor from './components/QueryEditor.vue';
 import { showError } from './errorService';
 import { $t, setLocale } from './i18n';
+import { api } from './services/api';
 import type { ServerInfo, StoredServer, AppSettings } from '@shared/types/database';
 
 const servers = shallowRef<ServerInfo[]>([]);
@@ -53,8 +54,7 @@ const queryEditorHeight = ref(300);
 const tableSchemaHeight = ref(400);
 
 const fetchServers = async () => {
-  const res = await fetch('http://localhost:3001/api/servers');
-  const data = await res.json();
+  const data = await api.getServers();
   servers.value = data;
 };
 
@@ -63,8 +63,7 @@ const handleExpandServer = async (serverName: string) => {
   
   loadingServers.value.push(serverName);
   try {
-    const res = await fetch(`http://localhost:3001/api/servers/${encodeURIComponent(serverName)}/databases`);
-    const databases = await res.json();
+    const databases = await api.getDatabases(serverName);
     
     servers.value = servers.value.map(s => 
       s.name === serverName ? { ...s, databases } : s
@@ -83,8 +82,7 @@ const handleExpandDatabase = async (serverName: string, dbName: string) => {
 
   loadingDatabases.value.push(key);
   try {
-    const res = await fetch(`http://localhost:3001/api/servers/${encodeURIComponent(serverName)}/databases/${encodeURIComponent(dbName)}/tables`);
-    const tables = await res.json();
+    const tables = await api.getTables(serverName, dbName);
 
     servers.value = servers.value.map(s => {
       if (s.name === serverName) {
@@ -113,8 +111,7 @@ const handleExpandTable = async (serverName: string, dbName: string, tableName: 
 
   loadingTables.value.push(key);
   try {
-    const res = await fetch(`http://localhost:3001/api/servers/${encodeURIComponent(serverName)}/databases/${encodeURIComponent(dbName)}/tables/${encodeURIComponent(tableName)}/columns`);
-    const columns = await res.json();
+    const columns = await api.getColumns(serverName, dbName, tableName);
 
     servers.value = servers.value.map(s => {
       if (s.name === serverName) {
@@ -141,50 +138,38 @@ const handleExpandTable = async (serverName: string, dbName: string, tableName: 
 
 const handleConnect = async (storedServer: StoredServer, closeAndRefresh = true) => {
   try {
-    const res = await fetch('http://localhost:3001/api/servers/connect', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(storedServer),
-    });
+    await api.connect(storedServer);
     
-    if (res.ok) {
-      if (closeAndRefresh) {
-        await fetchServers();
-        isModalOpen.value = false;
-        editingServer.value = undefined;
+    if (closeAndRefresh) {
+      await fetchServers();
+      isModalOpen.value = false;
+      editingServer.value = undefined;
 
-        selectedServerName.value = storedServer.name;
-        selectedDatabase.value = null;
-        selectedTable.value = null;
-        
-        // Seleccionar la primera pestaña de query disponible
-        if (queryTabs.value.length > 0) {
-          activeTab.value = queryTabs.value[0].id;
-        }
-
-        if (!expandedServerNames.value.includes(storedServer.name)) {
-          expandedServerNames.value.push(storedServer.name);
-        }
-        handleExpandServer(storedServer.name);
+      selectedServerName.value = storedServer.name;
+      selectedDatabase.value = null;
+      selectedTable.value = null;
+      
+      // Seleccionar la primera pestaña de query disponible
+      if (queryTabs.value.length > 0) {
+        activeTab.value = queryTabs.value[0].id;
       }
-    } else {
-      const errorData = await res.json();
-      showError($t('conn_modal.error_connect'), errorData.error || 'Error desconocido');
+
+      if (!expandedServerNames.value.includes(storedServer.name)) {
+        expandedServerNames.value.push(storedServer.name);
+      }
+      handleExpandServer(storedServer.name);
     }
   } catch (error: any) {
     console.error('Connection error:', error);
-    showError($t('conn_modal.error_network'), error.message);
+    showError($t('conn_modal.error_connect'), error.message || 'Error desconocido');
   }
 };
 
 const initApp = async () => {
   await loadSettings();
 
-  const storedRes = await fetch('http://localhost:3001/api/stored-servers');
-  const storedServers: StoredServer[] = await storedRes.json();
-
-  const stateRes = await fetch('http://localhost:3001/api/app-state');
-  const state = await stateRes.json();
+  const storedServers: StoredServer[] = await api.getStoredServers();
+  const state = await api.getAppState();
 
   if (state) {
     if (state.activeServerNames && state.activeServerNames.length > 0) {
@@ -247,8 +232,7 @@ const initApp = async () => {
 
 const loadSettings = async () => {
   try {
-    const settingsRes = await fetch('http://localhost:3001/api/app-settings');
-    const settings: AppSettings = await settingsRes.json();
+    const settings: AppSettings = await api.getAppSettings();
     setLocale(settings.language || 'auto');
     applyTheme(settings.theme || 'system');
   } catch (err) {
@@ -273,8 +257,7 @@ onMounted(() => {
   
   // Listen for system theme changes
   window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
-    fetch('http://localhost:3001/api/app-settings')
-      .then(res => res.json())
+    api.getAppSettings()
       .then((settings: AppSettings) => {
         if (!settings.theme || settings.theme === 'system') {
           applyTheme('system');
@@ -303,11 +286,7 @@ watch([activeServerNames, selectedServerName, selectedDatabase, selectedTable, a
     };
 
     try {
-      await fetch('http://localhost:3001/api/app-state', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(state),
-      });
+      await api.saveAppState(state);
     } catch (error) {
       console.error('Error saving app state:', error);
     }
@@ -347,18 +326,11 @@ const handleMouseDown = (e: MouseEvent) => {
 const handleCloseConnection = async () => {
   if (!selectedServerName.value) return;
   try {
-    const res = await fetch(`http://localhost:3001/api/servers/${encodeURIComponent(selectedServerName.value)}`, {
-      method: 'DELETE',
-    });
-    if (res.ok) {
-      servers.value = servers.value.filter(s => s.name !== selectedServerName.value);
-      selectedServerName.value = null;
-      selectedDatabase.value = null;
-      selectedTable.value = null;
-    } else {
-      const errorData = await res.json();
-      showError($t('topbar.error_close_conn'), errorData.error || $t('common.unknown'));
-    }
+    await api.disconnectServer(selectedServerName.value);
+    servers.value = servers.value.filter(s => s.name !== selectedServerName.value);
+    selectedServerName.value = null;
+    selectedDatabase.value = null;
+    selectedTable.value = null;
   } catch (error: any) {
     console.error('Error closing connection:', error);
     showError($t('topbar.error_close_conn'), error.message);
@@ -367,8 +339,7 @@ const handleCloseConnection = async () => {
 
 const handleConfigServer = async (serverName: string) => {
   try {
-    const res = await fetch('http://localhost:3001/api/stored-servers');
-    const storedServers: StoredServer[] = await res.json();
+    const storedServers: StoredServer[] = await api.getStoredServers();
     const serverToEdit = storedServers.find(s => s.name === serverName);
     if (serverToEdit) {
       editingServer.value = serverToEdit;

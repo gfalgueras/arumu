@@ -6,6 +6,7 @@ import MultiSelect from './MultiSelect.vue';
 import CodeModal from './CodeModal.vue';
 import { showError } from '../errorService';
 import { $t } from '../i18n';
+import { api } from '../services/api';
 
 const props = defineProps<{
   serverName: string;
@@ -192,10 +193,8 @@ const getPendingChanges = () => {
 
 const fetchSupportedTypes = async () => {
   try {
-    const res = await fetch(`http://localhost:3001/api/servers/${encodeURIComponent(props.serverName)}/types`);
-    if (res.ok) {
-      supportedTypes.value = await res.json();
-    }
+    const data = await api.getSupportedTypes(props.serverName);
+    supportedTypes.value = data;
   } catch (err) {
     console.error('Error fetching supported types:', err);
   }
@@ -206,24 +205,12 @@ const fetchSchemaData = async () => {
   error.value = null;
   createStatement.value = null;
   try {
-    const [colsRes, idxRes, fksRes, createRes, schemaRes] = await Promise.all([
-      fetch(`http://localhost:3001/api/servers/${encodeURIComponent(props.serverName)}/databases/${encodeURIComponent(props.database)}/tables/${encodeURIComponent(props.table)}/schema`),
-      fetch(`http://localhost:3001/api/servers/${encodeURIComponent(props.serverName)}/databases/${encodeURIComponent(props.database)}/tables/${encodeURIComponent(props.table)}/indexes`),
-      fetch(`http://localhost:3001/api/servers/${encodeURIComponent(props.serverName)}/databases/${encodeURIComponent(props.database)}/tables/${encodeURIComponent(props.table)}/foreign-keys`),
-      fetch(`http://localhost:3001/api/servers/${encodeURIComponent(props.serverName)}/databases/${encodeURIComponent(props.database)}/tables/${encodeURIComponent(props.table)}/create-statement`),
-      fetch(`http://localhost:3001/api/servers/${encodeURIComponent(props.serverName)}/databases/${encodeURIComponent(props.database)}/schema`)
-    ]);
-
-    if (!colsRes.ok || !idxRes.ok || !fksRes.ok || !createRes.ok || !schemaRes.ok) {
-      throw new Error('Failed to fetch table structure');
-    }
-
     const [colsData, idxData, fksData, createData, schemaData] = await Promise.all([
-      colsRes.json(),
-      idxRes.json(),
-      fksRes.json(),
-      createRes.json(),
-      schemaRes.json()
+      api.getColumns(props.serverName, props.database, props.table),
+      api.getTableIndexes(props.serverName, props.database, props.table),
+      api.getTableForeignKeys(props.serverName, props.database, props.table),
+      api.getTableCreateStatement(props.serverName, props.database, props.table),
+      api.getSchema(props.serverName, props.database)
     ]);
 
     const colsWithId = colsData.map((c: ColumnInfo) => ({ 
@@ -434,64 +421,30 @@ const handleCommit = async () => {
   try {
     const { columnsToUpdate, columnsToAdd, indexesToDrop, indexesToAdd, fksToDrop, fksToAdd } = getPendingChanges();
 
-    const baseUrl = `http://localhost:3001/api/servers/${encodeURIComponent(props.serverName)}/databases/${encodeURIComponent(props.database)}/tables/${encodeURIComponent(props.table)}`;
-
     // DROPs first (to avoid conflicts if re-adding indices/fks with same name)
     for (const fk of fksToDrop) {
-       await fetch(`${baseUrl}/foreign-keys/${encodeURIComponent(fk.name)}`, { method: 'DELETE' });
+       await api.dropForeignKey(props.serverName, props.database, props.table, fk.name);
     }
     for (const idx of indexesToDrop) {
-       await fetch(`${baseUrl}/indexes/${encodeURIComponent(idx.name)}`, { method: 'DELETE' });
+       await api.dropIndex(props.serverName, props.database, props.table, idx.name);
     }
 
     // Column updates
     for (const { oldName, newCol, afterColumn } of columnsToUpdate) {
-      const res = await fetch(`${baseUrl}/columns/${encodeURIComponent(oldName)}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ column: newCol, afterColumn })
-      });
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(`${$t('table_schema.error_update_column')} ${oldName}: ${err.error || $t('common.unknown')}`);
-      }
+      await api.updateColumn(props.serverName, props.database, props.table, oldName, newCol, afterColumn);
     }
 
     // New columns
     for (const { col, afterColumn } of columnsToAdd) {
-      const res = await fetch(`${baseUrl}/columns`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ column: col, afterColumn })
-      });
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(`${$t('table_schema.error_add_column')} ${col.name}: ${err.error || $t('common.unknown')}`);
-      }
+      await api.addColumn(props.serverName, props.database, props.table, col, afterColumn);
     }
 
     // ADDs
     for (const idx of indexesToAdd) {
-       const res = await fetch(`${baseUrl}/indexes`, {
-         method: 'POST',
-         headers: { 'Content-Type': 'application/json' },
-         body: JSON.stringify(idx)
-       });
-       if (!res.ok) {
-         const err = await res.json();
-         throw new Error(`${$t('table_schema.error_add_index')}: ${err.error || $t('common.unknown')}`);
-       }
+       await api.addIndex(props.serverName, props.database, props.table, idx);
     }
     for (const fk of fksToAdd) {
-       const res = await fetch(`${baseUrl}/foreign-keys`, {
-         method: 'POST',
-         headers: { 'Content-Type': 'application/json' },
-         body: JSON.stringify(fk)
-       });
-       if (!res.ok) {
-         const err = await res.json();
-         throw new Error(`${$t('table_schema.error_add_fk')}: ${err.error || $t('common.unknown')}`);
-       }
+       await api.addForeignKey(props.serverName, props.database, props.table, fk);
     }
 
     await fetchSchemaData();

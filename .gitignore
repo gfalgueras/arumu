@@ -1,5 +1,6 @@
 .idea
 node_modules
+dist-electron
 frontend/node_modules
 backend/src/**/*.d.ts
 backend/src/**/*.js

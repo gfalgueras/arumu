@@ -7,6 +7,7 @@ import { oneDark } from '@codemirror/theme-one-dark';
 import { keymap } from '@codemirror/view';
 import { autocompletion, completionKeymap } from '@codemirror/autocomplete';
 import { $t } from '../i18n';
+import { api } from '../services/api';
 
 const props = defineProps<{
   serverName: string;
@@ -58,10 +59,8 @@ watch(() => [props.serverName, props.database], async () => {
   if (props.serverName && props.database) {
     fetchingSchema.value = true;
     try {
-      const res = await fetch(`http://localhost:3001/api/servers/${encodeURIComponent(props.serverName)}/databases/${encodeURIComponent(props.database)}/schema`);
-      if (res.ok) {
-        schema.value = await res.json();
-      }
+      const data = await api.getSchema(props.serverName, props.database);
+      schema.value = data;
     } catch (err) {
       console.error('Error fetching schema:', err);
     } finally {
@@ -108,21 +107,7 @@ const handleExecute = async () => {
   result.value = null;
 
   try {
-    const res = await fetch(`http://localhost:3001/api/servers/${encodeURIComponent(props.serverName)}/execute`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ 
-        sql: query.value,
-        database: props.database || undefined 
-      }),
-    });
-
-    if (!res.ok) {
-      const errData = await res.json();
-      throw new Error(errData.error || 'Failed to execute query');
-    }
-
-    const data = await res.json();
+    const data = await api.executeSql(props.serverName, query.value, props.database || '');
     result.value = data;
   } catch (err: any) {
     error.value = err.message;

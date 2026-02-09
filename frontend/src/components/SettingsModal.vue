@@ -2,6 +2,7 @@
 import { ref, onMounted } from 'vue';
 import { X, Settings, Languages, ChevronDown, Moon } from 'lucide-vue-next';
 import { $t, getLocale, setLocale, supportedLocales } from '../i18n';
+import { api } from '../services/api';
 import type { AppSettings } from '@shared/types/database';
 import { showError } from '../errorService';
 
@@ -15,8 +16,7 @@ const theme = ref<AppSettings['theme']>('system');
 
 onMounted(async () => {
   try {
-    const res = await fetch('http://localhost:3001/api/app-settings');
-    const settings: AppSettings = await res.json();
+    const settings: AppSettings = await api.getAppSettings();
     if (settings.language) {
       language.value = settings.language;
     }
@@ -35,20 +35,10 @@ const handleSave = async () => {
       theme: theme.value
     };
     
-    const res = await fetch('http://localhost:3001/api/app-settings', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(settings)
-    });
-    
-    if (res.ok) {
-      setLocale(language.value === 'auto' ? 'auto' : language.value);
-      emit('updated');
-      emit('close');
-    } else {
-      const err = await res.json();
-      throw new Error(err.error || 'Failed to save settings');
-    }
+    await api.saveAppSettings(settings);
+    setLocale(language.value === 'auto' ? 'auto' : language.value);
+    emit('updated');
+    emit('close');
   } catch (err: any) {
     showError($t('common.error'), err.message);
   }

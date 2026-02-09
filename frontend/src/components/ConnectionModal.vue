@@ -4,6 +4,7 @@ import { Plus, X, Server, ChevronDown } from 'lucide-vue-next';
 import type { StoredServer } from '@shared/types/database';
 import { showError } from '../errorService';
 import { $t } from '../i18n';
+import { api } from '../services/api';
 
 const props = defineProps<{
   editServer?: StoredServer;
@@ -27,8 +28,7 @@ const formData = ref({
 });
 
 const fetchStoredServers = async () => {
-  const res = await fetch('http://localhost:3001/api/stored-servers');
-  const data = await res.json();
+  const data = await api.getStoredServers();
   storedServers.value = data;
 };
 
@@ -40,34 +40,23 @@ onMounted(() => {
 
 const handleSave = async () => {
   try {
-    const url = props.editServer 
-      ? `http://localhost:3001/api/stored-servers/${encodeURIComponent(props.editServer.name)}`
-      : 'http://localhost:3001/api/stored-servers';
+    const serverToSave = {
+      name: formData.value.name,
+      type: formData.value.type,
+      config: {
+        host: formData.value.host,
+        port: formData.value.port,
+        user: formData.value.user,
+        password: formData.value.password,
+        defaultFilter: formData.value.defaultFilter
+      }
+    };
     
-    const response = await fetch(url, {
-      method: props.editServer ? 'PUT' : 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        name: formData.value.name,
-        type: formData.value.type,
-        config: {
-          host: formData.value.host,
-          port: formData.value.port,
-          user: formData.value.user,
-          password: formData.value.password,
-          defaultFilter: formData.value.defaultFilter
-        }
-      })
-    });
-    
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error || 'Failed to save connection');
-    }
-
     if (props.editServer) {
+      await api.updateStoredServer(props.editServer.name, serverToSave);
       emit('close');
     } else {
+      await api.saveStoredServer(serverToSave);
       showAddForm.value = false;
       fetchStoredServers();
     }

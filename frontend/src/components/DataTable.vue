@@ -4,6 +4,7 @@ import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, ArrowUp, ArrowD
 import type { SortConfig, TableDataResponse } from '@shared/types/database';
 import { showError } from '../errorService';
 import { $t } from '../i18n';
+import { api } from '../services/api';
 import DataRow from './DataTable/DataRow.vue';
 import FilterInput from './DataTable/FilterInput.vue';
 
@@ -43,14 +44,12 @@ const fetchData = async () => {
   loading.value = true;
   error.value = null;
   try {
-    const sortParam = sort.value.length > 0 ? `&sort=${encodeURIComponent(JSON.stringify(sort.value))}` : '';
-    const filterParam = appliedFilter.value ? `&filter=${encodeURIComponent(appliedFilter.value)}` : '';
-    const res = await fetch(`http://localhost:3001/api/servers/${encodeURIComponent(props.serverName)}/databases/${encodeURIComponent(props.database)}/tables/${encodeURIComponent(props.table)}/data?limit=${limit}&offset=${page.value * limit}${sortParam}${filterParam}`);
-    if (!res.ok) {
-      const errData = await res.json();
-      throw new Error(errData.error || 'Failed to fetch data');
-    }
-    const result = await res.json();
+    const result = await api.getTableData(props.serverName, props.database, props.table, {
+      limit,
+      offset: page.value * limit,
+      sort: sort.value,
+      filter: appliedFilter.value
+    });
     data.value = result;
   } catch (err: any) {
     error.value = err.message;
