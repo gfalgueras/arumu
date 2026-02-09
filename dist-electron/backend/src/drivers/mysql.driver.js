@@ -268,9 +268,12 @@ class MySQLDriver {
         console.log(`[MySQLDriver] Executing query: ${query}`);
         const [rows] = await this.connection.execute(query, params);
         const [countRows] = await this.connection.execute(countQuery, params);
+        // Deep clean rows to ensure they are clonable via Electron IPC
+        // This handles nested objects (like JSON columns), Geometry types, and BigInts
+        const cleanRows = JSON.parse(JSON.stringify(rows, (_key, value) => typeof value === 'bigint' ? value.toString() : value));
         return {
             columns,
-            rows,
+            rows: cleanRows,
             total: (countRows && countRows[0]) ? Number(countRows[0].total) : 0
         };
     }
@@ -278,7 +281,8 @@ class MySQLDriver {
         if (!this.connection)
             throw new Error('Not connected');
         const [result] = await this.connection.execute(sql);
-        return result;
+        // Deep clean result to ensure it's clonable via Electron IPC
+        return JSON.parse(JSON.stringify(result, (_key, value) => typeof value === 'bigint' ? value.toString() : value));
     }
     async addIndex(database, table, index) {
         if (!this.connection)

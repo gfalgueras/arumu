@@ -87,6 +87,7 @@ function createWindow() {
             nodeIntegration: false,
         },
     });
+    mainWindow.webContents.openDevTools();
     // En desarrollo, cargamos desde el servidor de Vite
     if (process.env.VITE_DEV_SERVER_URL) {
         mainWindow.loadURL(process.env.VITE_DEV_SERVER_URL);
