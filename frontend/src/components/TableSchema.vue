@@ -215,7 +215,7 @@ const fetchSchemaData = async () => {
 
     const colsWithId = colsData.map((c: ColumnInfo) => ({ 
       ...c, 
-      _id: c._id || Math.random().toString(36).substr(2, 9) 
+      _id: c._id || crypto.randomUUID() 
     }));
     columns.value = colsWithId;
     originalColumns.value = JSON.parse(JSON.stringify(colsWithId));
@@ -235,7 +235,7 @@ const fetchSchemaData = async () => {
 
 const handleAddColumn = () => {
   const newCol: ColumnInfo = {
-    _id: Math.random().toString(36).substr(2, 9),
+    _id: crypto.randomUUID(),
     name: `new_column_${columns.value.length + 1}`,
     type: 'INT',
     nullable: true,

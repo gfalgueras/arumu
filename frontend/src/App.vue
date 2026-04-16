@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, watch, computed, shallowRef } from 'vue';
+import { ref, onMounted, onUnmounted, watch, computed, shallowRef } from 'vue';
 import { Plus, X } from 'lucide-vue-next';
 import Sidebar from './components/Sidebar.vue';
 import TopBar from './components/TopBar.vue';
@@ -157,7 +157,7 @@ const handleConnect = async (storedServer: StoredServer, closeAndRefresh = true)
       if (!expandedServerNames.value.includes(storedServer.name)) {
         expandedServerNames.value.push(storedServer.name);
       }
-      handleExpandServer(storedServer.name);
+      void handleExpandServer(storedServer.name);
     }
   } catch (error: any) {
     console.error('Connection error:', error);
@@ -208,14 +208,14 @@ const initApp = async () => {
   if (state) {
     if (state.expandedServerNames) {
       for (const sName of state.expandedServerNames) {
-        handleExpandServer(sName);
+        void handleExpandServer(sName);
       }
     }
     if (state.expandedDatabaseIds) {
       for (const dbId of state.expandedDatabaseIds) {
         const [sName, dbName] = dbId.split(':');
         if (sName && dbName) {
-          handleExpandDatabase(sName, dbName);
+          void handleExpandDatabase(sName, dbName);
         }
       }
     }
@@ -223,7 +223,7 @@ const initApp = async () => {
       for (const tableId of state.expandedTableIds) {
         const [sName, dbName, tableName] = tableId.split(':');
         if (sName && dbName && tableName) {
-          handleExpandTable(sName, dbName, tableName);
+          void handleExpandTable(sName, dbName, tableName);
         }
       }
     }
@@ -251,19 +251,28 @@ const applyTheme = (theme: AppSettings['theme']) => {
   }
 };
 
+let themeChangeHandler: (() => void) | null = null;
+
 onMounted(() => {
   initApp();
   document.documentElement.style.setProperty('--sidebar-width', `${sidebarWidth.value}px`);
-  
-  // Listen for system theme changes
-  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
-    api.getAppSettings()
-      .then((settings: AppSettings) => {
-        if (!settings.theme || settings.theme === 'system') {
-          applyTheme('system');
-        }
-      });
-  });
+
+  const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+  themeChangeHandler = () => {
+    api.getAppSettings().then((settings: AppSettings) => {
+      if (!settings.theme || settings.theme === 'system') {
+        applyTheme('system');
+      }
+    });
+  };
+  mediaQuery.addEventListener('change', themeChangeHandler);
+});
+
+onUnmounted(() => {
+  if (themeChangeHandler) {
+    window.matchMedia('(prefers-color-scheme: dark)').removeEventListener('change', themeChangeHandler);
+    themeChangeHandler = null;
+  }
 });
 
 watch([activeServerNames, selectedServerName, selectedDatabase, selectedTable, activeTab, sidebarWidth, queryEditorHeight, tableSchemaHeight, dbFilter, tableFilter, expandedServerNames, expandedDatabaseIds, expandedTableIds, queryTabs], (_, __, onCleanup) => {

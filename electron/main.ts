@@ -1,13 +1,8 @@
-import { app, BrowserWindow, ipcMain, Menu } from 'electron';
+import { app, BrowserWindow, ipcMain, Menu, safeStorage } from 'electron';
 import path from 'path';
 import fs from 'fs';
 import { MySQLDriver } from '../backend/src/drivers/mysql.driver';
 import type { ServerInfo, StoredServer, DatabaseInfo } from '../shared/types/database';
-
-// Soporte para serializar BigInt en JSON (Electron/Node)
-(BigInt.prototype as any).toJSON = function () {
-  return this.toString();
-};
 
 // Define the connections file path in the user's home directory
 const USER_HOME = process.env.HOME || process.env.USERPROFILE || '';
@@ -32,20 +27,47 @@ if (fs.existsSync(OLD_CONNECTIONS_FILE) && !fs.existsSync(CONNECTIONS_FILE)) {
   }
 }
 
+const encryptPassword = (password: string): string => {
+  if (safeStorage.isEncryptionAvailable()) {
+    return 'enc:' + safeStorage.encryptString(password).toString('base64');
+  }
+  return password;
+};
+
+const decryptPassword = (value: string): string => {
+  if (value.startsWith('enc:') && safeStorage.isEncryptionAvailable()) {
+    try {
+      return safeStorage.decryptString(Buffer.from(value.slice(4), 'base64'));
+    } catch {
+      return value;
+    }
+  }
+  return value;
+};
+
 // Helper to read/write connections
 const getStoredServers = (): StoredServer[] => {
   if (!fs.existsSync(CONNECTIONS_FILE)) {
     return [];
   }
   try {
-    return JSON.parse(fs.readFileSync(CONNECTIONS_FILE, 'utf-8'));
+    const servers: StoredServer[] = JSON.parse(fs.readFileSync(CONNECTIONS_FILE, 'utf-8'));
+    return servers.map(s => ({
+      ...s,
+      config: s.config ? { ...s.config, password: decryptPassword(s.config.password || '') } : s.config
+    }));
   } catch (e) {
+    console.error('Failed to read connections file:', e);
     return [];
   }
 };
 
 const saveStoredServers = (servers: StoredServer[]) => {
-  fs.writeFileSync(CONNECTIONS_FILE, JSON.stringify(servers, null, 2));
+  const encrypted = servers.map(s => ({
+    ...s,
+    config: s.config ? { ...s.config, password: encryptPassword(s.config.password || '') } : s.config
+  }));
+  fs.writeFileSync(CONNECTIONS_FILE, JSON.stringify(encrypted, null, 2));
 };
 
 const getAppState = () => {
@@ -55,6 +77,7 @@ const getAppState = () => {
   try {
     return JSON.parse(fs.readFileSync(APP_STATE_FILE, 'utf-8'));
   } catch (e) {
+    console.error('Failed to read app state file:', e);
     return null;
   }
 };
@@ -92,7 +115,9 @@ function createWindow() {
     },
   });
 
-  mainWindow.webContents.openDevTools()
+  if (process.env.VITE_DEV_SERVER_URL) {
+    mainWindow.webContents.openDevTools();
+  }
 
   // En desarrollo, cargamos desde el servidor de Vite
   if (process.env.VITE_DEV_SERVER_URL) {
@@ -458,19 +483,10 @@ app.whenReady().then(() => {
     }
   });
 
-  ipcMain.handle('api:getSupportedTypes', async (_event, serverName: string) => {
+  ipcMain.handle('api:getSupportedTypes', (_event, serverName: string) => {
     const server = activeServers.find(s => s.name === serverName);
     if (!server) throw new Error('Server not found');
-    const driver = new MySQLDriver();
-    try {
-      if (server.config) {
-        await driver.connect(server.config);
-        return await driver.getSupportedTypes();
-      }
-      throw new Error('Server configuration missing');
-    } finally {
-      await driver.disconnect();
-    }
+    return new MySQLDriver().getSupportedTypes();
   });
 
   createWindow();

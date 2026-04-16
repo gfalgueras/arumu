@@ -17,7 +17,7 @@ export class MySQLDriver implements IDatabaseDriver {
 
   async disconnect(): Promise<void> {
     if (this.connection) {
-      this.connection.end();
+      await this.connection.end();
       this.connection = null;
     }
   }
@@ -294,13 +294,16 @@ export class MySQLDriver implements IDatabaseDriver {
       orderBy = 'ORDER BY ' + sort.map(s => `\`${s.column.replace(/`/g, '``')}\` ${s.direction}`).join(', ');
     }
 
-    const query = `SELECT * FROM ${fullTableName} ${whereClause} ${orderBy} LIMIT ${limit} OFFSET ${offset}`;
+    const safeLimit = Math.max(1, Math.floor(Number(limit)));
+    const safeOffset = Math.max(0, Math.floor(Number(offset)));
+
+    const query = `SELECT * FROM ${fullTableName} ${whereClause} ${orderBy} LIMIT ${safeLimit} OFFSET ${safeOffset}`;
     const countQuery = `SELECT COUNT(*) as total FROM ${fullTableName} ${whereClause}`;
 
-    console.log(`[MySQLDriver] Executing query: ${query}`);
-    
-    const [rows]: any = await this.connection.execute(query, params);
-    const [countRows]: any = await this.connection.execute(countQuery, params);
+    const [[rows], [countRows]]: any = await Promise.all([
+      this.connection.execute(query, params),
+      this.connection.execute(countQuery, params)
+    ]);
 
     // Deep clean rows to ensure they are clonable via Electron IPC
     // This handles nested objects (like JSON columns), Geometry types, and BigInts
@@ -366,13 +369,23 @@ export class MySQLDriver implements IDatabaseDriver {
     
     const constraintName = fk.name ? `CONSTRAINT \`${fk.name.replace(/`/g, '``')}\`` : '';
     
+    const ALLOWED_FK_RULES = ['CASCADE', 'NO ACTION', 'RESTRICT', 'SET NULL', 'SET DEFAULT'];
+    const updateRule = (fk.updateRule || '').toUpperCase();
+    const deleteRule = (fk.deleteRule || '').toUpperCase();
+    if (fk.updateRule && !ALLOWED_FK_RULES.includes(updateRule)) {
+      throw new Error(`Invalid ON UPDATE rule: ${fk.updateRule}`);
+    }
+    if (fk.deleteRule && !ALLOWED_FK_RULES.includes(deleteRule)) {
+      throw new Error(`Invalid ON DELETE rule: ${fk.deleteRule}`);
+    }
+
     let sql = `ALTER TABLE ${fullTableName} ADD ${constraintName} FOREIGN KEY (${columns}) REFERENCES ${refTable} (${refColumns})`;
-    
+
     if (fk.updateRule) {
-      sql += ` ON UPDATE ${fk.updateRule}`;
+      sql += ` ON UPDATE ${updateRule}`;
     }
     if (fk.deleteRule) {
-      sql += ` ON DELETE ${fk.deleteRule}`;
+      sql += ` ON DELETE ${deleteRule}`;
     }
     
     await this.connection.execute(sql);
@@ -437,7 +450,12 @@ export class MySQLDriver implements IDatabaseDriver {
     }
 
     if (column.extra) {
-      sql += ` ${column.extra}`;
+      const ALLOWED_EXTRAS = ['AUTO_INCREMENT', 'ON UPDATE CURRENT_TIMESTAMP', 'DEFAULT_GENERATED', 'DEFAULT_GENERATED ON UPDATE CURRENT_TIMESTAMP'];
+      const extraUpper = column.extra.toUpperCase().trim();
+      if (!ALLOWED_EXTRAS.includes(extraUpper)) {
+        throw new Error(`Invalid column extra value: ${column.extra}`);
+      }
+      sql += ` ${extraUpper}`;
     }
 
     if (column.comment) {
@@ -492,7 +510,12 @@ export class MySQLDriver implements IDatabaseDriver {
     }
 
     if (newColumn.extra) {
-      sql += ` ${newColumn.extra}`;
+      const ALLOWED_EXTRAS = ['AUTO_INCREMENT', 'ON UPDATE CURRENT_TIMESTAMP', 'DEFAULT_GENERATED', 'DEFAULT_GENERATED ON UPDATE CURRENT_TIMESTAMP'];
+      const extraUpper = newColumn.extra.toUpperCase().trim();
+      if (!ALLOWED_EXTRAS.includes(extraUpper)) {
+        throw new Error(`Invalid column extra value: ${newColumn.extra}`);
+      }
+      sql += ` ${extraUpper}`;
     }
 
     if (newColumn.comment) {
