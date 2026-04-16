@@ -1,0 +1,14 @@
+appId: com.arumu.app
+productName: Arumu
+directories:
+  output: release
+  buildResources: resources
+files:
+  - out/**
+  - '!**/*.map'
+win:
+  target: nsis
+mac:
+  target: dmg
+linux:
+  target: AppImage

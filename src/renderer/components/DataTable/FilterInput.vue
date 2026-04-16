@@ -4,7 +4,7 @@ import CodeMirror from 'vue-codemirror6';
 import { sql, MySQL, PostgreSQL, SQLite, SQLDialect } from '@codemirror/lang-sql';
 import { oneDark } from '@codemirror/theme-one-dark';
 import { keymap, EditorView } from '@codemirror/view';
-import { autocompletion, completionKeymap } from '@codemirror/autocomplete';
+import { autocompletion, completionKeymap, acceptCompletion } from '@codemirror/autocomplete';
 import { EditorState } from '@codemirror/state';
 import { Search } from 'lucide-vue-next';
 import { $t } from '../../i18n';
@@ -67,6 +67,7 @@ const extensions = computed(() => {
       "&": {
         fontSize: "12px",
         height: "30px",
+        fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
       },
       ".cm-scroller": {
         overflow: "hidden",
@@ -91,6 +92,7 @@ const extensions = computed(() => {
       }
     }),
     keymap.of([
+      { key: "Tab", run: acceptCompletion },
       ...completionKeymap,
       {
         key: "Enter",

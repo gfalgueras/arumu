@@ -1,12 +1,12 @@
 import { app, BrowserWindow, ipcMain, Menu, safeStorage } from 'electron';
 import path from 'path';
 import fs from 'fs';
-import { MySQLDriver } from '../backend/src/drivers/mysql.driver';
+import { MySQLDriver } from './drivers/mysql.driver';
 import type { ServerInfo, StoredServer, DatabaseInfo } from '../shared/types/database';
 
 // Define the connections file path in the user's home directory
 const USER_HOME = process.env.HOME || process.env.USERPROFILE || '';
-const CONFIG_DIR = path.join(USER_HOME, '.sqlmanager');
+const CONFIG_DIR = path.join(USER_HOME, '.arumu');
 const CONNECTIONS_FILE = path.join(CONFIG_DIR, 'connections.json');
 const APP_STATE_FILE = path.join(CONFIG_DIR, 'state.json');
 const APP_SETTINGS_FILE = path.join(CONFIG_DIR, 'settings.json');
@@ -109,22 +109,17 @@ function createWindow() {
     width: 1280,
     height: 800,
     webPreferences: {
-      preload: path.join(__dirname, 'preload.js'),
+      preload: path.join(__dirname, '../preload/index.js'),
       contextIsolation: true,
       nodeIntegration: false,
     },
   });
 
-  if (process.env.VITE_DEV_SERVER_URL) {
+  if (process.env.ELECTRON_RENDERER_URL) {
     mainWindow.webContents.openDevTools();
-  }
-
-  // En desarrollo, cargamos desde el servidor de Vite
-  if (process.env.VITE_DEV_SERVER_URL) {
-    mainWindow.loadURL(process.env.VITE_DEV_SERVER_URL);
+    mainWindow.loadURL(process.env.ELECTRON_RENDERER_URL);
   } else {
-    // En producción, cargamos el archivo index.html compilado
-    mainWindow.loadFile(path.join(__dirname, '../frontend/dist/index.html'));
+    mainWindow.loadFile(path.join(__dirname, '../renderer/index.html'));
   }
 }
 

@@ -1,18 +1,17 @@
 {
-  "name": "sqlmanager",
+  "name": "arumu",
   "version": "1.0.0",
   "description": "",
-  "main": "dist-electron/electron/main.js",
+  "main": "out/main/index.js",
   "type": "module",
   "scripts": {
-    "dev:frontend": "vite frontend",
-    "dev:electron": "wait-on http://localhost:5173 && tsc -p electron/tsconfig.json && node -e \"fs.writeFileSync('dist-electron/package.json', '{\\\"type\\\": \\\"commonjs\\\"}')\" && cross-env VITE_DEV_SERVER_URL=http://localhost:5173 electron .",
-    "dev": "concurrently \"pnpm run dev:frontend\" \"pnpm run dev:electron\"",
-    "build:electron": "tsc -p electron/tsconfig.json && node -e \"fs.writeFileSync('dist-electron/package.json', '{\\\"type\\\": \\\"commonjs\\\"}')\"",
-    "build:frontend": "vue-tsc -p frontend/tsconfig.app.json && vite build frontend",
-    "build": "pnpm run build:frontend && pnpm run build:electron",
-    "lint": "eslint frontend",
-    "preview": "vite preview frontend"
+    "dev": "electron-vite dev",
+    "build": "electron-vite build",
+    "dist": "electron-vite build && electron-builder",
+    "typecheck": "vue-tsc --noEmit",
+    "test": "vitest",
+    "test:coverage": "vitest --coverage",
+    "lint": "eslint src/renderer"
   },
   "keywords": [],
   "author": "",
@@ -21,20 +20,16 @@
     "@eslint/js": "^9.39.1",
     "@types/node": "^25.1.0",
     "@vitejs/plugin-vue": "^6.0.3",
-    "autoprefixer": "^10.4.23",
-    "concurrently": "^8.2.2",
-    "cross-env": "^10.1.0",
     "electron": "^40.2.1",
+    "electron-builder": "^26.8.1",
+    "electron-vite": "^3.1.0",
     "eslint": "^9.39.1",
     "globals": "^16.5.0",
-    "postcss": "^8.5.6",
-    "tailwindcss": "^4.1.18",
-    "ts-node": "^10.9.2",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.46.4",
-    "vite": "npm:rolldown-vite@7.2.5",
-    "vue-tsc": "^3.2.4",
-    "wait-on": "^9.0.3"
+    "vite": "^6.4.2",
+    "vitest": "^3.2.4",
+    "vue-tsc": "^3.2.4"
   },
   "dependencies": {
     "@codemirror/autocomplete": "^6.20.0",
@@ -46,15 +41,15 @@
     "codemirror": "^6.0.2",
     "lucide-vue-next": "^0.563.0",
     "mysql2": "^3.16.3",
+    "tailwindcss": "^4.1.18",
     "vue": "^3.5.27",
     "vue-codemirror6": "^1.4.1"
-  },
-  "overrides": {
-    "vite": "npm:rolldown-vite@7.2.5"
   },
   "pnpm": {
     "onlyBuiltDependencies": [
       "electron",
+      "electron-winstaller",
+      "esbuild",
       "vue-demi"
     ]
   }
