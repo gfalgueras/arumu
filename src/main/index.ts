@@ -4,6 +4,19 @@ import fs from 'fs';
 import { MySQLDriver } from './drivers/mysql.driver';
 import type { ServerInfo, StoredServer, DatabaseInfo } from '../shared/types/database';
 
+const DB_ERROR_MESSAGES: Record<string, string> = {
+  ECONNREFUSED: 'Connection refused. Check host and port.',
+  ETIMEDOUT: 'Connection timed out. Check host and firewall.',
+  ENOTFOUND: 'Host not found. Check the hostname.',
+  ECONNRESET: 'Connection reset by server.',
+  ER_ACCESS_DENIED_ERROR: 'Access denied. Check username and password.',
+  ER_DBACCESS_DENIED_ERROR: 'Access denied to database.',
+  ER_BAD_DB_ERROR: 'Database does not exist.',
+  ER_NOT_SUPPORTED_AUTH_MODE: 'Authentication method not supported. Try a different auth plugin.',
+  PROTOCOL_CONNECTION_LOST: 'Connection lost.',
+  ER_CON_COUNT_ERROR: 'Too many connections on the server.',
+};
+
 // Define the connections file path in the user's home directory
 const USER_HOME = process.env.HOME || process.env.USERPROFILE || '';
 const CONFIG_DIR = path.join(USER_HOME, '.arumu');
@@ -245,7 +258,7 @@ app.whenReady().then(() => {
       if (!storedServer || !storedServer.config) {
         throw new Error('Server configuration missing or invalid');
       }
-      
+
       const alreadyActive = activeServers.find(s => s.name === storedServer.name);
       if (!alreadyActive) {
         await driver.connect(storedServer.config);
@@ -253,13 +266,20 @@ app.whenReady().then(() => {
 
       const newActiveServer: ServerInfo = {
         ...storedServer,
-        databases: alreadyActive ? alreadyActive.databases : [] 
+        databases: alreadyActive ? alreadyActive.databases : []
       };
-      
+
       if (!alreadyActive) {
         activeServers.push(newActiveServer);
       }
       return newActiveServer;
+    } catch (err: any) {
+      console.error('[api:connect] Error:', err);
+      const friendly = err?.code ? DB_ERROR_MESSAGES[err.code] : null;
+      const msg = friendly
+        ? `${friendly} (${err.code})`
+        : ([err?.code, err?.sqlMessage || (err?.message !== err?.code ? err?.message : null)].filter(Boolean).join(': ') || String(err) || 'Connection failed');
+      throw new Error(msg);
     } finally {
       await driver.disconnect();
     }

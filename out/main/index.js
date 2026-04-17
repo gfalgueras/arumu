@@ -462,8 +462,20 @@ class MySQLDriver {
     ];
   }
 }
+const DB_ERROR_MESSAGES = {
+  ECONNREFUSED: "Connection refused. Check host and port.",
+  ETIMEDOUT: "Connection timed out. Check host and firewall.",
+  ENOTFOUND: "Host not found. Check the hostname.",
+  ECONNRESET: "Connection reset by server.",
+  ER_ACCESS_DENIED_ERROR: "Access denied. Check username and password.",
+  ER_DBACCESS_DENIED_ERROR: "Access denied to database.",
+  ER_BAD_DB_ERROR: "Database does not exist.",
+  ER_NOT_SUPPORTED_AUTH_MODE: "Authentication method not supported. Try a different auth plugin.",
+  PROTOCOL_CONNECTION_LOST: "Connection lost.",
+  ER_CON_COUNT_ERROR: "Too many connections on the server."
+};
 const USER_HOME = process.env.HOME || process.env.USERPROFILE || "";
-const CONFIG_DIR = path.join(USER_HOME, ".sqlmanager");
+const CONFIG_DIR = path.join(USER_HOME, ".arumu");
 const CONNECTIONS_FILE = path.join(CONFIG_DIR, "connections.json");
 const APP_STATE_FILE = path.join(CONFIG_DIR, "state.json");
 const APP_SETTINGS_FILE = path.join(CONFIG_DIR, "settings.json");
@@ -679,6 +691,11 @@ app.whenReady().then(() => {
         activeServers.push(newActiveServer);
       }
       return newActiveServer;
+    } catch (err) {
+      console.error("[api:connect] Error:", err);
+      const friendly = err?.code ? DB_ERROR_MESSAGES[err.code] : null;
+      const msg = friendly ? `${friendly} (${err.code})` : [err?.code, err?.sqlMessage || (err?.message !== err?.code ? err?.message : null)].filter(Boolean).join(": ") || String(err) || "Connection failed";
+      throw new Error(msg);
     } finally {
       await driver.disconnect();
     }
@@ -888,3 +905,4 @@ app.whenReady().then(() => {
 app.on("window-all-closed", () => {
   if (process.platform !== "darwin") app.quit();
 });
+//# sourceMappingURL=index.js.map

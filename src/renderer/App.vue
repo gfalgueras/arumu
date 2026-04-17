@@ -161,7 +161,9 @@ const handleConnect = async (storedServer: StoredServer, closeAndRefresh = true)
     }
   } catch (error: any) {
     console.error('Connection error:', error);
-    showError($t('conn_modal.error_connect'), error.message || 'Error desconocido');
+    const raw: string = error.message || 'Error desconocido';
+    const msg = raw.replace(/^Error invoking remote method '[^']+': (Error: )?/, '');
+    showError($t('conn_modal.error_connect'), msg);
   }
 };
 

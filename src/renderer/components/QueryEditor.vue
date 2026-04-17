@@ -107,11 +107,10 @@ const extensions = computed(() => {
         key: "F9",
         run: (view) => {
           const sel = view.state.selection.main;
-          if (!sel.empty) {
-            handleExecute(view.state.sliceDoc(sel.from, sel.to).trim(), false);
-          } else {
-            handleExecute(view.state.doc.toString().trim(), true);
-          }
+          const text = sel.empty
+            ? view.state.doc.toString().trim()
+            : view.state.sliceDoc(sel.from, sel.to).trim();
+          handleExecute(text, true);
           return true;
         }
       },
@@ -127,12 +126,17 @@ const getStatementAtCursor = (view: EditorView): string => {
   const text = view.state.doc.toString();
   const cursor = view.state.selection.main.head;
   let start = 0;
+  let lastStmt = '';
   for (let i = 0; i <= text.length; i++) {
     if (i === text.length || text[i] === ';') {
       if (cursor >= start && cursor <= i) {
+        const beforeCursor = text.slice(start, cursor);
+        if (beforeCursor.trim() === '' && lastStmt) return lastStmt;
         const stmt = text.slice(start, i).trim();
-        if (stmt) return stmt;
+        return stmt || lastStmt;
       }
+      const s = text.slice(start, i).trim();
+      if (s) lastStmt = s;
       start = i + 1;
     }
   }
@@ -181,7 +185,9 @@ const handleExecute = async (rawSql: string, split = true) => {
       const data = await api.executeSql(props.serverName, stmt, props.database || '');
       resultTabs.value.push({ id: i, sql: stmt, result: data, error: null, duration: Date.now() - t0 });
     } catch (err: any) {
-      resultTabs.value.push({ id: i, sql: stmt, result: null, error: err.message, duration: Date.now() - t0 });
+      const raw: string = err.message || String(err);
+      const msg = raw.replace(/^Error invoking remote method '[^']+': (Error: )?/, '');
+      resultTabs.value.push({ id: i, sql: stmt, result: null, error: msg, duration: Date.now() - t0 });
     }
   }
 
@@ -199,11 +205,10 @@ const handleExecuteFromButton = () => {
   const v = cmRef.value?.view;
   if (!v) { handleExecute(query.value, true); return; }
   const sel = v.state.selection.main;
-  if (!sel.empty) {
-    handleExecute(v.state.sliceDoc(sel.from, sel.to).trim(), false);
-  } else {
-    handleExecute(v.state.doc.toString().trim(), true);
-  }
+  const text = sel.empty
+    ? v.state.doc.toString().trim()
+    : v.state.sliceDoc(sel.from, sel.to).trim();
+  handleExecute(text, true);
 };
 
 const formatCellValue = (val: any) => {

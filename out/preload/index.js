@@ -47,3 +47,4 @@ electron.contextBridge.exposeInMainWorld("electronAPI", {
     return () => electron.ipcRenderer.removeListener(channel, subscription);
   }
 });
+//# sourceMappingURL=index.js.map
