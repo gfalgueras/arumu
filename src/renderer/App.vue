@@ -12,6 +12,7 @@ import QueryEditor from './components/QueryEditor.vue';
 import { showError } from './errorService';
 import { $t, setLocale } from './i18n';
 import { api } from './services/api';
+import { hotkeys, applyHotkeys, matchesHotkey } from './hotkeys';
 import type { ServerInfo, StoredServer, AppSettings } from '@shared/types/database';
 
 const servers = shallowRef<ServerInfo[]>([]);
@@ -242,6 +243,7 @@ const loadSettings = async () => {
     const settings: AppSettings = await api.getAppSettings();
     setLocale(settings.language || 'auto');
     applyTheme(settings.theme || 'system');
+    applyHotkeys(settings.hotkeys || {});
   } catch (err) {
     console.error('Failed to load settings:', err);
     setLocale('auto');
@@ -261,8 +263,11 @@ const applyTheme = (theme: AppSettings['theme']) => {
 let themeChangeHandler: (() => void) | null = null;
 
 const handleGlobalKeydown = (e: KeyboardEvent) => {
-  if (e.ctrlKey && e.key === 'W') {
+  if (matchesHotkey(e, hotkeys.closeTab)) {
     removeActiveQueryTab();
+  } else if (matchesHotkey(e, hotkeys.newTab)) {
+    e.preventDefault();
+    addQueryTab();
   }
 };
 

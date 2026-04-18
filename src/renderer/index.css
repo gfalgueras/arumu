@@ -47,17 +47,30 @@
     background: transparent;
   }
 
-  ::-webkit-scrollbar-thumb {
+  html.dark ::-webkit-scrollbar-thumb {
     @apply bg-slate-700 rounded-full;
   }
 
-  ::-webkit-scrollbar-thumb:hover {
+  html.dark ::-webkit-scrollbar-thumb:hover {
     @apply bg-slate-600;
   }
 
+  html:not(.dark) ::-webkit-scrollbar-thumb {
+    @apply bg-slate-300 rounded-full;
+  }
+
+  html:not(.dark) ::-webkit-scrollbar-thumb:hover {
+    @apply bg-slate-400;
+  }
+
   /* Firefox */
-  * {
+  html.dark * {
     scrollbar-width: thin;
     scrollbar-color: theme('colors.slate.700') transparent;
+  }
+
+  html:not(.dark) * {
+    scrollbar-width: thin;
+    scrollbar-color: theme('colors.slate.300') transparent;
   }
 }

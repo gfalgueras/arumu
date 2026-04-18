@@ -8,6 +8,7 @@ import { keymap, EditorView } from '@codemirror/view';
 import { autocompletion, completionKeymap, acceptCompletion } from '@codemirror/autocomplete';
 import { $t } from '../i18n';
 import { api } from '../services/api';
+import { hotkeys, toCodeMirrorKey } from '../hotkeys';
 
 const props = defineProps<{
   serverName: string;
@@ -104,7 +105,7 @@ const extensions = computed(() => {
       { key: "Tab", run: acceptCompletion },
       ...completionKeymap,
       {
-        key: "F9",
+        key: toCodeMirrorKey(hotkeys.executeAll),
         run: (view) => {
           const sel = view.state.selection.main;
           const text = sel.empty
@@ -115,7 +116,7 @@ const extensions = computed(() => {
         }
       },
       {
-        key: "Shift-F9",
+        key: toCodeMirrorKey(hotkeys.executeStatement),
         run: (view) => { handleExecute(getStatementAtCursor(view), false); return true; }
       }
     ])

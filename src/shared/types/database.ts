@@ -101,6 +101,12 @@ export interface TypeGroup {
 export interface AppSettings {
   language?: string;
   theme?: 'system' | 'light' | 'dark';
+  hotkeys?: {
+    closeTab?: string;
+    executeAll?: string;
+    executeStatement?: string;
+    newTab?: string;
+  };
 }
 
 export interface IDatabaseDriver {
