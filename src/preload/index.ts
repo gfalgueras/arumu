@@ -1,6 +1,7 @@
 import { contextBridge, ipcRenderer } from 'electron';
 
 const ALLOWED_INVOKE_CHANNELS = new Set([
+  'log:error',
   'api:getServers',
   'api:getDatabases',
   'api:getTables',

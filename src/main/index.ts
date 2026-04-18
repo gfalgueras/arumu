@@ -23,12 +23,37 @@ const CONFIG_DIR = path.join(USER_HOME, '.arumu');
 const CONNECTIONS_FILE = path.join(CONFIG_DIR, 'connections.json');
 const APP_STATE_FILE = path.join(CONFIG_DIR, 'state.json');
 const APP_SETTINGS_FILE = path.join(CONFIG_DIR, 'settings.json');
+const ERROR_LOG_FILE = path.join(CONFIG_DIR, 'error.log');
 const OLD_CONNECTIONS_FILE = path.join(process.cwd(), 'connections.json');
 
 // Ensure directory exists
 if (!fs.existsSync(CONFIG_DIR)) {
   fs.mkdirSync(CONFIG_DIR, { recursive: true });
 }
+
+const writeErrorLog = (source: string, message: string, stack?: string) => {
+  const ts = new Date().toISOString();
+  const entry = `[${ts}] [${source}] ${message}${stack ? '\n' + stack : ''}\n`;
+  try {
+    fs.appendFileSync(ERROR_LOG_FILE, entry, 'utf8');
+  } catch { /* ignore log write failures */ }
+};
+
+const originalConsoleError = console.error.bind(console);
+console.error = (...args: any[]) => {
+  originalConsoleError(...args);
+  writeErrorLog('main', args.map(a => a instanceof Error ? a.message : String(a)).join(' '),
+    args.find(a => a instanceof Error)?.stack);
+};
+
+process.on('uncaughtException', (err) => {
+  writeErrorLog('uncaughtException', err.message, err.stack);
+});
+
+process.on('unhandledRejection', (reason) => {
+  const err = reason instanceof Error ? reason : new Error(String(reason));
+  writeErrorLog('unhandledRejection', err.message, err.stack);
+});
 
 // Migrate old connections if they exist
 if (fs.existsSync(OLD_CONNECTIONS_FILE) && !fs.existsSync(CONNECTIONS_FILE)) {
@@ -320,6 +345,10 @@ app.whenReady().then(() => {
   ipcMain.handle('api:saveAppState', (_event, state: any) => saveAppState(state));
   ipcMain.handle('api:getAppSettings', () => getAppSettings());
   ipcMain.handle('api:saveAppSettings', (_event, settings: any) => saveAppSettings(settings));
+
+  ipcMain.handle('log:error', (_event, message: string, stack?: string) => {
+    writeErrorLog('renderer', message, stack);
+  });
 
   ipcMain.handle('api:getTableData', async (_event, serverName: string, dbName: string, tableName: string, options: any) => {
     const server = activeServers.find(s => s.name === serverName);

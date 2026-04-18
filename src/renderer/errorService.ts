@@ -12,7 +12,7 @@ export const errorState = reactive<ErrorState>({
   message: '',
 });
 
-export function showError(title: string, message: string) {
+export function showError(title: string, message: string = '') {
   errorState.title = title;
   errorState.message = message;
   errorState.show = true;

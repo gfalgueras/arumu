@@ -24,7 +24,7 @@ import { errorState, hideError } from '../errorService';
           </button>
         </div>
 
-        <div class="p-6">
+        <div v-if="errorState.message" class="p-6">
           <div class="bg-slate-50 dark:bg-slate-950 border border-red-100 dark:border-slate-800 rounded-lg p-4 font-mono text-sm text-red-800 dark:text-red-200/80 break-words whitespace-pre-wrap max-h-[400px] overflow-y-auto scrollbar-thin scrollbar-thumb-red-200 dark:scrollbar-thumb-slate-800 scrollbar-track-transparent">
             {{ errorState.message }}
           </div>

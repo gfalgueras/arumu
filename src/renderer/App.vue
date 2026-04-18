@@ -70,7 +70,7 @@ const handleExpandServer = async (serverName: string) => {
     );
   } catch (error: any) {
     console.error('Error fetching databases:', error);
-    showError($t('sidebar.error_databases'), error.message);
+    showError($t('sidebar.error_databases'));
   } finally {
     loadingServers.value = loadingServers.value.filter(id => id !== serverName);
   }
@@ -99,7 +99,7 @@ const handleExpandDatabase = async (serverName: string, dbName: string) => {
     });
   } catch (error: any) {
     console.error('Error fetching tables:', error);
-    showError($t('sidebar.error_tables'), error.message);
+    showError($t('sidebar.error_tables'));
   } finally {
     loadingDatabases.value = loadingDatabases.value.filter(k => k !== key);
   }
@@ -130,16 +130,16 @@ const handleExpandTable = async (serverName: string, dbName: string, tableName: 
     });
   } catch (error: any) {
     console.error('Error fetching columns:', error);
-    showError($t('sidebar.error_columns'), error.message);
+    showError($t('sidebar.error_columns'));
   } finally {
     loadingTables.value = loadingTables.value.filter(k => k !== key);
   }
 };
 
-const handleConnect = async (storedServer: StoredServer, closeAndRefresh = true) => {
+const handleConnect = async (storedServer: StoredServer, closeAndRefresh = true): Promise<boolean> => {
   try {
     await api.connect(storedServer);
-    
+
     if (closeAndRefresh) {
       await fetchServers();
       isModalOpen.value = false;
@@ -148,7 +148,7 @@ const handleConnect = async (storedServer: StoredServer, closeAndRefresh = true)
       selectedServerName.value = storedServer.name;
       selectedDatabase.value = null;
       selectedTable.value = null;
-      
+
       // Seleccionar la primera pestaña de query disponible
       if (queryTabs.value.length > 0) {
         activeTab.value = queryTabs.value[0].id;
@@ -159,11 +159,13 @@ const handleConnect = async (storedServer: StoredServer, closeAndRefresh = true)
       }
       void handleExpandServer(storedServer.name);
     }
+    return true;
   } catch (error: any) {
     console.error('Connection error:', error);
     const raw: string = error.message || 'Error desconocido';
     const msg = raw.replace(/^Error invoking remote method '[^']+': (Error: )?/, '');
     showError($t('conn_modal.error_connect'), msg);
+    return false;
   }
 };
 
@@ -174,11 +176,13 @@ const initApp = async () => {
   const state = await api.getAppState();
 
   if (state) {
+    const connectedServerNames = new Set<string>();
     if (state.activeServerNames && state.activeServerNames.length > 0) {
       for (const serverName of state.activeServerNames) {
         const serverToConnect = storedServers.find(s => s.name === serverName);
         if (serverToConnect) {
-          await handleConnect(serverToConnect, false);
+          const ok = await handleConnect(serverToConnect, false);
+          if (ok) connectedServerNames.add(serverName);
         }
       }
     }
@@ -189,8 +193,9 @@ const initApp = async () => {
     dbFilter.value = state.dbFilter || '';
     tableFilter.value = state.tableFilter || '';
     selectedServerName.value = state.selectedServerName;
-    selectedDatabase.value = state.selectedDatabase;
-    selectedTable.value = state.selectedTable;
+    const serverConnected = !state.selectedServerName || connectedServerNames.has(state.selectedServerName);
+    selectedDatabase.value = serverConnected ? state.selectedDatabase : null;
+    selectedTable.value = serverConnected ? state.selectedTable : null;
     if (state.queryTabs && state.queryTabs.length > 0) {
       queryTabs.value = state.queryTabs;
     }
@@ -344,7 +349,7 @@ const handleCloseConnection = async () => {
     selectedTable.value = null;
   } catch (error: any) {
     console.error('Error closing connection:', error);
-    showError($t('topbar.error_close_conn'), error.message);
+    showError($t('topbar.error_close_conn'));
   }
 };
 
@@ -360,7 +365,7 @@ const handleConfigServer = async (serverName: string) => {
     }
   } catch (error: any) {
     console.error('Error fetching server config:', error);
-    showError($t('sidebar.error_get_config'), error.message);
+    showError($t('sidebar.error_get_config'));
   }
 };
 
