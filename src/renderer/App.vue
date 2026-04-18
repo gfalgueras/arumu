@@ -199,11 +199,11 @@ const initApp = async () => {
     if (state.queryTabs && state.queryTabs.length > 0) {
       queryTabs.value = state.queryTabs;
     }
-    activeTab.value = state.activeTab || queryTabs.value[0].id;
-    
+    activeTab.value = state.activeTab || (queryTabs.value.length > 0 ? queryTabs.value[0].id : '');
+
     // Validar que la pestaña activa existe
     if (activeTab.value !== 'data' && activeTab.value !== 'schema' && !queryTabs.value.find(t => t.id === activeTab.value)) {
-      activeTab.value = queryTabs.value[0].id;
+      activeTab.value = queryTabs.value.length > 0 ? queryTabs.value[0].id : '';
     }
     expandedServerNames.value = state.expandedServerNames || [];
     expandedDatabaseIds.value = state.expandedDatabaseIds || [];
@@ -260,9 +260,16 @@ const applyTheme = (theme: AppSettings['theme']) => {
 
 let themeChangeHandler: (() => void) | null = null;
 
+const handleGlobalKeydown = (e: KeyboardEvent) => {
+  if (e.ctrlKey && e.key === 'W') {
+    removeActiveQueryTab();
+  }
+};
+
 onMounted(() => {
   initApp();
   document.documentElement.style.setProperty('--sidebar-width', `${sidebarWidth.value}px`);
+  window.addEventListener('keydown', handleGlobalKeydown);
 
   const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
   themeChangeHandler = () => {
@@ -276,6 +283,7 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
+  window.removeEventListener('keydown', handleGlobalKeydown);
   if (themeChangeHandler) {
     window.matchMedia('(prefers-color-scheme: dark)').removeEventListener('change', themeChangeHandler);
     themeChangeHandler = null;
@@ -409,11 +417,20 @@ const saveTabName = () => {
 };
 
 const removeQueryTab = (id: string) => {
-  if (queryTabs.value.length <= 1) return;
   const index = queryTabs.value.findIndex(t => t.id === id);
   queryTabs.value = queryTabs.value.filter(t => t.id !== id);
   if (activeTab.value === id) {
-    activeTab.value = queryTabs.value[Math.max(0, index - 1)].id;
+    if (queryTabs.value.length > 0) {
+      activeTab.value = queryTabs.value[Math.max(0, index - 1)].id;
+    } else {
+      activeTab.value = selectedTable.value ? 'data' : '';
+    }
+  }
+};
+
+const removeActiveQueryTab = () => {
+  if (activeTab.value !== 'data' && activeTab.value !== 'schema' && activeTab.value) {
+    removeQueryTab(activeTab.value);
   }
 };
 
@@ -525,8 +542,7 @@ const selectTable = (serverName: string, db: string, table: string) => {
                 v-focus
                 class="px-4 py-2 text-sm font-medium bg-slate-100 dark:bg-slate-800 text-blue-500 outline-none w-32"
               />
-              <button 
-                v-if="queryTabs.length > 1"
+              <button
                 @click.stop="removeQueryTab(tab.id)"
                 class="mr-1.5 p-1 text-slate-400 dark:text-slate-500 hover:text-red-600 dark:hover:text-red-400 hover:bg-slate-200 dark:hover:bg-slate-700/50 rounded transition-all opacity-0 group-hover:opacity-100"
                 :title="$t('query_editor.close_tab_title')"
@@ -566,8 +582,8 @@ const selectTable = (serverName: string, db: string, table: string) => {
               />
             </KeepAlive>
             <KeepAlive>
-              <QueryEditor 
-                v-if="activeTab !== 'data' && activeTab !== 'schema'"
+              <QueryEditor
+                v-if="activeTab !== 'data' && activeTab !== 'schema' && queryTabs.find(t => t.id === activeTab)"
                 :key="activeTab"
                 :serverName="selectedServerName!"
                 :serverType="selectedServerType"
