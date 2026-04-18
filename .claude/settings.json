@@ -1,7 +1,9 @@
 {
   "permissions": {
     "allow": [
-      "Bash(npx electron-vite *)"
+      "Bash(npx electron-vite *)",
+      "Bash(npm install *)",
+      "Read(//c/Users/gfalgueras/AppData/Local/npm-cache/_logs/**)"
     ]
   }
 }

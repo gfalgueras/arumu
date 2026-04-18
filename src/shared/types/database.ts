@@ -109,6 +109,17 @@ export interface AppSettings {
   };
 }
 
+export interface QueryHistoryEntry {
+  id: string;
+  sql: string;
+  database: string | null;
+  serverName: string;
+  executedAt: string;
+  duration: number;
+  rowCount?: number;
+  error?: string;
+}
+
 export interface IDatabaseDriver {
   connect(config: ConnectionConfig): Promise<void>;
   disconnect(): Promise<void>;

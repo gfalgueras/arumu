@@ -8,7 +8,8 @@
       "Bash(grep -rh '$t\\(' /c/Users/gfalgueras/Desktop/arumu/src '--include=*.vue' '--include=*.ts')",
       "Bash(grep -oE '$t\\\\\\('\\\\''[^'\\\\'']+'\\\\''\\\\\\)')",
       "Bash(grep -rh '\\\\$t\\(' /c/Users/gfalgueras/Desktop/arumu/src '--include=*.vue' '--include=*.ts')",
-      "Bash(xargs grep *)"
+      "Bash(xargs grep *)",
+      "Bash(xargs wc *)"
     ]
   }
 }

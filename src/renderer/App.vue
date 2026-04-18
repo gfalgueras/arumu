@@ -9,6 +9,8 @@ import ErrorModal from './components/ErrorModal.vue';
 import DataTable from './components/DataTable.vue';
 import TableSchema from './components/TableSchema.vue';
 import QueryEditor from './components/QueryEditor.vue';
+import ProcessList from './components/ProcessList.vue';
+import ServerVariables from './components/ServerVariables.vue';
 import { showError } from './errorService';
 import { $t, setLocale } from './i18n';
 import { api } from './services/api';
@@ -203,7 +205,7 @@ const initApp = async () => {
     activeTab.value = state.activeTab || (queryTabs.value.length > 0 ? queryTabs.value[0].id : '');
 
     // Validar que la pestaña activa existe
-    if (activeTab.value !== 'data' && activeTab.value !== 'schema' && !queryTabs.value.find(t => t.id === activeTab.value)) {
+    if (activeTab.value !== 'data' && activeTab.value !== 'schema' && activeTab.value !== 'processes' && activeTab.value !== 'variables' && !queryTabs.value.find(t => t.id === activeTab.value)) {
       activeTab.value = queryTabs.value.length > 0 ? queryTabs.value[0].id : '';
     }
     expandedServerNames.value = state.expandedServerNames || [];
@@ -385,7 +387,7 @@ const handleConfigServer = async (serverName: string) => {
 const lastActiveQueryTabId = ref<string>('1');
 
 watch(activeTab, (newVal) => {
-  if (newVal !== 'data' && newVal !== 'schema') {
+  if (newVal !== 'data' && newVal !== 'schema' && newVal !== 'processes' && newVal !== 'variables') {
     lastActiveQueryTabId.value = newVal;
   }
 });
@@ -434,7 +436,7 @@ const removeQueryTab = (id: string) => {
 };
 
 const removeActiveQueryTab = () => {
-  if (activeTab.value !== 'data' && activeTab.value !== 'schema' && activeTab.value) {
+  if (activeTab.value !== 'data' && activeTab.value !== 'schema' && activeTab.value !== 'processes' && activeTab.value !== 'variables' && activeTab.value) {
     removeQueryTab(activeTab.value);
   }
 };
@@ -506,7 +508,21 @@ const selectTable = (serverName: string, db: string, table: string) => {
         <div v-if="selectedServerName" class="w-full h-full flex flex-col min-h-0 min-w-0">
           <!-- Tabs Header -->
           <div class="flex border-b border-slate-200 dark:border-slate-800 mb-4 flex-shrink-0 items-center overflow-x-auto scrollbar-none">
-            <button 
+            <button
+              @click="activeTab = 'variables'"
+              class="px-4 py-2 text-sm font-medium border-b-2 whitespace-nowrap transition-colors"
+              :class="activeTab === 'variables' ? 'border-blue-500 text-blue-500 bg-blue-500/5' : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/50'"
+            >
+              {{ $t('variables.title') }}
+            </button>
+            <button
+              @click="activeTab = 'processes'"
+              class="px-4 py-2 text-sm font-medium border-b-2 whitespace-nowrap transition-colors"
+              :class="activeTab === 'processes' ? 'border-blue-500 text-blue-500 bg-blue-500/5' : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/50'"
+            >
+              {{ $t('process_list.title') }}
+            </button>
+            <button
               v-if="selectedTable"
               @click="activeTab = 'schema'"
               class="px-4 py-2 text-sm font-medium border-b-2 whitespace-nowrap transition-colors"
@@ -566,6 +582,14 @@ const selectTable = (serverName: string, db: string, table: string) => {
 
           <!-- Tab Content -->
           <div class="flex-1 min-h-0 flex flex-col min-w-0">
+            <ServerVariables
+              v-if="activeTab === 'variables'"
+              :serverName="selectedServerName!"
+            />
+            <ProcessList
+              v-if="activeTab === 'processes'"
+              :serverName="selectedServerName!"
+            />
             <KeepAlive>
               <TableSchema 
                 v-if="activeTab === 'schema' && selectedTable && selectedServerName && selectedDatabase"

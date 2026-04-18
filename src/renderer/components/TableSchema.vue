@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, watch, shallowRef, computed, onUnmounted } from 'vue';
-import { Loader2, Key, List, Link, Columns, Copy, Check, Plus, X, GripHorizontal, Trash2, AlertCircle, Save, ArrowUp, ArrowDown } from 'lucide-vue-next';
+import { Loader2, Key, List, Link, Columns, Copy, Check, Plus, X, GripHorizontal, Trash2, AlertCircle, Save, ArrowUp, ArrowDown, Wrench } from 'lucide-vue-next';
 import type { ColumnInfo, TableIndex, ForeignKey, TypeGroup } from '@shared/types/database';
 import MultiSelect from './MultiSelect.vue';
 import CodeModal from './CodeModal.vue';
@@ -29,7 +29,9 @@ const originalFKs = shallowRef<ForeignKey[]>([]);
 const createStatement = ref<string | null>(null);
 const loading = ref(false);
 const error = ref<string | null>(null);
-const bottomTab = ref<'indexes' | 'fks'>('indexes');
+const bottomTab = ref<'indexes' | 'fks' | 'maintenance'>('indexes');
+const maintenanceRunning = ref<string | null>(null);
+const maintenanceResults = ref<{ op: string; result: any[] } | null>(null);
 const copied = ref(false);
 const copiedAlter = ref(false);
 
@@ -230,6 +232,20 @@ const fetchSchemaData = async () => {
     showError($t('table_schema.error_load_structure'), err.message);
   } finally {
     loading.value = false;
+  }
+};
+
+const runMaintenance = async (op: string) => {
+  maintenanceRunning.value = op;
+  maintenanceResults.value = null;
+  try {
+    const result = await api.tableMaintenanceOp(props.serverName, props.database, props.table, op);
+    maintenanceResults.value = { op, result: Array.isArray(result) ? result : [result] };
+  } catch (err: any) {
+    const msg = err.message?.replace(/^Error invoking remote method '[^']+': (Error: )?/, '') || String(err);
+    showError($t('maintenance.error'), msg);
+  } finally {
+    maintenanceRunning.value = null;
   }
 };
 
@@ -1069,13 +1085,21 @@ const supportsUnsigned = (type: string) => {
               <List :size="14" />
               {{ $t('table_schema.indexes') }}
             </button>
-            <button 
+            <button
               @click="bottomTab = 'fks'"
               class="px-4 py-2 text-sm font-medium border-b-2 transition-colors flex items-center gap-2"
               :class="bottomTab === 'fks' ? 'border-blue-500 text-blue-500 bg-blue-500/5' : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/50'"
             >
               <Link :size="14" />
               {{ $t('table_schema.fks') }}
+            </button>
+            <button
+              @click="bottomTab = 'maintenance'"
+              class="px-4 py-2 text-sm font-medium border-b-2 transition-colors flex items-center gap-2"
+              :class="bottomTab === 'maintenance' ? 'border-blue-500 text-blue-500 bg-blue-500/5' : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/50'"
+            >
+              <Wrench :size="14" />
+              {{ $t('maintenance.title') }}
             </button>
           </div>
           <button 
@@ -1443,6 +1467,47 @@ const supportsUnsigned = (type: string) => {
                 </tr>
               </tbody>
             </table>
+          </div>
+          <!-- Maintenance Panel -->
+          <div v-if="bottomTab === 'maintenance'" class="p-4 space-y-4">
+            <div class="grid grid-cols-2 gap-3">
+              <button
+                v-for="op in ['ANALYZE', 'OPTIMIZE', 'CHECK', 'REPAIR']"
+                :key="op"
+                @click="runMaintenance(op)"
+                :disabled="maintenanceRunning !== null"
+                class="flex flex-col items-start gap-1 p-3 rounded-lg border transition-colors text-left disabled:opacity-40"
+                :class="maintenanceRunning === op
+                  ? 'border-blue-500 bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400'
+                  : 'border-slate-200 dark:border-slate-700 hover:border-blue-400 hover:bg-blue-50/50 dark:hover:bg-blue-500/5 text-slate-700 dark:text-slate-300'"
+              >
+                <div class="flex items-center gap-2 text-sm font-medium">
+                  <Loader2 v-if="maintenanceRunning === op" :size="14" class="animate-spin" />
+                  <Wrench v-else :size="14" />
+                  {{ $t(`maintenance.${op.toLowerCase()}`) }}
+                </div>
+                <span class="text-xs text-slate-400 dark:text-slate-500">{{ $t(`maintenance.${op.toLowerCase()}_desc`) }}</span>
+              </button>
+            </div>
+            <div v-if="maintenanceResults" class="border border-slate-200 dark:border-slate-700 rounded-lg overflow-hidden">
+              <div class="px-3 py-2 bg-slate-50 dark:bg-slate-800/50 text-xs font-medium text-slate-600 dark:text-slate-400">
+                {{ $t('maintenance.result') }} — {{ maintenanceResults.op }}
+              </div>
+              <table class="w-full text-xs">
+                <thead>
+                  <tr class="bg-slate-100 dark:bg-slate-800">
+                    <th v-for="col in Object.keys(maintenanceResults.result[0] || {})" :key="col" class="px-3 py-1.5 text-left font-medium text-slate-600 dark:text-slate-300 border-b border-slate-200 dark:border-slate-700">{{ col }}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="(row, i) in maintenanceResults.result" :key="i" class="border-b border-slate-100 dark:border-slate-800/50 last:border-0">
+                    <td v-for="col in Object.keys(row)" :key="col" class="px-3 py-1.5 text-slate-600 dark:text-slate-300">
+                      <span :class="String(row[col]).toLowerCase() === 'ok' ? 'text-emerald-600 dark:text-emerald-400 font-medium' : ''">{{ row[col] }}</span>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
         </div>

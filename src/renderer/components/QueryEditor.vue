@@ -1,14 +1,17 @@
 <script setup lang="ts">
 import { ref, computed, watch, onUnmounted, shallowRef, type ComponentPublicInstance } from 'vue';
-import { Play, Loader2, AlertCircle, Database as DatabaseIcon, GripHorizontal } from 'lucide-vue-next';
+import { Play, Loader2, AlertCircle, Database as DatabaseIcon, GripHorizontal, History, Zap, Bookmark } from 'lucide-vue-next';
 import CodeMirror from 'vue-codemirror6';
 import { sql, MySQL, PostgreSQL, SQLite, SQLDialect } from '@codemirror/lang-sql';
 import { oneDark } from '@codemirror/theme-one-dark';
 import { keymap, EditorView } from '@codemirror/view';
 import { autocompletion, completionKeymap, acceptCompletion } from '@codemirror/autocomplete';
+import { search, searchKeymap } from '@codemirror/search';
 import { $t } from '../i18n';
 import { api } from '../services/api';
 import { hotkeys, toCodeMirrorKey } from '../hotkeys';
+import QueryHistoryPanel from './QueryHistoryPanel.vue';
+import QuerySnippetsPanel from './QuerySnippetsPanel.vue';
 
 const props = defineProps<{
   serverName: string;
@@ -34,6 +37,8 @@ const schema = shallowRef<Record<string, string[]>>({});
 const isResizing = ref(false);
 const editorContainerRef = ref<HTMLElement | null>(null);
 const cmRef = ref<ComponentPublicInstance & { view?: EditorView } | null>(null);
+const showHistory = ref(false);
+const showSnippets = ref(false);
 
 const startResizing = (e: MouseEvent) => {
   e.preventDefault();
@@ -101,7 +106,9 @@ const extensions = computed(() => {
       '.cm-content': { fontFamily: 'inherit' },
     }),
     autocompletion({ activateOnTyping: true }),
+    search({ top: false }),
     keymap.of([
+      ...searchKeymap,
       { key: "Tab", run: acceptCompletion },
       ...completionKeymap,
       {
@@ -175,6 +182,8 @@ const splitStatements = (rawSql: string): string[] => {
 const handleExecute = async (rawSql: string, split = true) => {
   if (!props.serverName || loading.value || !rawSql.trim()) return;
   loading.value = true;
+  showHistory.value = false;
+  showSnippets.value = false;
   resultTabs.value = [];
   activeResultTab.value = 0;
 
@@ -182,17 +191,52 @@ const handleExecute = async (rawSql: string, split = true) => {
   for (let i = 0; i < stmts.length; i++) {
     const stmt = stmts[i];
     const t0 = Date.now();
+    let result: any = null;
+    let errorMsg: string | null = null;
     try {
-      const data = await api.executeSql(props.serverName, stmt, props.database || '');
-      resultTabs.value.push({ id: i, sql: stmt, result: data, error: null, duration: Date.now() - t0 });
+      result = await api.executeSql(props.serverName, stmt, props.database || '');
+      resultTabs.value.push({ id: i, sql: stmt, result, error: null, duration: Date.now() - t0 });
     } catch (err: any) {
       const raw: string = err.message || String(err);
-      const msg = raw.replace(/^Error invoking remote method '[^']+': (Error: )?/, '');
-      resultTabs.value.push({ id: i, sql: stmt, result: null, error: msg, duration: Date.now() - t0 });
+      errorMsg = raw.replace(/^Error invoking remote method '[^']+': (Error: )?/, '');
+      resultTabs.value.push({ id: i, sql: stmt, result: null, error: errorMsg, duration: Date.now() - t0 });
     }
+    const rowCount = Array.isArray(result) ? result.length : result?.affectedRows;
+    api.addQueryHistory({
+      id: Date.now().toString() + '_' + i,
+      sql: stmt,
+      database: props.database,
+      serverName: props.serverName,
+      executedAt: new Date().toISOString(),
+      duration: Date.now() - t0,
+      rowCount,
+      error: errorMsg || undefined,
+    });
   }
 
   loading.value = false;
+};
+
+const handleExplain = () => {
+  const v = cmRef.value?.view;
+  const rawSql = v
+    ? (v.state.selection.main.empty
+        ? v.state.doc.toString().trim()
+        : v.state.sliceDoc(v.state.selection.main.from, v.state.selection.main.to).trim())
+    : query.value.trim();
+  const stmts = splitStatements(rawSql);
+  const first = stmts[0];
+  if (first) handleExecute('EXPLAIN ' + first, false);
+};
+
+const insertHistoryQuery = (sql: string) => {
+  query.value = sql;
+  showHistory.value = false;
+};
+
+const insertSnippetQuery = (sql: string) => {
+  query.value = sql;
+  showSnippets.value = false;
 };
 
 const tabLabel = (tab: ResultTab): string => {
@@ -229,12 +273,42 @@ const formatCellValue = (val: any) => {
 :deep(.cm-editor) {
   height: 100%;
 }
+:deep(.cm-search) {
+  background: #1e2128;
+  border-top: 1px solid #3d4251;
+  padding: 4px 8px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+:deep(.cm-search input) {
+  background: #282c34;
+  border: 1px solid #4b5263;
+  border-radius: 4px;
+  color: #abb2bf;
+  padding: 2px 6px;
+  font-size: 12px;
+  outline: none;
+}
+:deep(.cm-search button) {
+  background: #3d4251;
+  border: none;
+  border-radius: 4px;
+  color: #abb2bf;
+  padding: 2px 8px;
+  font-size: 11px;
+  cursor: pointer;
+}
+:deep(.cm-search button:hover) {
+  background: #4b5263;
+}
 </style>
 
 <template>
   <div class="flex-1 flex flex-col min-h-0 w-full gap-4">
     <!-- Toolbar -->
-    <div class="flex items-center gap-4 bg-white dark:bg-slate-900/50 p-2 border border-slate-200 dark:border-slate-700 rounded-lg shadow-sm">
+    <div class="flex items-center gap-2 bg-white dark:bg-slate-900/50 p-2 border border-slate-200 dark:border-slate-700 rounded-lg shadow-sm flex-wrap">
       <button
         @click="handleExecuteFromButton"
         :disabled="loading || !serverName"
@@ -244,7 +318,35 @@ const formatCellValue = (val: any) => {
         <Play v-else :size="16" />
         <span>{{ $t('query_editor.execute') }}</span>
       </button>
-      <div class="flex items-center gap-2 text-slate-600 dark:text-slate-400 text-sm border-l border-slate-200 dark:border-slate-700 pl-4">
+      <button
+        @click="handleExplain"
+        :disabled="loading || !serverName"
+        class="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium border border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:border-blue-400 hover:text-blue-600 rounded transition-colors disabled:opacity-40"
+      >
+        <Zap :size="14" />
+        <span>{{ $t('query_editor.explain') }}</span>
+      </button>
+      <button
+        @click="showHistory = !showHistory; if (showHistory) showSnippets = false;"
+        class="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium border rounded transition-colors"
+        :class="showHistory
+          ? 'border-blue-500 bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400'
+          : 'border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:border-blue-400 hover:text-blue-600'"
+      >
+        <History :size="14" />
+        <span>{{ $t('query_editor.history') }}</span>
+      </button>
+      <button
+        @click="showSnippets = !showSnippets; if (showSnippets) showHistory = false;"
+        class="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium border rounded transition-colors"
+        :class="showSnippets
+          ? 'border-blue-500 bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400'
+          : 'border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:border-blue-400 hover:text-blue-600'"
+      >
+        <Bookmark :size="14" />
+        <span>{{ $t('snippets.title') }}</span>
+      </button>
+      <div class="flex items-center gap-2 text-slate-600 dark:text-slate-400 text-sm border-l border-slate-200 dark:border-slate-700 pl-3 ml-auto">
         <DatabaseIcon :size="14" />
         <span>{{ database || $t('query_editor.no_db') }}</span>
         <Loader2 v-if="fetchingSchema" :size="12" class="animate-spin ml-2 text-blue-500" />
@@ -297,9 +399,13 @@ const formatCellValue = (val: any) => {
 
       <!-- Results Area -->
       <div class="flex-1 min-h-0 flex flex-col border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 overflow-hidden shadow-sm">
+        <!-- History Panel -->
+        <QueryHistoryPanel v-if="showHistory" @use="insertHistoryQuery" class="flex-1 min-h-0" />
+        <!-- Snippets Panel -->
+        <QuerySnippetsPanel v-else-if="showSnippets" :currentQuery="query" @use="insertSnippetQuery" class="flex-1 min-h-0" />
 
         <!-- Loading -->
-        <div v-if="loading" class="flex-1 flex flex-col items-center justify-center gap-3 text-slate-500 dark:text-slate-400">
+        <div v-else-if="loading" class="flex-1 flex flex-col items-center justify-center gap-3 text-slate-500 dark:text-slate-400">
           <Loader2 class="animate-spin text-blue-600 dark:text-blue-500" :size="32" />
           <span>{{ $t('query_editor.executing') }}</span>
         </div>

@@ -28,6 +28,19 @@ const ALLOWED_INVOKE_CHANNELS = new Set([
   'api:getTableCreateStatement',
   'api:executeSql',
   'api:getSupportedTypes',
+  'api:getQueryHistory',
+  'api:addQueryHistory',
+  'api:clearQueryHistory',
+  'api:getProcessList',
+  'api:killProcess',
+  'api:saveExportFile',
+  'api:exportTableData',
+  'api:tableMaintenanceOp',
+  'api:getServerVariables',
+  'api:openFileDialog',
+  'api:getSnippets',
+  'api:saveSnippet',
+  'api:deleteSnippet',
 ]);
 
 const ALLOWED_ON_CHANNELS = new Set([

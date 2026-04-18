@@ -1,4 +1,4 @@
-import { app, Menu, ipcMain, BrowserWindow, safeStorage } from "electron";
+import { app, Menu, ipcMain, dialog, BrowserWindow, safeStorage } from "electron";
 import path from "path";
 import fs from "fs";
 import mysql from "mysql2/promise";
@@ -479,10 +479,37 @@ const CONFIG_DIR = path.join(USER_HOME, ".arumu");
 const CONNECTIONS_FILE = path.join(CONFIG_DIR, "connections.json");
 const APP_STATE_FILE = path.join(CONFIG_DIR, "state.json");
 const APP_SETTINGS_FILE = path.join(CONFIG_DIR, "settings.json");
+const ERROR_LOG_FILE = path.join(CONFIG_DIR, "error.log");
+const QUERY_HISTORY_FILE = path.join(CONFIG_DIR, "query_history.json");
 const OLD_CONNECTIONS_FILE = path.join(process.cwd(), "connections.json");
 if (!fs.existsSync(CONFIG_DIR)) {
   fs.mkdirSync(CONFIG_DIR, { recursive: true });
 }
+const writeErrorLog = (source, message, stack) => {
+  const ts = (/* @__PURE__ */ new Date()).toISOString();
+  const entry = `[${ts}] [${source}] ${message}${stack ? "\n" + stack : ""}
+`;
+  try {
+    fs.appendFileSync(ERROR_LOG_FILE, entry, "utf8");
+  } catch {
+  }
+};
+const originalConsoleError = console.error.bind(console);
+console.error = (...args) => {
+  originalConsoleError(...args);
+  writeErrorLog(
+    "main",
+    args.map((a) => a instanceof Error ? a.message : String(a)).join(" "),
+    args.find((a) => a instanceof Error)?.stack
+  );
+};
+process.on("uncaughtException", (err) => {
+  writeErrorLog("uncaughtException", err.message, err.stack);
+});
+process.on("unhandledRejection", (reason) => {
+  const err = reason instanceof Error ? reason : new Error(String(reason));
+  writeErrorLog("unhandledRejection", err.message, err.stack);
+});
 if (fs.existsSync(OLD_CONNECTIONS_FILE) && !fs.existsSync(CONNECTIONS_FILE)) {
   try {
     fs.renameSync(OLD_CONNECTIONS_FILE, CONNECTIONS_FILE);
@@ -542,6 +569,18 @@ const getAppState = () => {
 };
 const saveAppState = (state) => {
   fs.writeFileSync(APP_STATE_FILE, JSON.stringify(state, null, 2));
+};
+const getQueryHistory = () => {
+  if (!fs.existsSync(QUERY_HISTORY_FILE)) return [];
+  try {
+    return JSON.parse(fs.readFileSync(QUERY_HISTORY_FILE, "utf-8"));
+  } catch {
+    return [];
+  }
+};
+const addToQueryHistory = (entry) => {
+  const history = [entry, ...getQueryHistory()].slice(0, 500);
+  fs.writeFileSync(QUERY_HISTORY_FILE, JSON.stringify(history, null, 2));
 };
 const getAppSettings = () => {
   if (!fs.existsSync(APP_SETTINGS_FILE)) {
@@ -729,6 +768,9 @@ app.whenReady().then(() => {
   ipcMain.handle("api:saveAppState", (_event, state) => saveAppState(state));
   ipcMain.handle("api:getAppSettings", () => getAppSettings());
   ipcMain.handle("api:saveAppSettings", (_event, settings) => saveAppSettings(settings));
+  ipcMain.handle("log:error", (_event, message, stack) => {
+    writeErrorLog("renderer", message, stack);
+  });
   ipcMain.handle("api:getTableData", async (_event, serverName, dbName, tableName, options) => {
     const server = activeServers.find((s) => s.name === serverName);
     if (!server) throw new Error("Server not found");
@@ -896,6 +938,161 @@ app.whenReady().then(() => {
     const server = activeServers.find((s) => s.name === serverName);
     if (!server) throw new Error("Server not found");
     return new MySQLDriver().getSupportedTypes();
+  });
+  ipcMain.handle("api:tableMaintenanceOp", async (_event, serverName, dbName, tableName, op) => {
+    const server = activeServers.find((s) => s.name === serverName);
+    if (!server) throw new Error("Server not found");
+    const ops = ["ANALYZE", "OPTIMIZE", "CHECK", "REPAIR"];
+    if (!ops.includes(op.toUpperCase())) throw new Error("Invalid operation");
+    const driver = new MySQLDriver();
+    try {
+      await driver.connect({ ...server.config, database: dbName });
+      return await driver.executeQuery(`${op.toUpperCase()} TABLE \`${dbName}\`.\`${tableName}\``);
+    } finally {
+      await driver.disconnect();
+    }
+  });
+  ipcMain.handle("api:getServerVariables", async (_event, serverName) => {
+    const server = activeServers.find((s) => s.name === serverName);
+    if (!server) throw new Error("Server not found");
+    const driver = new MySQLDriver();
+    try {
+      await driver.connect(server.config);
+      const variables = await driver.executeQuery("SHOW VARIABLES");
+      const status = await driver.executeQuery("SHOW GLOBAL STATUS");
+      return { variables, status };
+    } finally {
+      await driver.disconnect();
+    }
+  });
+  ipcMain.handle("api:openFileDialog", async (_event, filters) => {
+    const { filePaths, canceled } = await dialog.showOpenDialog({
+      properties: ["openFile"],
+      filters
+    });
+    if (canceled || !filePaths[0]) return null;
+    const content = fs.readFileSync(filePaths[0], "utf-8");
+    return { filePath: filePaths[0], content };
+  });
+  const SNIPPETS_FILE = path.join(CONFIG_DIR, "snippets.json");
+  const getSnippets = () => {
+    if (!fs.existsSync(SNIPPETS_FILE)) return [];
+    try {
+      return JSON.parse(fs.readFileSync(SNIPPETS_FILE, "utf-8"));
+    } catch {
+      return [];
+    }
+  };
+  ipcMain.handle("api:getSnippets", () => getSnippets());
+  ipcMain.handle("api:saveSnippet", (_event, snippet) => {
+    const snippets = [snippet, ...getSnippets().filter((s) => s.id !== snippet.id)];
+    fs.writeFileSync(SNIPPETS_FILE, JSON.stringify(snippets, null, 2));
+  });
+  ipcMain.handle("api:deleteSnippet", (_event, id) => {
+    const snippets = getSnippets().filter((s) => s.id !== id);
+    fs.writeFileSync(SNIPPETS_FILE, JSON.stringify(snippets, null, 2));
+  });
+  ipcMain.handle("api:getQueryHistory", () => getQueryHistory());
+  ipcMain.handle("api:addQueryHistory", (_event, entry) => {
+    addToQueryHistory(entry);
+  });
+  ipcMain.handle("api:clearQueryHistory", () => {
+    fs.writeFileSync(QUERY_HISTORY_FILE, "[]");
+  });
+  ipcMain.handle("api:getProcessList", async (_event, serverName) => {
+    const server = activeServers.find((s) => s.name === serverName);
+    if (!server) throw new Error("Server not found");
+    const driver = new MySQLDriver();
+    try {
+      await driver.connect(server.config);
+      return await driver.executeQuery("SHOW PROCESSLIST");
+    } finally {
+      await driver.disconnect();
+    }
+  });
+  ipcMain.handle("api:killProcess", async (_event, serverName, processId) => {
+    const server = activeServers.find((s) => s.name === serverName);
+    if (!server) throw new Error("Server not found");
+    const driver = new MySQLDriver();
+    try {
+      await driver.connect(server.config);
+      await driver.executeQuery(`KILL ${processId}`);
+    } finally {
+      await driver.disconnect();
+    }
+  });
+  ipcMain.handle("api:saveExportFile", async (_event, defaultFilename, content, filters) => {
+    const { filePath, canceled } = await dialog.showSaveDialog({
+      title: "Save Export",
+      defaultPath: defaultFilename,
+      filters
+    });
+    if (canceled || !filePath) return { saved: false };
+    fs.writeFileSync(filePath, content, "utf-8");
+    return { saved: true, filePath };
+  });
+  ipcMain.handle("api:exportTableData", async (_event, serverName, dbName, tableName, format, filter, sort) => {
+    const server = activeServers.find((s) => s.name === serverName);
+    if (!server) throw new Error("Server not found");
+    const ext = format === "csv" ? "csv" : "sql";
+    const { filePath, canceled } = await dialog.showSaveDialog({
+      title: `Export ${tableName}`,
+      defaultPath: `${tableName}.${ext}`,
+      filters: format === "csv" ? [{ name: "CSV Files", extensions: ["csv"] }] : [{ name: "SQL Files", extensions: ["sql"] }]
+    });
+    if (canceled || !filePath) return { saved: false };
+    const driver = new MySQLDriver();
+    try {
+      await driver.connect({ ...server.config, database: dbName });
+      let allRows = [];
+      let columns = [];
+      let offset = 0;
+      const chunk = 1e3;
+      while (true) {
+        const result = await driver.getTableData(dbName, tableName, chunk, offset, sort, filter);
+        if (columns.length === 0) columns = result.columns;
+        allRows = allRows.concat(result.rows);
+        if (allRows.length >= result.total || result.rows.length === 0) break;
+        offset += chunk;
+      }
+      const escId = (s) => "`" + s.replace(/`/g, "``") + "`";
+      const escVal = (val) => {
+        if (val === null) return "NULL";
+        if (typeof val === "number") return String(val);
+        if (typeof val === "boolean") return val ? "1" : "0";
+        return "'" + String(val).replace(/\\/g, "\\\\").replace(/'/g, "\\'") + "'";
+      };
+      const escCsv = (val) => {
+        if (val === null) return "";
+        const s = String(val);
+        if (s.includes(",") || s.includes('"') || s.includes("\n") || s.includes("\r")) {
+          return '"' + s.replace(/"/g, '""') + '"';
+        }
+        return s;
+      };
+      let content = "";
+      if (format === "csv") {
+        content = columns.map(escCsv).join(",") + "\n";
+        for (const row of allRows) {
+          content += columns.map((col) => escCsv(row[col])).join(",") + "\n";
+        }
+      } else {
+        const colList = columns.map(escId).join(", ");
+        content = `-- Export of \`${dbName}\`.\`${tableName}\`
+-- Generated by Arumu
+
+`;
+        for (const row of allRows) {
+          const vals = columns.map((col) => escVal(row[col])).join(", ");
+          content += `INSERT INTO ${escId(tableName)} (${colList}) VALUES (${vals});
+`;
+        }
+      }
+      fs.writeFileSync(filePath, content, "utf-8");
+      return { saved: true, filePath };
+    } finally {
+      await driver.disconnect();
+    }
   });
   createWindow();
   app.on("activate", () => {

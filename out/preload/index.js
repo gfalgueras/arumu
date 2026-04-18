@@ -1,6 +1,7 @@
 "use strict";
 const electron = require("electron");
 const ALLOWED_INVOKE_CHANNELS = /* @__PURE__ */ new Set([
+  "log:error",
   "api:getServers",
   "api:getDatabases",
   "api:getTables",
@@ -26,7 +27,20 @@ const ALLOWED_INVOKE_CHANNELS = /* @__PURE__ */ new Set([
   "api:updateColumn",
   "api:getTableCreateStatement",
   "api:executeSql",
-  "api:getSupportedTypes"
+  "api:getSupportedTypes",
+  "api:getQueryHistory",
+  "api:addQueryHistory",
+  "api:clearQueryHistory",
+  "api:getProcessList",
+  "api:killProcess",
+  "api:saveExportFile",
+  "api:exportTableData",
+  "api:tableMaintenanceOp",
+  "api:getServerVariables",
+  "api:openFileDialog",
+  "api:getSnippets",
+  "api:saveSnippet",
+  "api:deleteSnippet"
 ]);
 const ALLOWED_ON_CHANNELS = /* @__PURE__ */ new Set([
   "app:notification"
