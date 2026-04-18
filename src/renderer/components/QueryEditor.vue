@@ -6,7 +6,7 @@ import { sql, MySQL, PostgreSQL, SQLite, SQLDialect } from '@codemirror/lang-sql
 import { oneDark } from '@codemirror/theme-one-dark';
 import { keymap, EditorView } from '@codemirror/view';
 import { autocompletion, completionKeymap, acceptCompletion } from '@codemirror/autocomplete';
-import { search, searchKeymap } from '@codemirror/search';
+import { search, searchKeymap, openSearchPanel, closeSearchPanel } from '@codemirror/search';
 import { $t } from '../i18n';
 import { api } from '../services/api';
 import { hotkeys, toCodeMirrorKey } from '../hotkeys';
@@ -108,7 +108,16 @@ const extensions = computed(() => {
     autocompletion({ activateOnTyping: true }),
     search({ top: false }),
     keymap.of([
-      ...searchKeymap,
+      {
+        key: 'Ctrl-f',
+        run: (view) => {
+          const panelOpen = view.dom.querySelector('.cm-search') !== null;
+          if (panelOpen) { closeSearchPanel(view); } else { openSearchPanel(view); }
+          return true;
+        },
+        preventDefault: true
+      },
+      ...searchKeymap.filter(b => b.key !== 'Ctrl-f' && b.key !== 'Mod-f'),
       { key: "Tab", run: acceptCompletion },
       ...completionKeymap,
       {
@@ -273,35 +282,81 @@ const formatCellValue = (val: any) => {
 :deep(.cm-editor) {
   height: 100%;
 }
+:deep(.cm-panel) {
+  align-items: unset !important;
+}
 :deep(.cm-search) {
   background: #1e2128;
   border-top: 1px solid #3d4251;
-  padding: 4px 8px;
+  padding: 6px 10px;
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
   flex-wrap: wrap;
 }
-:deep(.cm-search input) {
+:deep(.cm-search input[type="text"]) {
   background: #282c34;
   border: 1px solid #4b5263;
   border-radius: 4px;
   color: #abb2bf;
-  padding: 2px 6px;
+  padding: 3px 7px;
   font-size: 12px;
   outline: none;
+  height: 24px;
+  box-sizing: border-box;
+}
+:deep(.cm-search input[type="checkbox"]) {
+  width: 13px;
+  height: 13px;
+  margin: 0;
+  cursor: pointer;
+  flex-shrink: 0;
+  accent-color: #528bff;
+}
+:deep(.cm-search label) {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: #abb2bf;
+  font-size: 11px;
+  cursor: pointer;
+  line-height: 1;
 }
 :deep(.cm-search button) {
   background: #3d4251;
   border: none;
   border-radius: 4px;
   color: #abb2bf;
-  padding: 2px 8px;
+  padding: 3px 9px;
   font-size: 11px;
   cursor: pointer;
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  box-sizing: border-box;
 }
 :deep(.cm-search button:hover) {
   background: #4b5263;
+}
+:deep(.cm-panels button[name="close"]) {
+  background: transparent;
+  border-radius: 4px;
+  color: #636d83;
+  padding: 0;
+  width: 24px;
+  height: 24px;
+  vertical-align: middle;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  margin-top: 0.2rem !important;
+  margin-bottom: 0.2rem !important;
+  align-self: center;
+  transition: background 0.15s, color 0.15s;
+}
+:deep(.cm-search button[name="close"]:hover) {
+  background: rgba(220, 38, 38, 0.15);
+  color: #f87171;
 }
 </style>
 

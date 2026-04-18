@@ -69,8 +69,8 @@ const handleSave = async () => {
 
 <template>
   <div class="fixed inset-0 bg-black/60 flex items-center justify-center z-50 backdrop-blur-sm">
-    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg w-full max-w-md overflow-hidden flex flex-col max-h-[80vh] shadow-2xl">
-      <div class="p-4 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center bg-slate-50 dark:bg-slate-800">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg w-full max-w-md flex flex-col max-h-[80vh] shadow-2xl">
+      <div class="p-4 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center bg-slate-50 dark:bg-slate-800 rounded-t-lg flex-shrink-0">
         <h2 class="text-lg font-semibold text-slate-900 dark:text-slate-100">{{ $t('conn_modal.title') }}</h2>
         <button @click="emit('close')" class="text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 p-1 hover:bg-slate-200 dark:hover:bg-slate-700 rounded transition-colors">
           <X :size="20" />

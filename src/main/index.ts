@@ -158,6 +158,7 @@ function createWindow() {
   const mainWindow = new BrowserWindow({
     width: 1280,
     height: 800,
+    autoHideMenuBar: true,
     webPreferences: {
       preload: path.join(__dirname, '../preload/index.js'),
       contextIsolation: true,
@@ -214,7 +215,7 @@ app.whenReady().then(() => {
       if (server.config) {
         await driver.connect(server.config);
         let databases = await driver.getDatabases();
-        
+
         if (server.config.defaultFilter) {
           const filters = server.config.defaultFilter.split(',').map(f => f.trim().toLowerCase());
           databases = databases.filter(db => !filters.includes(db.name.toLowerCase()));
@@ -254,16 +255,16 @@ app.whenReady().then(() => {
         db.tables = tables;
         db.size = tables.reduce((acc, t) => acc + (Number(t.size) || 0), 0);
       } else if (server.databases) {
-        server.databases.push({ 
-          name: dbName, 
-          tables, 
-          size: tables.reduce((acc, t) => acc + (Number(t.size) || 0), 0) 
+        server.databases.push({
+          name: dbName,
+          tables,
+          size: tables.reduce((acc, t) => acc + (Number(t.size) || 0), 0)
         });
       } else {
-        server.databases = [{ 
-          name: dbName, 
-          tables, 
-          size: tables.reduce((acc, t) => acc + (Number(t.size) || 0), 0) 
+        server.databases = [{
+          name: dbName,
+          tables,
+          size: tables.reduce((acc, t) => acc + (Number(t.size) || 0), 0)
         }];
       }
 
@@ -327,7 +328,7 @@ app.whenReady().then(() => {
   });
 
   ipcMain.handle('api:getStoredServers', () => getStoredServers());
-  
+
   ipcMain.handle('api:saveStoredServer', (_event, newServer: StoredServer) => {
     const servers = getStoredServers();
     if (servers.find(s => s.name === newServer.name)) {
@@ -342,10 +343,10 @@ app.whenReady().then(() => {
     const servers = getStoredServers();
     const index = servers.findIndex(s => s.name === name);
     if (index === -1) throw new Error('Server not found');
-    
+
     servers[index] = updatedServer;
     saveStoredServers(servers);
-    
+
     const activeIndex = activeServers.findIndex(s => s.name === name);
     if (activeIndex !== -1) {
       activeServers[activeIndex] = { ...updatedServer, databases: [] };
