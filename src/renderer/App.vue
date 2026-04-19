@@ -5,8 +5,8 @@ import Sidebar from './components/Sidebar.vue';
 import TopBar from './components/TopBar.vue';
 import ConnectionModal from './components/ConnectionModal.vue';
 import SettingsModal from './components/SettingsModal.vue';
-import ErrorModal from './components/ErrorModal.vue';
 import DataTable from './components/DataTable.vue';
+import LogPanel from './components/LogPanel.vue';
 import TableSchema from './components/TableSchema.vue';
 import QueryEditor from './components/QueryEditor.vue';
 import ProcessList from './components/ProcessList.vue';
@@ -464,8 +464,8 @@ const selectTable = (serverName: string, db: string, table: string) => {
       @resizeMouseDown="handleMouseDown"
       @openConnection="isModalOpen = true"
     />
-    <div class="flex-1 flex flex-col min-w-0">
-      <main class="flex-1 flex flex-col p-4 overflow-hidden min-w-0">
+    <div class="flex-1 flex flex-col min-w-0 min-h-0">
+      <main class="flex-1 flex flex-col p-4 overflow-hidden min-w-0 min-h-0">
         <div v-if="selectedServerName" class="w-full h-full flex flex-col min-h-0 min-w-0">
           <!-- Tabs Header -->
           <div class="flex border-b border-slate-200 dark:border-slate-800 mb-4 flex-shrink-0 items-center overflow-x-auto scrollbar-none">
@@ -619,6 +619,7 @@ const selectTable = (serverName: string, db: string, table: string) => {
           </div>
         </div>
       </main>
+      <LogPanel />
     </div>
     </div>
 
@@ -633,6 +634,5 @@ const selectTable = (serverName: string, db: string, table: string) => {
       @close="isSettingsOpen = false"
       @updated="loadSettings"
     />
-    <ErrorModal />
   </div>
 </template>

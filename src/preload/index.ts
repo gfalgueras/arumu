@@ -45,6 +45,7 @@ const ALLOWED_INVOKE_CHANNELS = new Set([
 
 const ALLOWED_ON_CHANNELS = new Set([
   'app:notification',
+  'query:log',
 ]);
 
 contextBridge.exposeInMainWorld('electronAPI', {

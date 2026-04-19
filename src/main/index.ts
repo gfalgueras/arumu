@@ -153,9 +153,10 @@ const saveAppSettings = (settings: any) => {
 
 // Servidores activos (en memoria)
 let activeServers: ServerInfo[] = [];
+let mainWindow: BrowserWindow | null = null;
 
 function createWindow() {
-  const mainWindow = new BrowserWindow({
+  mainWindow = new BrowserWindow({
     width: 1280,
     height: 800,
     autoHideMenuBar: true,
@@ -165,6 +166,14 @@ function createWindow() {
       nodeIntegration: false,
     },
   });
+
+  MySQLDriver.queryLogger = (sql, durationMs, error) => {
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send('query:log', { sql, durationMs, error });
+    }
+  };
+
+  mainWindow.on('closed', () => { mainWindow = null; });
 
   if (process.env.ELECTRON_RENDERER_URL) {
     mainWindow.loadURL(process.env.ELECTRON_RENDERER_URL);

@@ -1,23 +1,9 @@
-import { reactive } from 'vue';
-
-interface ErrorState {
-  show: boolean;
-  title: string;
-  message: string;
-}
-
-export const errorState = reactive<ErrorState>({
-  show: false,
-  title: '',
-  message: '',
-});
+import { addLog } from './logService';
 
 export function showError(title: string, message: string = '') {
-  errorState.title = title;
-  errorState.message = message;
-  errorState.show = true;
+  addLog('error', title, message || undefined);
 }
 
 export function hideError() {
-  errorState.show = false;
+  // no-op: kept for backward compat
 }
