@@ -1,6 +1,6 @@
-# Arumu - SQL Query Manager
+# Arumu - SQL Manager
 
-Arumu is a modern and fast desktop application for interacting with MySQL databases, designed to enhance the workflow of developers and database administrators. Built with modern web technologies, it features an attractive user interface and a powerful SQL editor.
+Inspired by HeidiSQL, Arumu is a modern and fast desktop application for interacting with SQL databases, designed to enhance the workflow of developers and database administrators. Built with modern web technologies, it features an attractive user interface and a powerful SQL editor.
 
 ## 🚀 Technologies
 
@@ -14,7 +14,6 @@ This application is built on a robust and modern stack:
 
 ## ✨ Key Features
 
-- 🔌 **Direct Connection to MySQL**: Connect securely to your local or remote databases.
 - 📝 **Advanced SQL Editor**: Write queries with smart auto-completion and syntax highlighting.
 - 🎨 **Modern User Interface**: A polished and responsive user experience, powered by Vue and TailwindCSS.
 - ⚡ **High Performance**: Designed for efficient queries and reduced loading times.
