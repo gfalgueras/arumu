@@ -68,7 +68,3 @@ To compile and package the application and generate installers for your local op
 ```bash
 pnpm run dist
 ```
-
-## 📜 License
-
-ISC
