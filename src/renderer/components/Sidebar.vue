@@ -36,6 +36,13 @@ const emit = defineEmits<{
 const contextMenu = ref<{ x: number, y: number, serverName: string } | null>(null);
 const treeRef = ref<HTMLElement | null>(null);
 
+const selectionType = computed(() => {
+  if (props.selectedTable) return 'table';
+  if (props.selectedDatabase) return 'database';
+  if (props.selectedServerName) return 'server';
+  return null;
+});
+
 const handleToggleServer = (serverName: string, open: boolean) => {
   const newVal = open
     ? [...props.expandedServerNames, serverName]
@@ -67,50 +74,72 @@ const getExpandedDatabaseIdsForServer = (serverName: string) => {
     .map(ed => ed.split(':')[1] || '');
 };
 
-// Flat list of visible tables for arrow key navigation
-type VisibleTable = { serverName: string; dbName: string; tableName: string };
+const focusTree = () => treeRef.value?.focus();
 
-const visibleTables = computed<VisibleTable[]>(() => {
-  const result: VisibleTable[] = [];
+const handleSelectServer = (name: string) => { emit('selectServer', name); focusTree(); };
+const handleSelectDatabase = (serverName: string, db: string) => { emit('selectDatabase', serverName, db); focusTree(); };
+const handleSelectTable = (serverName: string, db: string, table: string) => { emit('selectTable', serverName, db, table); focusTree(); };
+
+// Flat list of all visible items for arrow key navigation
+type VisibleItem =
+  | { type: 'server'; serverName: string }
+  | { type: 'database'; serverName: string; dbName: string }
+  | { type: 'table'; serverName: string; dbName: string; tableName: string };
+
+const visibleItems = computed<VisibleItem[]>(() => {
+  const result: VisibleItem[] = [];
   for (const server of props.servers) {
+    const serverDbs: any[] = server.databases || [];
+    const filteredDbs = serverDbs.filter((db: any) => {
+      if (props.dbFilter && !db.name.toLowerCase().includes(props.dbFilter.toLowerCase())) return false;
+      if (props.tableFilter && (db.tables || []).length > 0) {
+        if (!(db.tables || []).some((t: any) => t.name.toLowerCase().includes(props.tableFilter.toLowerCase()))) return false;
+      }
+      return true;
+    });
+    if (props.dbFilter && filteredDbs.length === 0 && serverDbs.length > 0) continue;
+
+    result.push({ type: 'server', serverName: server.name });
+
     if (!props.expandedServerNames.includes(server.name)) continue;
-    const databases: any[] = server.databases || [];
+
     const expandedDbIds = getExpandedDatabaseIdsForServer(server.name);
-    for (const db of databases) {
-      if (props.dbFilter && !db.name.toLowerCase().includes(props.dbFilter.toLowerCase())) continue;
+    for (const db of filteredDbs) {
+      result.push({ type: 'database', serverName: server.name, dbName: db.name });
+
       if (!expandedDbIds.includes(db.name)) continue;
+
       const tables: any[] = (db.tables || []).filter((t: any) =>
         !props.tableFilter || t.name.toLowerCase().includes(props.tableFilter.toLowerCase())
       );
       for (const t of tables) {
-        result.push({ serverName: server.name, dbName: db.name, tableName: t.name });
+        result.push({ type: 'table', serverName: server.name, dbName: db.name, tableName: t.name });
       }
     }
   }
   return result;
 });
 
-const handleSelectTable = (serverName: string, dbName: string, table: string) => {
-  emit('selectTable', serverName, dbName, table);
-  treeRef.value?.focus();
-};
-
 const handleKeyDown = (e: KeyboardEvent) => {
   if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
   e.preventDefault();
-  const tables = visibleTables.value;
-  if (tables.length === 0) return;
-  const current = tables.findIndex(
-    t => t.serverName === props.selectedServerName && t.dbName === props.selectedDatabase && t.tableName === props.selectedTable
-  );
-  let next: number;
-  if (e.key === 'ArrowDown') {
-    next = current < tables.length - 1 ? current + 1 : 0;
-  } else {
-    next = current > 0 ? current - 1 : tables.length - 1;
-  }
-  const target = tables[next];
-  emit('selectTable', target.serverName, target.dbName, target.tableName);
+  const items = visibleItems.value;
+  if (items.length === 0) return;
+
+  const current = items.findIndex(item => {
+    if (item.type === 'server') return selectionType.value === 'server' && item.serverName === props.selectedServerName;
+    if (item.type === 'database') return selectionType.value === 'database' && item.serverName === props.selectedServerName && item.dbName === props.selectedDatabase;
+    return selectionType.value === 'table' && item.serverName === props.selectedServerName && item.dbName === props.selectedDatabase && item.tableName === props.selectedTable;
+  });
+
+  const next = e.key === 'ArrowDown'
+    ? (current < items.length - 1 ? current + 1 : 0)
+    : (current > 0 ? current - 1 : items.length - 1);
+
+  const target = items[next];
+  if (target.type === 'server') emit('selectServer', target.serverName);
+  else if (target.type === 'database') emit('selectDatabase', target.serverName, target.dbName);
+  else emit('selectTable', target.serverName, target.dbName, target.tableName);
 };
 
 </script>
@@ -175,7 +204,8 @@ const handleKeyDown = (e: KeyboardEvent) => {
           }))"
           :filterDatabase="dbFilter"
           :filterTable="tableFilter"
-          :isSelected="selectedServerName === server.name"
+          :isSelected="selectionType === 'server' && selectedServerName === server.name"
+          :isActive="selectedServerName === server.name"
           :selectedDatabase="selectedServerName === server.name ? selectedDatabase : null"
           :selectedTable="selectedServerName === server.name ? selectedTable : null"
           :isOpen="expandedServerNames.includes(server.name)"
@@ -183,8 +213,8 @@ const handleKeyDown = (e: KeyboardEvent) => {
           :loadingDatabases="getLoadingDatabasesForServer(server.name)"
           :expandedDatabaseIds="getExpandedDatabaseIdsForServer(server.name)"
           @toggle="(open) => handleToggleServer(server.name, open)"
-          @select="emit('selectServer', server.name)"
-          @selectDatabase="(db) => emit('selectDatabase', server.name, db)"
+          @select="handleSelectServer(server.name)"
+          @selectDatabase="(db) => handleSelectDatabase(server.name, db)"
           @selectTable="(dbName, table) => handleSelectTable(server.name, dbName, table)"
           @expand="emit('expandServer', server.name)"
           @expandDatabase="(db) => emit('expandDatabase', server.name, db)"

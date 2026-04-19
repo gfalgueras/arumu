@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, watch, inject, type Ref } from 'vue';
-import { Database, ChevronRight, ChevronDown, Loader2 } from 'lucide-vue-next';
+import { Database, ChevronRight, ChevronDown, Loader2, Check } from 'lucide-vue-next';
 import TableItem from './TableItem.vue';
 import { $t } from '../../i18n';
 
@@ -10,6 +10,7 @@ const props = defineProps<{
   tables: { name: string; size?: number }[];
   filterTable: string;
   isSelected: boolean;
+  isActive: boolean;
   selectedTable: string | null;
   isOpen: boolean;
   isLoading?: boolean;
@@ -52,11 +53,6 @@ const formatSize = (bytes?: number) => {
   const i = Math.floor(Math.log(bytes) / Math.log(k));
   return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
 };
-
-const handleSelect = () => {
-  if (!props.isOpen) emit('toggle', true);
-  emit('select');
-};
 </script>
 
 <template>
@@ -67,7 +63,7 @@ const handleSelect = () => {
         compact ? 'py-0.5 px-5 text-xs' : 'py-1.5 px-8 text-sm',
         isSelected ? 'bg-blue-600/10 dark:bg-blue-600/20 text-blue-600 dark:text-blue-400' : 'text-slate-600 dark:text-slate-300'
       ]"
-      @click.stop="handleSelect"
+      @click.stop="emit('select')"
     >
       <div class="flex items-center gap-2 flex-1 min-w-0">
         <div
@@ -79,6 +75,7 @@ const handleSelect = () => {
         </div>
         <Database :size="compact ? 12 : 16" class="flex-shrink-0" :class="isSelected ? 'text-blue-600 dark:text-blue-400' : 'text-blue-500 dark:text-blue-400'" />
         <span class="font-medium truncate flex-1">{{ name }}</span>
+        <Check v-if="isActive" :size="compact ? 10 : 12" class="flex-shrink-0 text-emerald-500 dark:text-emerald-400" />
         <span class="text-[10px] text-slate-400 dark:text-slate-500 group-hover:text-slate-600 dark:group-hover:text-slate-300 flex-shrink-0 mr-1">
           {{ formatSize(size) }}
         </span>

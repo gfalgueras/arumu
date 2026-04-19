@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, watch, computed, shallowRef, provide } from 'vue';
-import { Plus, X, Server, Table } from 'lucide-vue-next';
+import { Plus, X, Server, Table, Database } from 'lucide-vue-next';
 import Sidebar from './components/Sidebar.vue';
 import TopBar from './components/TopBar.vue';
 import ConnectionModal from './components/ConnectionModal.vue';
@@ -175,7 +175,7 @@ const initApp = async () => {
     activeTab.value = state.activeTab || (queryTabs.value.length > 0 ? queryTabs.value[0].id : '');
 
     // Validar que la pestaña activa existe
-    if (activeTab.value !== 'data' && activeTab.value !== 'schema' && activeTab.value !== 'processes' && activeTab.value !== 'variables' && !queryTabs.value.find(t => t.id === activeTab.value)) {
+    if (activeTab.value !== 'data' && activeTab.value !== 'schema' && activeTab.value !== 'processes' && activeTab.value !== 'variables' && activeTab.value !== 'db' && !queryTabs.value.find(t => t.id === activeTab.value)) {
       activeTab.value = queryTabs.value.length > 0 ? queryTabs.value[0].id : '';
     }
     expandedServerNames.value = state.expandedServerNames || [];
@@ -343,13 +343,17 @@ const handleConfigServer = async (serverName: string) => {
   }
 };
 
-const lastActiveQueryTabId = ref<string>('1');
+const fixedTabs = ['variables', 'processes', 'db', 'schema', 'data'];
 
-watch(activeTab, (newVal) => {
-  if (newVal !== 'data' && newVal !== 'schema' && newVal !== 'processes' && newVal !== 'variables') {
-    lastActiveQueryTabId.value = newVal;
+const ensureVisibleTab = (visibleIds: string[]) => {
+  const isQueryTab = queryTabs.value.some(t => t.id === activeTab.value);
+  if (isQueryTab) return;
+  if (!visibleIds.includes(activeTab.value)) {
+    const firstFixed = visibleIds.find(id => fixedTabs.includes(id));
+    const firstQuery = queryTabs.value[0]?.id;
+    activeTab.value = firstFixed ?? firstQuery ?? '';
   }
-});
+};
 
 const addQueryTab = () => {
   const newId = Date.now().toString();
@@ -388,14 +392,18 @@ const removeQueryTab = (id: string) => {
   if (activeTab.value === id) {
     if (queryTabs.value.length > 0) {
       activeTab.value = queryTabs.value[Math.max(0, index - 1)].id;
+    } else if (selectedTable.value) {
+      activeTab.value = 'data';
+    } else if (selectedDatabase.value) {
+      activeTab.value = 'db';
     } else {
-      activeTab.value = selectedTable.value ? 'data' : '';
+      activeTab.value = 'variables';
     }
   }
 };
 
 const removeActiveQueryTab = () => {
-  if (activeTab.value !== 'data' && activeTab.value !== 'schema' && activeTab.value !== 'processes' && activeTab.value !== 'variables' && activeTab.value) {
+  if (!fixedTabs.includes(activeTab.value) && activeTab.value) {
     removeQueryTab(activeTab.value);
   }
 };
@@ -404,9 +412,7 @@ const selectServer = (name: string) => {
   selectedServerName.value = name;
   selectedDatabase.value = null;
   selectedTable.value = null;
-  if (activeTab.value === 'data' || activeTab.value === 'schema') {
-    activeTab.value = lastActiveQueryTabId.value;
-  }
+  ensureVisibleTab(['variables', 'processes', ...queryTabs.value.map(t => t.id)]);
 };
 
 const selectedServerType = computed(() => {
@@ -418,19 +424,14 @@ const selectDatabase = (serverName: string, db: string) => {
   selectedServerName.value = serverName;
   selectedDatabase.value = db;
   selectedTable.value = null;
-  if (activeTab.value === 'data' || activeTab.value === 'schema') {
-    activeTab.value = lastActiveQueryTabId.value;
-  }
+  ensureVisibleTab(['variables', 'processes', 'db', ...queryTabs.value.map(t => t.id)]);
 };
 
 const selectTable = (serverName: string, db: string, table: string) => {
   selectedServerName.value = serverName;
   selectedDatabase.value = db;
   selectedTable.value = table;
-  const isQueryTab = queryTabs.value.some(t => t.id === activeTab.value);
-  if (!isQueryTab) {
-    activeTab.value = 'schema';
-  }
+  // all tabs visible — no forced switch
 };
 </script>
 
@@ -485,6 +486,15 @@ const selectTable = (serverName: string, db: string, table: string) => {
               {{ $t('process_list.title') }}
             </button>
             <button
+              v-if="selectedDatabase"
+              @click="activeTab = 'db'"
+              class="flex items-center gap-1.5 px-4 py-2 text-sm font-medium border-b-2 whitespace-nowrap transition-colors"
+              :class="activeTab === 'db' ? 'border-blue-500 text-blue-500 bg-blue-500/5' : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/50'"
+            >
+              <Database :size="12" class="text-blue-500 dark:text-blue-400" />
+              DB: {{ selectedDatabase }}
+            </button>
+            <button
               v-if="selectedTable"
               @click="activeTab = 'schema'"
               class="flex items-center gap-1.5 px-4 py-2 text-sm font-medium border-b-2 whitespace-nowrap transition-colors"
@@ -493,7 +503,7 @@ const selectTable = (serverName: string, db: string, table: string) => {
               <Table :size="12" class="text-blue-500 dark:text-blue-400" />
               {{ $t('data_table.schema') }}
             </button>
-            <button 
+            <button
               v-if="selectedTable"
               @click="activeTab = 'data'"
               class="flex items-center gap-1.5 px-4 py-2 text-sm font-medium border-b-2 whitespace-nowrap transition-colors"
@@ -546,6 +556,9 @@ const selectTable = (serverName: string, db: string, table: string) => {
 
           <!-- Tab Content -->
           <div class="flex-1 min-h-0 flex flex-col min-w-0">
+            <div v-if="activeTab === 'db' && selectedDatabase" class="flex-1 flex items-center justify-center text-slate-400 dark:text-slate-600 text-sm italic">
+              {{ selectedDatabase }}
+            </div>
             <ServerVariables
               v-if="activeTab === 'variables'"
               :serverName="selectedServerName!"

@@ -15,6 +15,12 @@ const emit = defineEmits<{
 const menuDensity = inject<Ref<string>>('menuDensity');
 const compact = computed(() => menuDensity?.value === 'compact');
 
+const serverTotalSize = inject<Ref<number>>('serverTotalSize');
+const sizePercent = computed(() => {
+  if (!props.size || !serverTotalSize?.value) return 0;
+  return Math.min(100, (props.size / serverTotalSize.value) * 100);
+});
+
 const formatSize = (bytes?: number) => {
   if (bytes === undefined) return '';
   if (bytes === 0) return '0 B';
@@ -27,16 +33,21 @@ const formatSize = (bytes?: number) => {
 
 <template>
   <div
-    class="flex items-center gap-2 hover:bg-slate-200 dark:hover:bg-slate-700 cursor-pointer overflow-hidden group"
+    class="relative flex items-center gap-2 hover:bg-slate-200 dark:hover:bg-slate-700 cursor-pointer overflow-hidden group"
     :class="[
       compact ? 'py-0.5 px-7 text-xs' : 'py-1 px-10 text-sm',
       isSelected ? 'bg-blue-600/10 dark:bg-blue-600/30 text-blue-600 dark:text-blue-400' : 'text-slate-600 dark:text-slate-300'
     ]"
     @click.stop="emit('select')"
   >
-    <Table :size="compact ? 11 : 14" class="flex-shrink-0" :class="isSelected ? 'text-blue-600 dark:text-blue-400' : 'text-slate-400 dark:text-slate-400'" />
-    <span class="truncate flex-1">{{ name }}</span>
-    <span class="text-[10px] text-slate-400 dark:text-slate-500 group-hover:text-slate-600 dark:group-hover:text-slate-300 flex-shrink-0">
+    <div
+      v-if="!compact && sizePercent > 0"
+      class="absolute inset-y-0 left-0 bg-blue-400/10 dark:bg-blue-400/8 pointer-events-none"
+      :style="{ width: sizePercent + '%' }"
+    />
+    <Table :size="compact ? 11 : 14" class="relative flex-shrink-0" :class="isSelected ? 'text-blue-600 dark:text-blue-400' : 'text-slate-400 dark:text-slate-400'" />
+    <span class="relative truncate flex-1">{{ name }}</span>
+    <span class="relative text-[10px] text-slate-400 dark:text-slate-500 group-hover:text-slate-600 dark:group-hover:text-slate-300 flex-shrink-0">
       {{ formatSize(size) }}
     </span>
   </div>

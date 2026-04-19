@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { computed, watch, inject, type Ref } from 'vue';
-import { Server, ChevronRight, ChevronDown, Loader2 } from 'lucide-vue-next';
+import { computed, watch, provide } from 'vue';
+import { Server, ChevronRight, ChevronDown, Loader2, Check } from 'lucide-vue-next';
 import DatabaseItem from './DatabaseItem.vue';
 import { $t } from '../../i18n';
 
@@ -11,6 +11,7 @@ const props = defineProps<{
   filterDatabase: string;
   filterTable: string;
   isSelected: boolean;
+  isActive: boolean;
   selectedDatabase: string | null;
   selectedTable: string | null;
   isOpen: boolean;
@@ -29,6 +30,13 @@ const emit = defineEmits<{
   (e: 'contextMenu', event: MouseEvent, name: string): void;
   (e: 'toggleDatabase', db: string, open: boolean): void;
 }>();
+
+const serverTotalSize = computed(() =>
+  props.databases.reduce((acc, db) =>
+    acc + db.tables.reduce((sum, t) => sum + (t.size || 0), 0), 0
+  )
+);
+provide('serverTotalSize', serverTotalSize);
 
 watch(() => props.isOpen, (newVal) => {
   if (newVal && props.databases.length === 0 && !props.isLoading) {
@@ -49,11 +57,6 @@ const shouldShow = computed(() => {
   if (props.databases.length === 0) return true;
   return false;
 });
-
-const handleSelect = () => {
-  if (!props.isOpen) emit('toggle', true);
-  emit('select');
-};
 </script>
 
 <template>
@@ -61,7 +64,7 @@ const handleSelect = () => {
     <div
       class="flex items-center gap-2 py-2 px-4 hover:bg-slate-200 dark:hover:bg-slate-700 cursor-pointer overflow-hidden"
       :class="isSelected ? 'bg-blue-600/10 dark:bg-blue-600/20 border-l-2 border-blue-500' : 'text-slate-700 dark:text-slate-200'"
-      @click.stop="handleSelect"
+      @click.stop="emit('select')"
       @contextmenu.prevent="emit('contextMenu', $event, name)"
     >
       <div class="flex items-center gap-2 flex-1 min-w-0">
@@ -74,6 +77,7 @@ const handleSelect = () => {
         </div>
         <Server :size="18" class="flex-shrink-0" :class="isSelected ? 'text-blue-600 dark:text-blue-400' : 'text-emerald-600 dark:text-emerald-400'" />
         <span class="font-semibold truncate">{{ name }}</span>
+        <Check v-if="isActive" :size="12" class="flex-shrink-0 text-emerald-500 dark:text-emerald-400" />
       </div>
       <Loader2 v-if="isLoading" :size="16" class="animate-spin text-blue-500 flex-shrink-0" />
     </div>
@@ -85,7 +89,8 @@ const handleSelect = () => {
         :size="db.size"
         :tables="db.tables"
         :filterTable="filterTable"
-        :isSelected="selectedDatabase === db.name"
+        :isSelected="selectedDatabase === db.name && !selectedTable"
+        :isActive="selectedDatabase === db.name"
         :selectedTable="selectedDatabase === db.name ? selectedTable : null"
         :isOpen="expandedDatabaseIds.includes(db.name)"
         :isLoading="loadingDatabases?.includes(db.name)"
