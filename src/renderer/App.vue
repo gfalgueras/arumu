@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, watch, computed, shallowRef } from 'vue';
-import { Plus, X } from 'lucide-vue-next';
+import { ref, onMounted, onUnmounted, watch, computed, shallowRef, provide } from 'vue';
+import { Plus, X, Server, Table } from 'lucide-vue-next';
 import Sidebar from './components/Sidebar.vue';
 import TopBar from './components/TopBar.vue';
 import ConnectionModal from './components/ConnectionModal.vue';
@@ -16,6 +16,9 @@ import { $t, setLocale } from './i18n';
 import { api } from './services/api';
 import { hotkeys, applyHotkeys, matchesHotkey } from './hotkeys';
 import type { ServerInfo, StoredServer, AppSettings } from '@shared/types/database';
+
+const menuDensity = ref<AppSettings['menuDensity']>('standard');
+provide('menuDensity', menuDensity);
 
 const servers = shallowRef<ServerInfo[]>([]);
 const selectedServerName = ref<string | null>(null);
@@ -204,6 +207,7 @@ const loadSettings = async () => {
     setLocale(settings.language || 'auto');
     applyTheme(settings.theme || 'system');
     applyHotkeys(settings.hotkeys || {});
+    menuDensity.value = settings.menuDensity || 'standard';
   } catch (err) {
     console.error('Failed to load settings:', err);
     setLocale('auto');
@@ -423,7 +427,10 @@ const selectTable = (serverName: string, db: string, table: string) => {
   selectedServerName.value = serverName;
   selectedDatabase.value = db;
   selectedTable.value = table;
-  activeTab.value = 'schema';
+  const isQueryTab = queryTabs.value.some(t => t.id === activeTab.value);
+  if (!isQueryTab) {
+    activeTab.value = 'schema';
+  }
 };
 </script>
 
@@ -435,7 +442,7 @@ const selectTable = (serverName: string, db: string, table: string) => {
       @openSettings="isSettingsOpen = true"
       :canClose="!!selectedServerName"
     />
-    <div class="flex flex-1 min-h-0">
+    <div class="flex flex-1 min-h-0 overflow-hidden">
     <Sidebar
       :servers="servers"
       :selectedServerName="selectedServerName"
@@ -466,20 +473,16 @@ const selectTable = (serverName: string, db: string, table: string) => {
               class="flex items-center gap-1.5 px-4 py-2 text-sm font-medium border-b-2 whitespace-nowrap transition-colors"
               :class="activeTab === 'variables' ? 'border-blue-500 text-blue-500 bg-blue-500/5' : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/50'"
             >
+              <Server :size="12" class="text-blue-500 dark:text-blue-400" />
               {{ $t('variables.title') }}
-              <span class="text-[10px] font-semibold px-1.5 py-0.5 rounded-full leading-none"
-                :class="activeTab === 'variables' ? 'bg-blue-100 text-blue-600 dark:bg-blue-900/50 dark:text-blue-400' : 'bg-slate-200 text-slate-500 dark:bg-slate-700 dark:text-slate-400'"
-              >DB</span>
             </button>
             <button
               @click="activeTab = 'processes'"
               class="flex items-center gap-1.5 px-4 py-2 text-sm font-medium border-b-2 whitespace-nowrap transition-colors"
               :class="activeTab === 'processes' ? 'border-blue-500 text-blue-500 bg-blue-500/5' : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/50'"
             >
+              <Server :size="12" class="text-blue-500 dark:text-blue-400" />
               {{ $t('process_list.title') }}
-              <span class="text-[10px] font-semibold px-1.5 py-0.5 rounded-full leading-none"
-                :class="activeTab === 'processes' ? 'bg-blue-100 text-blue-600 dark:bg-blue-900/50 dark:text-blue-400' : 'bg-slate-200 text-slate-500 dark:bg-slate-700 dark:text-slate-400'"
-              >DB</span>
             </button>
             <button
               v-if="selectedTable"
@@ -487,10 +490,8 @@ const selectTable = (serverName: string, db: string, table: string) => {
               class="flex items-center gap-1.5 px-4 py-2 text-sm font-medium border-b-2 whitespace-nowrap transition-colors"
               :class="activeTab === 'schema' ? 'border-blue-500 text-blue-500 bg-blue-500/5' : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/50'"
             >
+              <Table :size="12" class="text-blue-500 dark:text-blue-400" />
               {{ $t('data_table.schema') }}
-              <span class="text-[10px] font-semibold px-1.5 py-0.5 rounded-full leading-none"
-                :class="activeTab === 'schema' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-400' : 'bg-slate-200 text-slate-500 dark:bg-slate-700 dark:text-slate-400'"
-              >Table</span>
             </button>
             <button 
               v-if="selectedTable"
@@ -498,10 +499,8 @@ const selectTable = (serverName: string, db: string, table: string) => {
               class="flex items-center gap-1.5 px-4 py-2 text-sm font-medium border-b-2 whitespace-nowrap transition-colors"
               :class="activeTab === 'data' ? 'border-blue-500 text-blue-500 bg-blue-500/5' : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/50'"
             >
+              <Table :size="12" class="text-blue-500 dark:text-blue-400" />
               {{ $t('data_table.data') }}
-              <span class="text-[10px] font-semibold px-1.5 py-0.5 rounded-full leading-none"
-                :class="activeTab === 'data' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-400' : 'bg-slate-200 text-slate-500 dark:bg-slate-700 dark:text-slate-400'"
-              >Table</span>
             </button>
             <div 
               v-for="tab in queryTabs" 

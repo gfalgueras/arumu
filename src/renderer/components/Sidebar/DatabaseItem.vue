@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, watch } from 'vue';
+import { computed, watch, inject, type Ref } from 'vue';
 import { Database, ChevronRight, ChevronDown, Loader2 } from 'lucide-vue-next';
 import TableItem from './TableItem.vue';
 import { $t } from '../../i18n';
@@ -21,6 +21,9 @@ const emit = defineEmits<{
   (e: 'selectTable', table: string): void;
   (e: 'expand'): void;
 }>();
+
+const menuDensity = inject<Ref<string>>('menuDensity');
+const compact = computed(() => menuDensity?.value === 'compact');
 
 watch(() => props.isOpen, (newVal) => {
   if (newVal && props.tables.length === 0 && !props.isLoading) {
@@ -59,8 +62,11 @@ const handleSelect = () => {
 <template>
   <div v-if="shouldShow">
     <div
-      class="flex items-center gap-2 py-1.5 px-8 hover:bg-slate-200 dark:hover:bg-slate-700 cursor-pointer overflow-hidden group"
-      :class="isSelected ? 'bg-blue-600/10 dark:bg-blue-600/20 text-blue-600 dark:text-blue-400' : 'text-slate-600 dark:text-slate-300'"
+      class="flex items-center gap-2 hover:bg-slate-200 dark:hover:bg-slate-700 cursor-pointer overflow-hidden group"
+      :class="[
+        compact ? 'py-0.5 px-5 text-xs' : 'py-1.5 px-8 text-sm',
+        isSelected ? 'bg-blue-600/10 dark:bg-blue-600/20 text-blue-600 dark:text-blue-400' : 'text-slate-600 dark:text-slate-300'
+      ]"
       @click.stop="handleSelect"
     >
       <div class="flex items-center gap-2 flex-1 min-w-0">
@@ -68,16 +74,16 @@ const handleSelect = () => {
           class="flex-shrink-0 hover:bg-slate-300 dark:hover:bg-slate-600 rounded p-0.5 -m-0.5"
           @click.stop="emit('toggle', !isOpen)"
         >
-          <ChevronDown v-if="isOpen" :size="14" />
-          <ChevronRight v-else :size="14" />
+          <ChevronDown v-if="isOpen" :size="compact ? 11 : 14" />
+          <ChevronRight v-else :size="compact ? 11 : 14" />
         </div>
-        <Database :size="16" class="flex-shrink-0" :class="isSelected ? 'text-blue-600 dark:text-blue-400' : 'text-blue-500 dark:text-blue-400'" />
-        <span class="text-sm font-medium truncate flex-1">{{ name }}</span>
+        <Database :size="compact ? 12 : 16" class="flex-shrink-0" :class="isSelected ? 'text-blue-600 dark:text-blue-400' : 'text-blue-500 dark:text-blue-400'" />
+        <span class="font-medium truncate flex-1">{{ name }}</span>
         <span class="text-[10px] text-slate-400 dark:text-slate-500 group-hover:text-slate-600 dark:group-hover:text-slate-300 flex-shrink-0 mr-1">
           {{ formatSize(size) }}
         </span>
       </div>
-      <Loader2 v-if="isLoading" :size="14" class="animate-spin text-blue-500 flex-shrink-0" />
+      <Loader2 v-if="isLoading" :size="compact ? 11 : 14" class="animate-spin text-blue-500 flex-shrink-0" />
     </div>
     <div v-if="isOpen" class="bg-slate-50 dark:bg-slate-800/30">
       <TableItem

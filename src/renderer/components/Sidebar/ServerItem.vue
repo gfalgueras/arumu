@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, watch } from 'vue';
+import { computed, watch, inject, type Ref } from 'vue';
 import { Server, ChevronRight, ChevronDown, Loader2 } from 'lucide-vue-next';
 import DatabaseItem from './DatabaseItem.vue';
 import { $t } from '../../i18n';

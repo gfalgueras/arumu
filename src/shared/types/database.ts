@@ -101,6 +101,7 @@ export interface TypeGroup {
 export interface AppSettings {
   language?: string;
   theme?: 'system' | 'light' | 'dark';
+  menuDensity?: 'standard' | 'compact';
   hotkeys?: {
     closeTab?: string;
     executeAll?: string;

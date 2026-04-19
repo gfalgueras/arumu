@@ -8,7 +8,7 @@ export interface HotkeyMap {
 }
 
 export const defaultHotkeys: HotkeyMap = {
-  closeTab: 'Shift+W',
+  closeTab: 'Ctrl+W',
   executeAll: 'F9',
   executeStatement: 'Shift+F9',
   newTab: 'Ctrl+T',

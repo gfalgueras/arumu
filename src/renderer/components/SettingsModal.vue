@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
-import { X, Settings, Languages, Moon, Keyboard } from 'lucide-vue-next';
+import { X, Settings, Languages, Moon, Keyboard, PanelLeft } from 'lucide-vue-next';
 import { $t, getLocale, setLocale, supportedLocales } from '../i18n';
 import { api } from '../services/api';
 import type { AppSettings } from '@shared/types/database';
@@ -14,11 +14,12 @@ const emit = defineEmits<{
   (e: 'updated'): void;
 }>();
 
-type Tab = 'general' | 'keyboard';
+type Tab = 'general' | 'keyboard' | 'menu';
 const activeTab = ref<Tab>('general');
 
 const language = ref(getLocale());
 const theme = ref<AppSettings['theme']>('system');
+const menuDensity = ref<AppSettings['menuDensity']>('standard');
 
 const hotkeyCloseTab = ref('');
 const hotkeyExecuteAll = ref('');
@@ -30,6 +31,7 @@ onMounted(async () => {
     const settings: AppSettings = await api.getAppSettings();
     if (settings.language) language.value = settings.language;
     if (settings.theme) theme.value = settings.theme;
+    if (settings.menuDensity) menuDensity.value = settings.menuDensity;
     hotkeyCloseTab.value = settings.hotkeys?.closeTab ?? defaultHotkeys.closeTab;
     hotkeyExecuteAll.value = settings.hotkeys?.executeAll ?? defaultHotkeys.executeAll;
     hotkeyExecuteStatement.value = settings.hotkeys?.executeStatement ?? defaultHotkeys.executeStatement;
@@ -44,6 +46,7 @@ const handleSave = async () => {
     const settings: AppSettings = {
       language: language.value,
       theme: theme.value,
+      menuDensity: menuDensity.value,
       hotkeys: {
         closeTab: hotkeyCloseTab.value || defaultHotkeys.closeTab,
         executeAll: hotkeyExecuteAll.value || defaultHotkeys.executeAll,
@@ -70,6 +73,11 @@ const themeOptions = [
   { value: 'system', label: $t('settings.theme_system') },
   { value: 'light', label: $t('settings.theme_light') },
   { value: 'dark', label: $t('settings.theme_dark') },
+];
+
+const densityOptions = [
+  { value: 'standard', label: $t('settings.menu_density_standard') },
+  { value: 'compact', label: $t('settings.menu_density_compact') },
 ];
 </script>
 
@@ -116,6 +124,16 @@ const themeOptions = [
           <Keyboard :size="15" />
           {{ $t('settings.tab_keyboard') }}
         </button>
+        <button
+          @click="activeTab = 'menu'"
+          class="flex items-center gap-2 px-5 py-3 text-sm font-medium border-b-2 transition-colors"
+          :class="activeTab === 'menu'
+            ? 'border-blue-500 text-blue-600 dark:text-blue-400'
+            : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'"
+        >
+          <PanelLeft :size="15" />
+          {{ $t('settings.tab_menu') }}
+        </button>
       </div>
 
       <!-- General Tab -->
@@ -154,6 +172,17 @@ const themeOptions = [
         <div class="flex items-center justify-between gap-4">
           <span class="text-sm text-slate-600 dark:text-slate-300 w-52 shrink-0">{{ $t('settings.hotkey_new_tab') }}</span>
           <div class="flex-1"><HotkeyInput v-model="hotkeyNewTab" /></div>
+        </div>
+      </div>
+
+      <!-- Menu Tab -->
+      <div v-if="activeTab === 'menu'" class="p-6 space-y-5 text-slate-900 dark:text-slate-100">
+        <div class="space-y-2">
+          <label class="flex items-center gap-2 text-sm font-medium text-slate-600 dark:text-slate-300">
+            <PanelLeft :size="15" class="text-blue-500 dark:text-blue-400" />
+            {{ $t('settings.menu_density_label') }}
+          </label>
+          <AppSelect v-model="menuDensity" :options="densityOptions" />
         </div>
       </div>
 
