@@ -51,8 +51,6 @@ const dbFilter = ref('');
 const tableFilter = ref('');
 const expandedServerNames = ref<string[]>([]);
 const expandedDatabaseIds = ref<string[]>([]);
-const expandedTableIds = ref<string[]>([]);
-const loadingTables = ref<string[]>([]);
 const queryEditorHeight = ref(300);
 const tableSchemaHeight = ref(400);
 
@@ -108,36 +106,6 @@ const handleExpandDatabase = async (serverName: string, dbName: string) => {
   }
 };
 
-const handleExpandTable = async (serverName: string, dbName: string, tableName: string) => {
-  const key = `${serverName}:${dbName}:${tableName}`;
-  if (loadingTables.value.includes(key)) return;
-
-  loadingTables.value.push(key);
-  try {
-    const columns = await api.getColumns(serverName, dbName, tableName);
-
-    servers.value = servers.value.map(s => {
-      if (s.name === serverName) {
-        const updatedDbs = s.databases?.map(db => {
-          if (db.name === dbName) {
-            const updatedTables = db.tables?.map(t => 
-              t.name === tableName ? { ...t, columns } : t
-            );
-            return { ...db, tables: updatedTables };
-          }
-          return db;
-        });
-        return { ...s, databases: updatedDbs };
-      }
-      return s;
-    });
-  } catch (error: any) {
-    console.error('Error fetching columns:', error);
-    showError($t('sidebar.error_columns'));
-  } finally {
-    loadingTables.value = loadingTables.value.filter(k => k !== key);
-  }
-};
 
 const handleConnect = async (storedServer: StoredServer, closeAndRefresh = true): Promise<boolean> => {
   try {
@@ -196,9 +164,8 @@ const initApp = async () => {
     dbFilter.value = state.dbFilter || '';
     tableFilter.value = state.tableFilter || '';
     selectedServerName.value = state.selectedServerName;
-    const serverConnected = !state.selectedServerName || connectedServerNames.has(state.selectedServerName);
-    selectedDatabase.value = serverConnected ? state.selectedDatabase : null;
-    selectedTable.value = serverConnected ? state.selectedTable : null;
+    selectedDatabase.value = null;
+    selectedTable.value = null;
     if (state.queryTabs && state.queryTabs.length > 0) {
       queryTabs.value = state.queryTabs;
     }
@@ -210,7 +177,6 @@ const initApp = async () => {
     }
     expandedServerNames.value = state.expandedServerNames || [];
     expandedDatabaseIds.value = state.expandedDatabaseIds || [];
-    expandedTableIds.value = state.expandedTableIds || [];
   }
 
   await fetchServers();
@@ -226,14 +192,6 @@ const initApp = async () => {
         const [sName, dbName] = dbId.split(':');
         if (sName && dbName) {
           void handleExpandDatabase(sName, dbName);
-        }
-      }
-    }
-    if (state.expandedTableIds) {
-      for (const tableId of state.expandedTableIds) {
-        const [sName, dbName, tableName] = tableId.split(':');
-        if (sName && dbName && tableName) {
-          void handleExpandTable(sName, dbName, tableName);
         }
       }
     }
@@ -297,13 +255,11 @@ onUnmounted(() => {
   }
 });
 
-watch([activeServerNames, selectedServerName, selectedDatabase, selectedTable, activeTab, sidebarWidth, queryEditorHeight, tableSchemaHeight, dbFilter, tableFilter, expandedServerNames, expandedDatabaseIds, expandedTableIds, queryTabs], (_, __, onCleanup) => {
+watch([activeServerNames, selectedServerName, activeTab, sidebarWidth, queryEditorHeight, tableSchemaHeight, dbFilter, tableFilter, expandedServerNames, expandedDatabaseIds, queryTabs], (_, __, onCleanup) => {
   const saveState = async () => {
     const state = {
       activeServerNames: activeServerNames.value,
       selectedServerName: selectedServerName.value,
-      selectedDatabase: selectedDatabase.value,
-      selectedTable: selectedTable.value,
       activeTab: activeTab.value,
       queryTabs: queryTabs.value,
       sidebarWidth: sidebarWidth.value,
@@ -313,7 +269,6 @@ watch([activeServerNames, selectedServerName, selectedDatabase, selectedTable, a
       tableFilter: tableFilter.value,
       expandedServerNames: expandedServerNames.value,
       expandedDatabaseIds: expandedDatabaseIds.value,
-      expandedTableIds: expandedTableIds.value
     };
 
     try {
@@ -473,8 +428,15 @@ const selectTable = (serverName: string, db: string, table: string) => {
 </script>
 
 <template>
-  <div class="flex h-screen w-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 overflow-hidden" :class="isResizing ? 'cursor-col-resize select-none' : ''">
-    <Sidebar 
+  <div class="flex flex-col h-screen w-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 overflow-hidden" :class="isResizing ? 'cursor-col-resize select-none' : ''">
+    <TopBar
+      @openConnection="isModalOpen = true"
+      @closeConnection="handleCloseConnection"
+      @openSettings="isSettingsOpen = true"
+      :canClose="!!selectedServerName"
+    />
+    <div class="flex flex-1 min-h-0">
+    <Sidebar
       :servers="servers"
       :selectedServerName="selectedServerName"
       :selectedDatabase="selectedDatabase"
@@ -483,27 +445,18 @@ const selectTable = (serverName: string, db: string, table: string) => {
       v-model:tableFilter="tableFilter"
       v-model:expandedServerNames="expandedServerNames"
       v-model:expandedDatabaseIds="expandedDatabaseIds"
-      v-model:expandedTableIds="expandedTableIds"
       @selectServer="selectServer"
       @selectDatabase="selectDatabase"
       @selectTable="selectTable"
       @expandServer="handleExpandServer"
       @expandDatabase="handleExpandDatabase"
-      @expandTable="handleExpandTable"
       @configServer="handleConfigServer"
       :loadingServers="loadingServers"
       :loadingDatabases="loadingDatabases"
-      :loadingTables="loadingTables"
       @resizeMouseDown="handleMouseDown"
       @openConnection="isModalOpen = true"
     />
     <div class="flex-1 flex flex-col min-w-0">
-      <TopBar 
-        @openConnection="isModalOpen = true"
-        @closeConnection="handleCloseConnection"
-        @openSettings="isSettingsOpen = true"
-        :canClose="!!selectedServerName"
-      />
       <main class="flex-1 flex flex-col p-4 overflow-hidden min-w-0">
         <div v-if="selectedServerName" class="w-full h-full flex flex-col min-h-0 min-w-0">
           <!-- Tabs Header -->
@@ -655,8 +608,9 @@ const selectTable = (serverName: string, db: string, table: string) => {
         </div>
       </main>
     </div>
+    </div>
 
-    <ConnectionModal 
+    <ConnectionModal
       v-if="isModalOpen"
       @close="isModalOpen = false; editingServer = undefined"
       @connect="handleConnect"

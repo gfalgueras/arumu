@@ -13,8 +13,6 @@ const props = defineProps<{
   selectedTable: string | null;
   isOpen: boolean;
   isLoading?: boolean;
-  loadingTables?: string[];
-  expandedTableIds: string[];
 }>();
 
 const emit = defineEmits<{
@@ -22,8 +20,6 @@ const emit = defineEmits<{
   (e: 'select'): void;
   (e: 'selectTable', table: string): void;
   (e: 'expand'): void;
-  (e: 'expandTable', table: string): void;
-  (e: 'toggleTable', table: string, open: boolean): void;
 }>();
 
 watch(() => props.isOpen, (newVal) => {
@@ -32,8 +28,8 @@ watch(() => props.isOpen, (newVal) => {
   }
 }, { immediate: true });
 
-const filteredTables = computed(() => 
-  props.tables.filter(t => 
+const filteredTables = computed(() =>
+  props.tables.filter(t =>
     t.name.toLowerCase().includes(props.filterTable.toLowerCase())
   )
 );
@@ -62,13 +58,13 @@ const handleSelect = () => {
 
 <template>
   <div v-if="shouldShow">
-    <div 
+    <div
       class="flex items-center gap-2 py-1.5 px-8 hover:bg-slate-200 dark:hover:bg-slate-700 cursor-pointer overflow-hidden group"
       :class="isSelected ? 'bg-blue-600/10 dark:bg-blue-600/20 text-blue-600 dark:text-blue-400' : 'text-slate-600 dark:text-slate-300'"
       @click.stop="handleSelect"
     >
       <div class="flex items-center gap-2 flex-1 min-w-0">
-        <div 
+        <div
           class="flex-shrink-0 hover:bg-slate-300 dark:hover:bg-slate-600 rounded p-0.5 -m-0.5"
           @click.stop="emit('toggle', !isOpen)"
         >
@@ -84,19 +80,13 @@ const handleSelect = () => {
       <Loader2 v-if="isLoading" :size="14" class="animate-spin text-blue-500 flex-shrink-0" />
     </div>
     <div v-if="isOpen" class="bg-slate-50 dark:bg-slate-800/30">
-      <TableItem 
+      <TableItem
         v-for="table in filteredTables"
-        :key="table.name" 
-        v-memo="[table.name, table.size, (table as any).columns, selectedTable === table.name, expandedTableIds.includes(table.name), loadingTables?.includes(table.name)]"
-        :name="table.name" 
+        :key="`${name}_${table.name}`"
+        :name="table.name"
         :size="table.size"
-        :columns="(table as any).columns"
         :isSelected="selectedTable === table.name"
-        :isOpen="expandedTableIds.includes(table.name)"
-        :isLoading="loadingTables?.includes(table.name)"
-        @toggle="(open) => emit('toggleTable', table.name, open)"
         @select="emit('selectTable', table.name)"
-        @expand="emit('expandTable', table.name)"
       />
       <div v-if="!isLoading && filteredTables.length === 0 && tables.length > 0" class="pl-12 py-1 text-xs text-slate-500 dark:text-slate-500 italic">
         {{ $t('sidebar.no_tables_found') }}

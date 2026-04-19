@@ -16,9 +16,7 @@ const props = defineProps<{
   isOpen: boolean;
   isLoading?: boolean;
   loadingDatabases?: string[];
-  loadingTables?: string[];
   expandedDatabaseIds: string[];
-  expandedTableIds: string[];
 }>();
 
 const emit = defineEmits<{
@@ -28,23 +26,9 @@ const emit = defineEmits<{
   (e: 'selectTable', dbName: string, table: string): void;
   (e: 'expand', serverName: string): void;
   (e: 'expandDatabase', db: string): void;
-  (e: 'expandTable', db: string, table: string): void;
   (e: 'contextMenu', event: MouseEvent, name: string): void;
   (e: 'toggleDatabase', db: string, open: boolean): void;
-  (e: 'toggleTable', db: string, table: string, open: boolean): void;
 }>();
-
-const getLoadingTablesForDatabase = (dbName: string) => {
-  return props.loadingTables
-    ?.filter(lt => lt.startsWith(`${dbName}:`))
-    .map(lt => lt.split(':')[1] || '');
-};
-
-const getExpandedTableIdsForDatabase = (dbName: string) => {
-  return props.expandedTableIds
-    .filter(et => et.startsWith(`${dbName}:`))
-    .map(et => et.split(':')[1] || '');
-};
 
 watch(() => props.isOpen, (newVal) => {
   if (newVal && props.databases.length === 0 && !props.isLoading) {
@@ -52,8 +36,8 @@ watch(() => props.isOpen, (newVal) => {
   }
 }, { immediate: true });
 
-const filteredDatabases = computed(() => 
-  props.databases.filter(db => 
+const filteredDatabases = computed(() =>
+  props.databases.filter(db =>
     db.name.toLowerCase().includes(props.filterDatabase.toLowerCase()) &&
     (props.filterTable === '' || db.tables.length === 0 || db.tables.some(t => t.name.toLowerCase().includes(props.filterTable.toLowerCase())))
   )
@@ -74,14 +58,14 @@ const handleSelect = () => {
 
 <template>
   <div v-if="shouldShow">
-    <div 
+    <div
       class="flex items-center gap-2 py-2 px-4 hover:bg-slate-200 dark:hover:bg-slate-700 cursor-pointer overflow-hidden"
       :class="isSelected ? 'bg-blue-600/10 dark:bg-blue-600/20 border-l-2 border-blue-500' : 'text-slate-700 dark:text-slate-200'"
       @click.stop="handleSelect"
       @contextmenu.prevent="emit('contextMenu', $event, name)"
     >
       <div class="flex items-center gap-2 flex-1 min-w-0">
-        <div 
+        <div
           class="flex-shrink-0 hover:bg-slate-300 dark:hover:bg-slate-600 rounded p-0.5 -m-0.5"
           @click.stop="emit('toggle', !isOpen)"
         >
@@ -94,26 +78,21 @@ const handleSelect = () => {
       <Loader2 v-if="isLoading" :size="16" class="animate-spin text-blue-500 flex-shrink-0" />
     </div>
     <div v-if="isOpen">
-      <DatabaseItem 
+      <DatabaseItem
         v-for="db in filteredDatabases"
-        :key="db.name" 
-        v-memo="[db.name, db.size, db.tables, filterTable, selectedDatabase === db.name, selectedTable, expandedDatabaseIds.includes(db.name), loadingDatabases?.includes(db.name), getLoadingTablesForDatabase(db.name), getExpandedTableIdsForDatabase(db.name)]"
-        :name="db.name" 
+        :key="db.name"
+        :name="db.name"
         :size="db.size"
-        :tables="db.tables" 
+        :tables="db.tables"
         :filterTable="filterTable"
         :isSelected="selectedDatabase === db.name"
-        :selectedTable="selectedTable"
+        :selectedTable="selectedDatabase === db.name ? selectedTable : null"
         :isOpen="expandedDatabaseIds.includes(db.name)"
         :isLoading="loadingDatabases?.includes(db.name)"
-        :loadingTables="getLoadingTablesForDatabase(db.name)"
-        :expandedTableIds="getExpandedTableIdsForDatabase(db.name)"
         @toggle="(open) => emit('toggleDatabase', db.name, open)"
         @select="emit('selectDatabase', db.name)"
         @selectTable="(table) => emit('selectTable', db.name, table)"
         @expand="emit('expandDatabase', db.name)"
-        @expandTable="(table) => emit('expandTable', db.name, table)"
-        @toggleTable="(table, open) => emit('toggleTable', db.name, table, open)"
       />
       <div v-if="!isLoading && filteredDatabases.length === 0 && databases.length > 0" class="pl-8 py-1 text-xs text-slate-500 dark:text-slate-500 italic">
         {{ $t('sidebar.no_databases_found') }}

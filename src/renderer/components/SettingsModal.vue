@@ -78,10 +78,10 @@ const themeOptions = [
     class="fixed inset-0 bg-black/60 flex items-center justify-center z-50 backdrop-blur-sm px-4"
     @click.self="emit('close')"
   >
-    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl w-full max-w-lg overflow-hidden shadow-2xl">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl w-full max-w-lg shadow-2xl">
 
       <!-- Header -->
-      <div class="p-4 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50">
+      <div class="p-4 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50 rounded-t-xl">
         <div class="flex items-center gap-2 text-slate-900 dark:text-slate-100 font-semibold">
           <Settings :size="18" class="text-blue-600 dark:text-blue-400" />
           <h2>{{ $t('settings.title') }}</h2>
@@ -158,7 +158,7 @@ const themeOptions = [
       </div>
 
       <!-- Footer -->
-      <div class="p-4 bg-slate-50 dark:bg-slate-800/30 border-t border-slate-200 dark:border-slate-800 flex justify-end gap-3">
+      <div class="p-4 bg-slate-50 dark:bg-slate-800/30 border-t border-slate-200 dark:border-slate-800 flex justify-end gap-3 rounded-b-xl">
         <button
           @click="emit('close')"
           class="px-4 py-2 text-sm font-medium text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors"
