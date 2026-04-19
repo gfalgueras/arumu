@@ -44,7 +44,7 @@ const translations: Record<string, any> = {
       error_config_not_found_title: 'Configuration not found',
       error_config_not_found_msg: 'Could not find saved configuration for this server.',
       error_get_config: 'Error getting configuration',
-      version: 'SQL Manager v1.0.0',
+      version: 'Arumu v1.0.0',
     },
     topbar: {
       open_conn_title: 'Open Connection',
@@ -237,7 +237,7 @@ const translations: Record<string, any> = {
       no_processes: 'No processes found',
     },
     welcome: {
-      title: 'SQL Manager',
+      title: 'Arumu',
       subtitle: 'Select a server, database and table from the sidebar to start managing your data.',
       feature_backend_title: 'Modular Backend',
       feature_backend_desc: 'Ready for MySQL, PostgreSQL, and SQLite.',
@@ -309,7 +309,7 @@ const translations: Record<string, any> = {
       error_config_not_found_title: 'Configuración no encontrada',
       error_config_not_found_msg: 'No se pudo encontrar la configuración guardada para este servidor.',
       error_get_config: 'Error al obtener configuración',
-      version: 'SQL Manager v1.0.0',
+      version: 'Arumu v1.0.0',
     },
     topbar: {
       open_conn_title: 'Abrir Conexión',
@@ -502,7 +502,7 @@ const translations: Record<string, any> = {
       no_processes: 'No se encontraron procesos',
     },
     welcome: {
-      title: 'SQL Manager',
+      title: 'Arumu',
       subtitle: 'Selecciona un servidor, base de datos y tabla del sidebar para empezar a gestionar tus datos.',
       feature_backend_title: 'Backend Modular',
       feature_backend_desc: 'Listo para MySQL, PostgreSQL y SQLite.',
@@ -574,7 +574,7 @@ const translations: Record<string, any> = {
       error_config_not_found_title: 'Configuració no trobada',
       error_config_not_found_msg: "No s'ha pogut trobar la configuració desada per a aquest servidor.",
       error_get_config: 'Error en obtenir la configuració',
-      version: 'SQL Manager v1.0.0',
+      version: 'Arumu v1.0.0',
     },
     topbar: {
       open_conn_title: 'Obre connexió',
@@ -767,7 +767,7 @@ const translations: Record<string, any> = {
       no_processes: "No s'han trobat processos",
     },
     welcome: {
-      title: 'SQL Manager',
+      title: 'Arumu',
       subtitle: 'Selecciona un servidor, base de dades i taula de la barra lateral per gestionar les teves dades.',
       feature_backend_title: 'Backend Modular',
       feature_backend_desc: 'Preparat per a MySQL, PostgreSQL i SQLite.',
@@ -839,7 +839,7 @@ const translations: Record<string, any> = {
       error_config_not_found_title: 'Configuration introuvable',
       error_config_not_found_msg: 'La configuration enregistrée pour ce serveur est introuvable.',
       error_get_config: 'Erreur lors de la récupération de la configuration',
-      version: 'SQL Manager v1.0.0',
+      version: 'Arumu v1.0.0',
     },
     topbar: {
       open_conn_title: 'Ouvrir une connexion',
@@ -1032,7 +1032,7 @@ const translations: Record<string, any> = {
       no_processes: 'Aucun processus trouvé',
     },
     welcome: {
-      title: 'SQL Manager',
+      title: 'Arumu',
       subtitle: 'Sélectionnez un serveur, une base de données et une table dans la barre latérale pour gérer vos données.',
       feature_backend_title: 'Backend modulaire',
       feature_backend_desc: 'Prêt pour MySQL, PostgreSQL et SQLite.',
