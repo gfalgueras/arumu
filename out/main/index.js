@@ -10,6 +10,21 @@ class MySQLDriver {
   constructor() {
     this.connection = null;
   }
+  static {
+    this.queryLogger = null;
+  }
+  async exec(sql, params) {
+    if (!this.connection) throw new Error("Not connected");
+    const t0 = Date.now();
+    try {
+      const result = params !== void 0 ? await this.connection.execute(sql, params) : await this.connection.execute(sql);
+      MySQLDriver.queryLogger?.(sql, Date.now() - t0);
+      return result;
+    } catch (err) {
+      MySQLDriver.queryLogger?.(sql, Date.now() - t0, err.sqlMessage || err.message || String(err));
+      throw err;
+    }
+  }
   async connect(config) {
     this.connection = await mysql.createConnection({
       host: config.host,
@@ -27,68 +42,62 @@ class MySQLDriver {
     }
   }
   async getDatabases() {
-    if (!this.connection) throw new Error("Not connected");
-    const [rows] = await this.connection.execute("SHOW DATABASES");
+    const [rows] = await this.exec("SHOW DATABASES");
     return rows.map((row) => ({
       name: row.Database,
       tables: []
     }));
   }
   async getTables(database) {
-    if (!this.connection) throw new Error("Not connected");
     const query = `
-      SELECT 
-        TABLE_NAME as name, 
+      SELECT
+        TABLE_NAME as name,
         (DATA_LENGTH + INDEX_LENGTH) as size
-      FROM information_schema.TABLES 
+      FROM information_schema.TABLES
       WHERE TABLE_SCHEMA = ?
     `;
-    const [rows] = await this.connection.execute(query, [database]);
+    const [rows] = await this.exec(query, [database]);
     return rows.map((row) => ({
       name: String(row.name || row.TABLE_NAME),
       size: Number(row.size !== void 0 ? row.size : Number(row.DATA_LENGTH || 0) + Number(row.INDEX_LENGTH || 0))
     }));
   }
   async getSchema(database) {
-    if (!this.connection) throw new Error("Not connected");
     const query = `
-      SELECT TABLE_NAME, COLUMN_NAME 
-      FROM information_schema.COLUMNS 
-      WHERE TABLE_SCHEMA = ? 
+      SELECT TABLE_NAME, COLUMN_NAME
+      FROM information_schema.COLUMNS
+      WHERE TABLE_SCHEMA = ?
       ORDER BY TABLE_NAME, ORDINAL_POSITION
     `;
-    const [rows] = await this.connection.execute(query, [database]);
+    const [rows] = await this.exec(query, [database]);
     const schema = {};
     rows.forEach((row) => {
       const tableName = row.TABLE_NAME || row.table_name || row.TableName;
       const columnName = row.COLUMN_NAME || row.column_name || row.ColumnName;
       if (tableName && columnName) {
-        if (!schema[tableName]) {
-          schema[tableName] = [];
-        }
+        if (!schema[tableName]) schema[tableName] = [];
         schema[tableName].push(columnName);
       }
     });
     return schema;
   }
   async getTableColumns(database, table) {
-    if (!this.connection) throw new Error("Not connected");
     const query = `
-      SELECT 
-        COLUMN_NAME as name, 
-        COLUMN_TYPE as type, 
-        IS_NULLABLE as nullable, 
-        COLUMN_KEY as 'key', 
-        COLUMN_DEFAULT as 'default', 
+      SELECT
+        COLUMN_NAME as name,
+        COLUMN_TYPE as type,
+        IS_NULLABLE as nullable,
+        COLUMN_KEY as 'key',
+        COLUMN_DEFAULT as 'default',
         EXTRA as extra,
         COLUMN_COMMENT as comment,
         COLLATION_NAME as collation,
         GENERATION_EXPRESSION as expression
-      FROM information_schema.COLUMNS 
-      WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ? 
+      FROM information_schema.COLUMNS
+      WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ?
       ORDER BY ORDINAL_POSITION
     `;
-    const [rows] = await this.connection.execute(query, [database, table]);
+    const [rows] = await this.exec(query, [database, table]);
     return rows.map((row) => {
       const getValue = (obj, key) => {
         const foundKey = Object.keys(obj).find((k) => k.toLowerCase() === key.toLowerCase());
@@ -117,9 +126,8 @@ class MySQLDriver {
     });
   }
   async getTableIndexes(database, table) {
-    if (!this.connection) throw new Error("Not connected");
     const query = `
-      SELECT 
+      SELECT
         INDEX_NAME as name,
         COLUMN_NAME as column_name,
         NON_UNIQUE as non_unique,
@@ -128,21 +136,16 @@ class MySQLDriver {
       WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ?
       ORDER BY INDEX_NAME, SEQ_IN_INDEX
     `;
-    const [rows] = await this.connection.execute(query, [database, table]);
+    const [rows] = await this.exec(query, [database, table]);
     const indexesMap = /* @__PURE__ */ new Map();
     rows.forEach((row) => {
       const name = row.name;
       if (!indexesMap.has(name)) {
         let trueType = "INDEX";
-        if (name === "PRIMARY") {
-          trueType = "PRIMARY";
-        } else if (row.type === "FULLTEXT") {
-          trueType = "FULLTEXT";
-        } else if (row.type === "SPATIAL") {
-          trueType = "SPATIAL";
-        } else if (row.non_unique === 0) {
-          trueType = "UNIQUE";
-        }
+        if (name === "PRIMARY") trueType = "PRIMARY";
+        else if (row.type === "FULLTEXT") trueType = "FULLTEXT";
+        else if (row.type === "SPATIAL") trueType = "SPATIAL";
+        else if (row.non_unique === 0) trueType = "UNIQUE";
         indexesMap.set(name, {
           name,
           columns: [],
@@ -156,7 +159,6 @@ class MySQLDriver {
     return Array.from(indexesMap.values());
   }
   async getTableForeignKeys(database, table) {
-    if (!this.connection) throw new Error("Not connected");
     const query = `
       SELECT
         k.CONSTRAINT_NAME as name,
@@ -166,15 +168,15 @@ class MySQLDriver {
         r.UPDATE_RULE as update_rule,
         r.DELETE_RULE as delete_rule
       FROM information_schema.KEY_COLUMN_USAGE k
-      JOIN information_schema.REFERENTIAL_CONSTRAINTS r 
-        ON k.CONSTRAINT_NAME = r.CONSTRAINT_NAME 
+      JOIN information_schema.REFERENTIAL_CONSTRAINTS r
+        ON k.CONSTRAINT_NAME = r.CONSTRAINT_NAME
         AND k.CONSTRAINT_SCHEMA = r.CONSTRAINT_SCHEMA
-      WHERE k.TABLE_SCHEMA = ? 
-        AND k.TABLE_NAME = ? 
+      WHERE k.TABLE_SCHEMA = ?
+        AND k.TABLE_NAME = ?
         AND k.REFERENCED_TABLE_NAME IS NOT NULL
       ORDER BY k.CONSTRAINT_NAME, k.ORDINAL_POSITION
     `;
-    const [rows] = await this.connection.execute(query, [database, table]);
+    const [rows] = await this.exec(query, [database, table]);
     const fksMap = /* @__PURE__ */ new Map();
     rows.forEach((row) => {
       const name = row.name;
@@ -194,11 +196,9 @@ class MySQLDriver {
     return Array.from(fksMap.values());
   }
   async getTableCreateStatement(database, table) {
-    if (!this.connection) throw new Error("Not connected");
     const escapedDb = database.replace(/`/g, "``");
     const escapedTable = table.replace(/`/g, "``");
-    const fullTableName = `\`${escapedDb}\`.\`${escapedTable}\``;
-    const [rows] = await this.connection.execute(`SHOW CREATE TABLE ${fullTableName}`);
+    const [rows] = await this.exec(`SHOW CREATE TABLE \`${escapedDb}\`.\`${escapedTable}\``);
     if (rows && rows.length > 0) {
       const row = rows[0];
       const createTableKey = Object.keys(row).find((k) => k.toLowerCase() === "create table");
@@ -207,12 +207,11 @@ class MySQLDriver {
     return "";
   }
   async getTableData(database, table, limit, offset, sort, filter) {
-    if (!this.connection) throw new Error("Not connected");
     const escapedDb = database.replace(/`/g, "``");
     const escapedTable = table.replace(/`/g, "``");
     const fullTableName = `\`${escapedDb}\`.\`${escapedTable}\``;
     const colQuery = `SELECT COLUMN_NAME FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ? ORDER BY ORDINAL_POSITION`;
-    const [colRows] = await this.connection.execute(colQuery, [database, table]);
+    const [colRows] = await this.exec(colQuery, [database, table]);
     const columns = colRows.map((r) => r.COLUMN_NAME);
     let whereClause = "";
     const params = [];
@@ -221,18 +220,12 @@ class MySQLDriver {
       const lowerFilter = trimmedFilter.toLowerCase();
       const isRawWhere = lowerFilter.startsWith("where ") || lowerFilter.includes("=") || lowerFilter.includes(">") || lowerFilter.includes("<") || lowerFilter.includes(" like ") || lowerFilter.includes(" is null") || lowerFilter.includes(" is not null") || lowerFilter.includes(" between ") || lowerFilter.includes(" in (");
       if (isRawWhere) {
-        if (lowerFilter.startsWith("where ")) {
-          whereClause = trimmedFilter;
-        } else {
-          whereClause = `WHERE ${trimmedFilter}`;
-        }
-        console.log(`[MySQLDriver] Using raw WHERE clause: ${whereClause}`);
+        whereClause = lowerFilter.startsWith("where ") ? trimmedFilter : `WHERE ${trimmedFilter}`;
       } else if (columns.length > 0) {
         const searchTerms = columns.map((col) => `\`${col.replace(/`/g, "``")}\` LIKE ?`).join(" OR ");
         whereClause = `WHERE ${searchTerms}`;
         const filterValue = `%${filter}%`;
         columns.forEach(() => params.push(filterValue));
-        console.log(`[MySQLDriver] Using search filter: ${filter}`);
       }
     }
     let orderBy = "";
@@ -244,8 +237,8 @@ class MySQLDriver {
     const query = `SELECT * FROM ${fullTableName} ${whereClause} ${orderBy} LIMIT ${safeLimit} OFFSET ${safeOffset}`;
     const countQuery = `SELECT COUNT(*) as total FROM ${fullTableName} ${whereClause}`;
     const [[rows], [countRows]] = await Promise.all([
-      this.connection.execute(query, params),
-      this.connection.execute(countQuery, params)
+      this.exec(query, params),
+      this.exec(countQuery, params)
     ]);
     const cleanRows = JSON.parse(JSON.stringify(
       rows,
@@ -258,15 +251,13 @@ class MySQLDriver {
     };
   }
   async executeQuery(sql) {
-    if (!this.connection) throw new Error("Not connected");
-    const [result] = await this.connection.execute(sql);
+    const [result] = await this.exec(sql);
     return JSON.parse(JSON.stringify(
       result,
       (_key, value) => typeof value === "bigint" ? value.toString() : value
     ));
   }
   async addIndex(database, table, index) {
-    if (!this.connection) throw new Error("Not connected");
     const escapedDb = database.replace(/`/g, "``");
     const escapedTable = table.replace(/`/g, "``");
     const fullTableName = `\`${escapedDb}\`.\`${escapedTable}\``;
@@ -285,10 +276,9 @@ class MySQLDriver {
     } else {
       sql = `ALTER TABLE ${fullTableName} ADD ${indexKeyword} (${columns})`;
     }
-    await this.connection.execute(sql);
+    await this.exec(sql);
   }
   async addForeignKey(database, table, fk) {
-    if (!this.connection) throw new Error("Not connected");
     const escapedDb = database.replace(/`/g, "``");
     const escapedTable = table.replace(/`/g, "``");
     const fullTableName = `\`${escapedDb}\`.\`${escapedTable}\``;
@@ -299,166 +289,97 @@ class MySQLDriver {
     const ALLOWED_FK_RULES = ["CASCADE", "NO ACTION", "RESTRICT", "SET NULL", "SET DEFAULT"];
     const updateRule = (fk.updateRule || "").toUpperCase();
     const deleteRule = (fk.deleteRule || "").toUpperCase();
-    if (fk.updateRule && !ALLOWED_FK_RULES.includes(updateRule)) {
-      throw new Error(`Invalid ON UPDATE rule: ${fk.updateRule}`);
-    }
-    if (fk.deleteRule && !ALLOWED_FK_RULES.includes(deleteRule)) {
-      throw new Error(`Invalid ON DELETE rule: ${fk.deleteRule}`);
-    }
+    if (fk.updateRule && !ALLOWED_FK_RULES.includes(updateRule)) throw new Error(`Invalid ON UPDATE rule: ${fk.updateRule}`);
+    if (fk.deleteRule && !ALLOWED_FK_RULES.includes(deleteRule)) throw new Error(`Invalid ON DELETE rule: ${fk.deleteRule}`);
     let sql = `ALTER TABLE ${fullTableName} ADD ${constraintName} FOREIGN KEY (${columns}) REFERENCES ${refTable} (${refColumns})`;
-    if (fk.updateRule) {
-      sql += ` ON UPDATE ${updateRule}`;
-    }
-    if (fk.deleteRule) {
-      sql += ` ON DELETE ${deleteRule}`;
-    }
-    await this.connection.execute(sql);
+    if (fk.updateRule) sql += ` ON UPDATE ${updateRule}`;
+    if (fk.deleteRule) sql += ` ON DELETE ${deleteRule}`;
+    await this.exec(sql);
   }
   async dropIndex(database, table, indexName) {
-    if (!this.connection) throw new Error("Not connected");
     const escapedDb = database.replace(/`/g, "``");
     const escapedTable = table.replace(/`/g, "``");
     const fullTableName = `\`${escapedDb}\`.\`${escapedTable}\``;
     if (indexName === "PRIMARY") {
-      await this.connection.execute(`ALTER TABLE ${fullTableName} DROP PRIMARY KEY`);
+      await this.exec(`ALTER TABLE ${fullTableName} DROP PRIMARY KEY`);
     } else {
-      await this.connection.execute(`ALTER TABLE ${fullTableName} DROP INDEX \`${indexName.replace(/`/g, "``")}\``);
+      await this.exec(`ALTER TABLE ${fullTableName} DROP INDEX \`${indexName.replace(/`/g, "``")}\``);
     }
   }
   async dropForeignKey(database, table, fkName) {
-    if (!this.connection) throw new Error("Not connected");
     const escapedDb = database.replace(/`/g, "``");
     const escapedTable = table.replace(/`/g, "``");
     const fullTableName = `\`${escapedDb}\`.\`${escapedTable}\``;
-    await this.connection.execute(`ALTER TABLE ${fullTableName} DROP FOREIGN KEY \`${fkName.replace(/`/g, "``")}\``);
+    await this.exec(`ALTER TABLE ${fullTableName} DROP FOREIGN KEY \`${fkName.replace(/`/g, "``")}\``);
   }
   async addColumn(database, table, column, afterColumn) {
-    if (!this.connection) throw new Error("Not connected");
     const escapedDb = database.replace(/`/g, "``");
     const escapedTable = table.replace(/`/g, "``");
     const fullTableName = `\`${escapedDb}\`.\`${escapedTable}\``;
     const newColName = `\`${column.name.replace(/`/g, "``")}\``;
     let columnType = column.type;
-    if (column.length) {
-      columnType += `(${column.length})`;
-    }
+    if (column.length) columnType += `(${column.length})`;
     let sql = `ALTER TABLE ${fullTableName} ADD COLUMN ${newColName} ${columnType}`;
-    if (column.unsigned) {
-      sql += " UNSIGNED";
-    }
-    if (!column.nullable) {
-      sql += " NOT NULL";
-    } else {
-      sql += " NULL";
-    }
+    if (column.unsigned) sql += " UNSIGNED";
+    if (!column.nullable) sql += " NOT NULL";
+    else sql += " NULL";
     if (column.default !== void 0) {
-      if (column.default === null) {
-        sql += " DEFAULT NULL";
-      } else if (column.default.toUpperCase() === "CURRENT_TIMESTAMP") {
-        sql += " DEFAULT CURRENT_TIMESTAMP";
-      } else {
-        sql += ` DEFAULT '${column.default.replace(/'/g, "''")}'`;
-      }
+      if (column.default === null) sql += " DEFAULT NULL";
+      else if (column.default.toUpperCase() === "CURRENT_TIMESTAMP") sql += " DEFAULT CURRENT_TIMESTAMP";
+      else sql += ` DEFAULT '${column.default.replace(/'/g, "''")}'`;
     }
     if (column.extra) {
       const ALLOWED_EXTRAS = ["AUTO_INCREMENT", "ON UPDATE CURRENT_TIMESTAMP", "DEFAULT_GENERATED", "DEFAULT_GENERATED ON UPDATE CURRENT_TIMESTAMP"];
       const extraUpper = column.extra.toUpperCase().trim();
-      if (!ALLOWED_EXTRAS.includes(extraUpper)) {
-        throw new Error(`Invalid column extra value: ${column.extra}`);
-      }
+      if (!ALLOWED_EXTRAS.includes(extraUpper)) throw new Error(`Invalid column extra value: ${column.extra}`);
       sql += ` ${extraUpper}`;
     }
-    if (column.comment) {
-      sql += ` COMMENT '${column.comment.replace(/'/g, "''")}'`;
-    }
+    if (column.comment) sql += ` COMMENT '${column.comment.replace(/'/g, "''")}'`;
     if (afterColumn !== void 0) {
-      if (afterColumn === "") {
-        sql += " FIRST";
-      } else {
-        sql += ` AFTER \`${afterColumn.replace(/`/g, "``")}\``;
-      }
+      if (afterColumn === "") sql += " FIRST";
+      else sql += ` AFTER \`${afterColumn.replace(/`/g, "``")}\``;
     }
-    await this.connection.execute(sql);
+    await this.exec(sql);
   }
   async updateColumn(database, table, oldColumnName, newColumn, afterColumn) {
-    if (!this.connection) throw new Error("Not connected");
     const escapedDb = database.replace(/`/g, "``");
     const escapedTable = table.replace(/`/g, "``");
     const fullTableName = `\`${escapedDb}\`.\`${escapedTable}\``;
     const oldColName = `\`${oldColumnName.replace(/`/g, "``")}\``;
     const newColName = `\`${newColumn.name.replace(/`/g, "``")}\``;
     let columnType = newColumn.type;
-    if (newColumn.length) {
-      columnType += `(${newColumn.length})`;
-    }
+    if (newColumn.length) columnType += `(${newColumn.length})`;
     let sql = `ALTER TABLE ${fullTableName} CHANGE COLUMN ${oldColName} ${newColName} ${columnType}`;
-    if (newColumn.unsigned) {
-      sql += " UNSIGNED";
-    }
-    if (!newColumn.nullable) {
-      sql += " NOT NULL";
-    } else {
-      sql += " NULL";
-    }
+    if (newColumn.unsigned) sql += " UNSIGNED";
+    if (!newColumn.nullable) sql += " NOT NULL";
+    else sql += " NULL";
     if (newColumn.default !== void 0) {
-      if (newColumn.default === null) {
-        sql += " DEFAULT NULL";
-      } else if (newColumn.default.toUpperCase() === "CURRENT_TIMESTAMP") {
-        sql += " DEFAULT CURRENT_TIMESTAMP";
-      } else {
-        sql += ` DEFAULT '${newColumn.default.replace(/'/g, "''")}'`;
-      }
+      if (newColumn.default === null) sql += " DEFAULT NULL";
+      else if (newColumn.default.toUpperCase() === "CURRENT_TIMESTAMP") sql += " DEFAULT CURRENT_TIMESTAMP";
+      else sql += ` DEFAULT '${newColumn.default.replace(/'/g, "''")}'`;
     }
     if (newColumn.extra) {
       const ALLOWED_EXTRAS = ["AUTO_INCREMENT", "ON UPDATE CURRENT_TIMESTAMP", "DEFAULT_GENERATED", "DEFAULT_GENERATED ON UPDATE CURRENT_TIMESTAMP"];
       const extraUpper = newColumn.extra.toUpperCase().trim();
-      if (!ALLOWED_EXTRAS.includes(extraUpper)) {
-        throw new Error(`Invalid column extra value: ${newColumn.extra}`);
-      }
+      if (!ALLOWED_EXTRAS.includes(extraUpper)) throw new Error(`Invalid column extra value: ${newColumn.extra}`);
       sql += ` ${extraUpper}`;
     }
-    if (newColumn.comment) {
-      sql += ` COMMENT '${newColumn.comment.replace(/'/g, "''")}'`;
-    }
+    if (newColumn.comment) sql += ` COMMENT '${newColumn.comment.replace(/'/g, "''")}'`;
     if (afterColumn !== void 0) {
-      if (afterColumn === "") {
-        sql += " FIRST";
-      } else {
-        sql += ` AFTER \`${afterColumn.replace(/`/g, "``")}\``;
-      }
+      if (afterColumn === "") sql += " FIRST";
+      else sql += ` AFTER \`${afterColumn.replace(/`/g, "``")}\``;
     }
-    await this.connection.execute(sql);
+    await this.exec(sql);
   }
   async getSupportedTypes() {
     return [
-      {
-        group: "Entero",
-        types: ["TINYINT", "SMALLINT", "MEDIUMINT", "INT", "BIGINT", "BIT"]
-      },
-      {
-        group: "Real",
-        types: ["DECIMAL", "FLOAT", "DOUBLE"]
-      },
-      {
-        group: "Texto",
-        types: ["CHAR", "VARCHAR", "TINYTEXT", "TEXT", "MEDIUMTEXT", "LONGTEXT"]
-      },
-      {
-        group: "Binario",
-        types: ["BINARY", "VARBINARY", "TINYBLOB", "BLOB", "MEDIUMBLOB", "LONGBLOB"]
-      },
-      {
-        group: "Tiempo",
-        types: ["DATE", "DATETIME", "TIMESTAMP", "TIME", "YEAR"]
-      },
-      {
-        group: "Geometria",
-        types: ["GEOMETRY", "POINT", "LINESTRING", "POLYGON", "MULTIPOINT", "MULTILINESTRING", "MULTIPOLYGON", "GEOMETRYCOLLECTION"]
-      },
-      {
-        group: "Otros",
-        types: ["ENUM", "SET", "JSON"]
-      }
+      { group: "Entero", types: ["TINYINT", "SMALLINT", "MEDIUMINT", "INT", "BIGINT", "BIT"] },
+      { group: "Real", types: ["DECIMAL", "FLOAT", "DOUBLE"] },
+      { group: "Texto", types: ["CHAR", "VARCHAR", "TINYTEXT", "TEXT", "MEDIUMTEXT", "LONGTEXT"] },
+      { group: "Binario", types: ["BINARY", "VARBINARY", "TINYBLOB", "BLOB", "MEDIUMBLOB", "LONGBLOB"] },
+      { group: "Tiempo", types: ["DATE", "DATETIME", "TIMESTAMP", "TIME", "YEAR"] },
+      { group: "Geometria", types: ["GEOMETRY", "POINT", "LINESTRING", "POLYGON", "MULTIPOINT", "MULTILINESTRING", "MULTIPOLYGON", "GEOMETRYCOLLECTION"] },
+      { group: "Otros", types: ["ENUM", "SET", "JSON"] }
     ];
   }
 }
@@ -596,8 +517,9 @@ const saveAppSettings = (settings) => {
   fs.writeFileSync(APP_SETTINGS_FILE, JSON.stringify(settings, null, 2));
 };
 let activeServers = [];
+let mainWindow = null;
 function createWindow() {
-  const mainWindow = new BrowserWindow({
+  mainWindow = new BrowserWindow({
     width: 1280,
     height: 800,
     autoHideMenuBar: true,
@@ -606,6 +528,14 @@ function createWindow() {
       contextIsolation: true,
       nodeIntegration: false
     }
+  });
+  MySQLDriver.queryLogger = (sql, durationMs, error) => {
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send("query:log", { sql, durationMs, error });
+    }
+  };
+  mainWindow.on("closed", () => {
+    mainWindow = null;
   });
   if (process.env.ELECTRON_RENDERER_URL) {
     mainWindow.loadURL(process.env.ELECTRON_RENDERER_URL);

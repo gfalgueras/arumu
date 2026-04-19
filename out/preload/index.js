@@ -43,7 +43,8 @@ const ALLOWED_INVOKE_CHANNELS = /* @__PURE__ */ new Set([
   "api:deleteSnippet"
 ]);
 const ALLOWED_ON_CHANNELS = /* @__PURE__ */ new Set([
-  "app:notification"
+  "app:notification",
+  "query:log"
 ]);
 electron.contextBridge.exposeInMainWorld("electronAPI", {
   invoke: (channel, ...args) => {

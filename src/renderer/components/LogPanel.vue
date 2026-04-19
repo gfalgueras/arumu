@@ -1,13 +1,18 @@
 <script setup lang="ts">
-import { ref, watch, nextTick, onUnmounted } from 'vue';
-import { ChevronDown, ChevronUp, Trash2, GripHorizontal, AlertCircle, CheckCircle, Info, AlertTriangle } from 'lucide-vue-next';
+import { ref, computed, watch, nextTick, onUnmounted } from 'vue';
+import { ChevronDown, ChevronUp, Trash2, GripHorizontal, AlertCircle, CheckCircle, Info, AlertTriangle, ArrowDownNarrowWide, ArrowUpNarrowWide } from 'lucide-vue-next';
 import { logEntries, clearLogs, type LogLevel } from '../logService';
 
 const collapsed = ref(false);
 const height = ref(160);
 const isResizing = ref(false);
 const scrollRef = ref<HTMLElement | null>(null);
+const newestFirst = ref(true);
 const autoScroll = ref(true);
+
+const displayedEntries = computed(() =>
+  newestFirst.value ? [...logEntries].reverse() : logEntries
+);
 
 const startResize = (e: MouseEvent) => {
   e.preventDefault();
@@ -33,13 +38,19 @@ onUnmounted(() => {
   window.removeEventListener('mouseup', onMouseUp);
 });
 
+// Autoscroll when new entries arrive (only in oldest-first mode)
 watch(logEntries, async () => {
-  if (!autoScroll.value || collapsed.value) return;
+  if (newestFirst.value || !autoScroll.value || collapsed.value) return;
   await nextTick();
-  if (scrollRef.value) {
-    scrollRef.value.scrollTop = scrollRef.value.scrollHeight;
-  }
+  if (scrollRef.value) scrollRef.value.scrollTop = scrollRef.value.scrollHeight;
 }, { deep: true });
+
+// Reset scroll position when toggling sort order
+watch(newestFirst, async (val) => {
+  await nextTick();
+  if (!scrollRef.value) return;
+  scrollRef.value.scrollTop = val ? 0 : scrollRef.value.scrollHeight;
+});
 
 const levelIcon = (level: LogLevel) => {
   if (level === 'error') return AlertCircle;
@@ -62,10 +73,7 @@ const rowClass = (level: LogLevel) => {
   return 'hover:bg-slate-50 dark:hover:bg-slate-800/40';
 };
 
-const formatTime = (d: Date) => {
-  return d.toTimeString().slice(0, 8);
-};
-
+const formatTime = (d: Date) => d.toTimeString().slice(0, 8);
 </script>
 
 <template>
@@ -74,7 +82,7 @@ const formatTime = (d: Date) => {
     :class="isResizing ? 'select-none' : ''"
     :style="collapsed ? {} : { height: height + 'px' }"
   >
-    <!-- Resize handle (only when expanded) -->
+    <!-- Resize handle -->
     <div
       v-if="!collapsed"
       class="h-3 flex items-center justify-center cursor-row-resize group flex-shrink-0"
@@ -96,11 +104,27 @@ const formatTime = (d: Date) => {
       >
         {{ logEntries.length }}
       </span>
+
       <div class="ml-auto flex items-center gap-1">
-        <label class="flex items-center gap-1 text-[10px] text-slate-400 dark:text-slate-500 cursor-pointer select-none mr-1">
+        <!-- Autoscroll — only visible in oldest-first mode -->
+        <label
+          v-if="!newestFirst"
+          class="flex items-center gap-1 text-[10px] text-slate-400 dark:text-slate-500 cursor-pointer select-none mr-1"
+        >
           <input type="checkbox" v-model="autoScroll" class="w-3 h-3 accent-blue-500" />
           auto-scroll
         </label>
+
+        <!-- Sort order toggle -->
+        <button
+          @click="newestFirst = !newestFirst"
+          class="flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] transition-colors text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700"
+          :title="newestFirst ? 'Mostrando más nuevos primero' : 'Mostrando más antiguos primero'"
+        >
+          <ArrowDownNarrowWide v-if="newestFirst" :size="13" />
+          <ArrowUpNarrowWide v-else :size="13" />
+        </button>
+
         <button
           @click="clearLogs()"
           class="p-1 text-slate-400 hover:text-red-500 dark:hover:text-red-400 transition-colors rounded hover:bg-slate-100 dark:hover:bg-slate-700"
@@ -126,13 +150,13 @@ const formatTime = (d: Date) => {
       class="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-300 dark:scrollbar-thumb-slate-700 scrollbar-track-transparent font-mono text-xs"
     >
       <div
-        v-if="logEntries.length === 0"
+        v-if="displayedEntries.length === 0"
         class="flex items-center justify-center h-full text-slate-400 dark:text-slate-600 italic text-[11px]"
       >
         No log entries yet
       </div>
       <div
-        v-for="entry in logEntries"
+        v-for="entry in displayedEntries"
         :key="entry.id"
         class="flex items-start gap-2 px-3 py-1 border-b border-slate-100 dark:border-slate-800/50 transition-colors"
         :class="rowClass(entry.level)"

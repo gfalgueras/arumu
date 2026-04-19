@@ -2,7 +2,8 @@
 import { ref, onMounted, onUnmounted, watch, computed, shallowRef } from 'vue';
 import {
   ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight,
-  ArrowUp, ArrowDown, Loader2, Download, ChevronDown, Plus, Check, X, Upload
+  ArrowUp, ArrowDown, Loader2, Download, ChevronDown, Plus, Check, X, Upload,
+  Copy, Clipboard, Type, Trash2, ChevronRight as SubArrow
 } from 'lucide-vue-next';
 import type { SortConfig, TableDataResponse, ColumnInfo } from '@shared/types/database';
 import { showError } from '../errorService';
@@ -20,6 +21,13 @@ const props = defineProps<{
 }>();
 
 interface EditCell { value: string; isNull: boolean; }
+interface ContextMenuState {
+  x: number;
+  y: number;
+  rowIndex: number;
+  col: string;
+  colValue: any;
+}
 
 const data = shallowRef<TableDataResponse | null>(null);
 const loading = ref(false);
@@ -36,24 +44,30 @@ const resizingColumn = ref<{
 } | null>(null);
 
 const tableRef = ref<HTMLTableElement | null>(null);
-// Plain Map — no reactive overhead for DOM refs used only in mousemove handler
 const colRefs = new Map<string, HTMLTableColElement>();
 const limit = 1000;
 
-// Row editing state
 const columnInfo = ref<ColumnInfo[]>([]);
-const editingRowIndex = ref<number | null>(null);
-// shallowRef: we always reassign the whole object with spread, never mutate nested props
-const editValues = shallowRef<Record<string, EditCell>>({});
+const savingCell = ref(false);
+
+// Cell selection + editing
+const selectedCell = ref<{ rowIndex: number; col: string } | null>(null);
+const editingCell = ref<{ rowIndex: number; col: string } | null>(null);
+const editingValue = ref<EditCell>({ value: '', isNull: false });
+
+// Context menu
+const contextMenu = ref<ContextMenuState | null>(null);
+const contextMenuRef = ref<HTMLElement | null>(null);
+
+// New row form
 const newRowMode = ref(false);
 const newRowValues = shallowRef<Record<string, EditCell>>({});
-const savingRow = ref(false);
 
-// Export dropdown
+// Export
 const showExportMenu = ref(false);
 const exportMenuRef = ref<HTMLElement | null>(null);
 
-// Import modal
+// Import
 const showImportModal = ref(false);
 
 const pkColumns = computed(() =>
@@ -61,7 +75,6 @@ const pkColumns = computed(() =>
 );
 const canEdit = computed(() => pkColumns.value.length > 0);
 
-// Precomputed sort map — avoids calling find()+indexOf() per column in template
 const sortIconMap = computed(() => {
   const map: Record<string, { direction: 'ASC' | 'DESC'; index: number } | undefined> = {};
   for (let i = 0; i < sort.value.length; i++) {
@@ -76,8 +89,10 @@ watch(() => [props.serverName, props.database, props.table], async () => {
   sort.value = [];
   appliedFilter.value = '';
   columnWidths.value = {};
-  editingRowIndex.value = null;
+  selectedCell.value = null;
+  editingCell.value = null;
   newRowMode.value = false;
+  contextMenu.value = null;
   try {
     columnInfo.value = await api.getColumns(props.serverName, props.database, props.table);
   } catch {
@@ -109,7 +124,7 @@ watch(() => [props.serverName, props.database, props.table, page.value, sort.val
 }, { immediate: true });
 
 const handleSort = (column: string) => {
-  if (editingRowIndex.value !== null || newRowMode.value) return;
+  if (editingCell.value || newRowMode.value) return;
   const existing = sort.value.find(s => s.column === column);
   if (!existing) {
     sort.value = [...sort.value, { column, direction: 'DESC' }];
@@ -125,7 +140,6 @@ const handleApplyFilter = (val: string) => {
   appliedFilter.value = val;
 };
 
-// Stable key for v-for rows — prevents full re-mount on sort/filter when PK exists
 const getRowKey = (row: any, i: number): string | number => {
   if (pkColumns.value.length > 0) {
     return pkColumns.value.map(pk => row[pk]).join('§');
@@ -133,7 +147,206 @@ const getRowKey = (row: any, i: number): string | number => {
   return i;
 };
 
-// Column resize — directly mutates DOM style during drag (no reactive updates until mouseup)
+// ---- Cell selection & editing ----
+
+const selectCell = (rowIndex: number, col: string) => {
+  if (editingCell.value) cancelEditCell();
+  selectedCell.value = { rowIndex, col };
+};
+
+const startEditCell = (rowIndex: number, col: string) => {
+  if (!canEdit.value || !data.value) return;
+  const row = data.value.rows[rowIndex];
+  editingCell.value = { rowIndex, col };
+  editingValue.value = {
+    value: row[col] === null ? '' : String(row[col]),
+    isNull: row[col] === null,
+  };
+  selectedCell.value = { rowIndex, col };
+  contextMenu.value = null;
+};
+
+const cancelEditCell = () => {
+  editingCell.value = null;
+};
+
+const updateEditValue = (value: string, isNull: boolean) => {
+  editingValue.value = { value, isNull };
+};
+
+const saveEditCell = async () => {
+  if (!editingCell.value || !data.value || savingCell.value) return;
+  savingCell.value = true;
+  const { rowIndex, col } = editingCell.value;
+  try {
+    const setExpr = editingValue.value.isNull ? 'NULL' : escVal(editingValue.value.value);
+    const whereClauses = pkColumns.value
+      .map(pk => `${escId(pk)} = ${escVal(data.value!.rows[rowIndex][pk] === null ? null : String(data.value!.rows[rowIndex][pk]))}`)
+      .join(' AND ');
+    await api.executeSql(props.serverName, `UPDATE ${escId(props.table)} SET ${escId(col)} = ${setExpr} WHERE ${whereClauses}`, props.database);
+    await fetchData();
+    editingCell.value = null;
+  } catch {
+    // error already logged by log panel
+  } finally {
+    savingCell.value = false;
+  }
+};
+
+// ---- Context menu ----
+
+const openContextMenu = (e: MouseEvent, rowIndex: number, col: string) => {
+  if (editingCell.value) cancelEditCell();
+  selectedCell.value = { rowIndex, col };
+  const menuWidth = 210;
+  const menuHeight = 240;
+  contextMenu.value = {
+    x: Math.min(e.clientX, window.innerWidth - menuWidth - 8),
+    y: Math.min(e.clientY, window.innerHeight - menuHeight - 8),
+    rowIndex,
+    col,
+    colValue: data.value?.rows[rowIndex]?.[col],
+  };
+};
+
+const closeContextMenu = () => {
+  contextMenu.value = null;
+};
+
+const copyCell = async () => {
+  if (!contextMenu.value) return;
+  const val = contextMenu.value.colValue;
+  await navigator.clipboard.writeText(val === null ? '' : String(val));
+  closeContextMenu();
+};
+
+const pasteCell = async () => {
+  if (!contextMenu.value || !canEdit.value) return;
+  const { rowIndex, col } = contextMenu.value;
+  closeContextMenu();
+  try {
+    const text = await navigator.clipboard.readText();
+    startEditCell(rowIndex, col);
+    editingValue.value = { value: text, isNull: false };
+  } catch {
+    // clipboard access denied
+  }
+};
+
+const insertValue = async (value: string | null, isExpression: boolean) => {
+  if (!contextMenu.value || !data.value || !canEdit.value) return;
+  const { rowIndex, col } = contextMenu.value;
+  closeContextMenu();
+  savingCell.value = true;
+  try {
+    const setExpr = value === null ? 'NULL' : isExpression ? value : escVal(value);
+    const whereClauses = pkColumns.value
+      .map(pk => `${escId(pk)} = ${escVal(data.value!.rows[rowIndex][pk] === null ? null : String(data.value!.rows[rowIndex][pk]))}`)
+      .join(' AND ');
+    await api.executeSql(props.serverName, `UPDATE ${escId(props.table)} SET ${escId(col)} = ${setExpr} WHERE ${whereClauses}`, props.database);
+    await fetchData();
+  } catch {
+    // error already logged by log panel
+  } finally {
+    savingCell.value = false;
+  }
+};
+
+const deleteRow = async () => {
+  if (!contextMenu.value || !data.value || !confirm($t('data_table.confirm_delete'))) return;
+  const rowIndex = contextMenu.value.rowIndex;
+  closeContextMenu();
+  savingCell.value = true;
+  try {
+    const whereClauses = pkColumns.value
+      .map(pk => `${escId(pk)} = ${escVal(data.value!.rows[rowIndex][pk] === null ? null : String(data.value!.rows[rowIndex][pk]))}`)
+      .join(' AND ');
+    await api.executeSql(props.serverName, `DELETE FROM ${escId(props.table)} WHERE ${whereClauses}`, props.database);
+    selectedCell.value = null;
+    await fetchData();
+  } catch {
+    // error already logged by log panel
+  } finally {
+    savingCell.value = false;
+  }
+};
+
+// Insert value submenu options based on column type
+const contextInsertOptions = computed(() => {
+  if (!contextMenu.value) return [];
+  const col = contextMenu.value.col;
+  const ci = columnInfo.value.find(c => c.name === col);
+  const type = (ci?.type || '').toUpperCase();
+  const options: Array<{ label: string; value: string | null; isExpression: boolean }> = [
+    { label: 'NULL', value: null, isExpression: false },
+  ];
+  if (type.includes('DATETIME') || type.includes('TIMESTAMP')) {
+    options.push({ label: 'NOW()', value: 'NOW()', isExpression: true });
+    options.push({ label: 'CURRENT_TIMESTAMP()', value: 'CURRENT_TIMESTAMP()', isExpression: true });
+  }
+  if (type === 'DATE') {
+    options.push({ label: 'CURDATE()', value: 'CURDATE()', isExpression: true });
+  }
+  if (type.includes('UUID')) {
+    options.push({ label: 'UUID()', value: 'UUID()', isExpression: true });
+  }
+  if (type.startsWith('TINYINT') || type.startsWith('BOOLEAN') || type.startsWith('BOOL')) {
+    options.push({ label: '1 (TRUE)', value: '1', isExpression: false });
+    options.push({ label: '0 (FALSE)', value: '0', isExpression: false });
+  }
+  if (type.includes('JSON')) {
+    options.push({ label: '{} (object)', value: '{}', isExpression: false });
+    options.push({ label: '[] (array)', value: '[]', isExpression: false });
+  }
+  return options;
+});
+
+// ---- New row form ----
+
+const updateNewRowCell = (col: string, value: string, isNull: boolean) => {
+  newRowValues.value = { ...newRowValues.value, [col]: { value, isNull } };
+};
+
+const startNewRow = () => {
+  if (!data.value) return;
+  const vals: Record<string, EditCell> = {};
+  for (const col of data.value.columns) {
+    const ci = columnInfo.value.find(c => c.name === col);
+    vals[col] = { value: ci?.default != null ? String(ci.default) : '', isNull: ci?.nullable ?? true };
+  }
+  newRowValues.value = vals;
+  newRowMode.value = true;
+  selectedCell.value = null;
+  editingCell.value = null;
+  contextMenu.value = null;
+};
+
+const cancelNewRow = () => {
+  newRowMode.value = false;
+  newRowValues.value = {};
+};
+
+const saveNewRow = async () => {
+  if (!data.value || savingCell.value) return;
+  savingCell.value = true;
+  try {
+    const cols = data.value.columns.map(escId).join(', ');
+    const vals = data.value.columns
+      .map(col => escVal(newRowValues.value[col]?.isNull ? null : newRowValues.value[col]?.value ?? ''))
+      .join(', ');
+    await api.executeSql(props.serverName, `INSERT INTO ${escId(props.table)} (${cols}) VALUES (${vals})`, props.database);
+    newRowMode.value = false;
+    newRowValues.value = {};
+    await fetchData();
+  } catch {
+    // error already logged by log panel
+  } finally {
+    savingCell.value = false;
+  }
+};
+
+// ---- Column resize ----
+
 const handleMouseDown = (e: MouseEvent, column: string) => {
   const currentWidth = columnWidths.value[column] || 150;
   const otherColumnsTotalWidth = data.value?.columns.reduce((acc, col) => {
@@ -150,8 +363,7 @@ const handleMouseMove = (e: MouseEvent) => {
   const colEl = colRefs.get(resizingColumn.value.name);
   if (colEl) colEl.style.width = `${newWidth}px`;
   if (tableRef.value) {
-    const newTotalWidth = resizingColumn.value.otherColumnsTotalWidth + newWidth;
-    tableRef.value.style.width = `${newTotalWidth}px`;
+    tableRef.value.style.width = `${resizingColumn.value.otherColumnsTotalWidth + newWidth}px`;
   }
 };
 
@@ -164,31 +376,64 @@ const handleMouseUp = (e: MouseEvent) => {
   resizingColumn.value = null;
 };
 
-const handleClickOutside = (e: MouseEvent) => {
+const handleKeyNav = (e: KeyboardEvent) => {
+  if (!selectedCell.value || editingCell.value || newRowMode.value || !data.value) return;
+  const cols = data.value.columns;
+  const { rowIndex, col } = selectedCell.value;
+  const colIdx = cols.indexOf(col);
+
+  if (e.key === 'ArrowRight') {
+    if (colIdx < cols.length - 1) { e.preventDefault(); selectedCell.value = { rowIndex, col: cols[colIdx + 1] }; }
+  } else if (e.key === 'ArrowLeft') {
+    if (colIdx > 0) { e.preventDefault(); selectedCell.value = { rowIndex, col: cols[colIdx - 1] }; }
+  } else if (e.key === 'ArrowDown') {
+    if (rowIndex < data.value.rows.length - 1) { e.preventDefault(); selectedCell.value = { rowIndex: rowIndex + 1, col }; }
+  } else if (e.key === 'ArrowUp') {
+    if (rowIndex > 0) { e.preventDefault(); selectedCell.value = { rowIndex: rowIndex - 1, col }; }
+  } else if (e.key === 'Enter') {
+    e.preventDefault();
+    startEditCell(rowIndex, col);
+  } else if (e.key === 'Escape') {
+    selectedCell.value = null;
+  }
+};
+
+const handleGlobalClick = (e: MouseEvent) => {
+  // Close export menu
   if (exportMenuRef.value && !exportMenuRef.value.contains(e.target as Node)) {
     showExportMenu.value = false;
+  }
+  // Close context menu if clicking outside
+  if (contextMenu.value && contextMenuRef.value && !contextMenuRef.value.contains(e.target as Node)) {
+    closeContextMenu();
+  }
+  // Deselect cell if clicking outside the table
+  if (tableRef.value && !tableRef.value.contains(e.target as Node)) {
+    selectedCell.value = null;
+    if (editingCell.value) cancelEditCell();
   }
 };
 
 onMounted(() => {
   window.addEventListener('mousemove', handleMouseMove);
   window.addEventListener('mouseup', handleMouseUp);
-  document.addEventListener('mousedown', handleClickOutside);
+  document.addEventListener('mousedown', handleGlobalClick);
+  window.addEventListener('keydown', handleKeyNav);
 });
 
 onUnmounted(() => {
   window.removeEventListener('mousemove', handleMouseMove);
   window.removeEventListener('mouseup', handleMouseUp);
-  document.removeEventListener('mousedown', handleClickOutside);
+  document.removeEventListener('mousedown', handleGlobalClick);
+  window.removeEventListener('keydown', handleKeyNav);
 });
 
 const totalPages = computed(() => data.value ? Math.ceil(data.value.total / limit) : 0);
 const totalWidth = computed(() => {
-  const dataCols = data.value?.columns.reduce((acc, col) => acc + (columnWidths.value[col] || 150), 0) || 0;
-  return dataCols + 70; // action column
+  return data.value?.columns.reduce((acc, col) => acc + (columnWidths.value[col] || 150), 0) || 0;
 });
 
-// ---- Row Editing ----
+// ---- SQL helpers ----
 
 const escId = (s: string) => '`' + s.replace(/`/g, '``') + '`';
 const escVal = (val: string | null): string => {
@@ -196,101 +441,6 @@ const escVal = (val: string | null): string => {
   const n = Number(val);
   if (!isNaN(n) && val.trim() !== '') return val;
   return "'" + val.replace(/\\/g, '\\\\').replace(/'/g, "\\'") + "'";
-};
-
-const startEdit = (index: number) => {
-  const row = data.value!.rows[index];
-  const vals: Record<string, EditCell> = {};
-  for (const col of data.value!.columns) {
-    vals[col] = { value: row[col] === null ? '' : String(row[col]), isNull: row[col] === null };
-  }
-  editValues.value = vals;
-  editingRowIndex.value = index;
-  newRowMode.value = false;
-};
-
-const cancelEdit = () => {
-  editingRowIndex.value = null;
-  newRowMode.value = false;
-  newRowValues.value = {};
-};
-
-const updateCell = (col: string, value: string, isNull: boolean) => {
-  if (newRowMode.value) {
-    newRowValues.value = { ...newRowValues.value, [col]: { value, isNull } };
-  } else {
-    editValues.value = { ...editValues.value, [col]: { value, isNull } };
-  }
-};
-
-const saveEdit = async (index: number) => {
-  if (!data.value || savingRow.value) return;
-  savingRow.value = true;
-  try {
-    const setClauses = data.value.columns
-      .map(col => `${escId(col)} = ${escVal(editValues.value[col]?.isNull ? null : editValues.value[col]?.value ?? '')}`)
-      .join(', ');
-    const whereClauses = pkColumns.value
-      .map(pk => `${escId(pk)} = ${escVal(data.value!.rows[index][pk] === null ? null : String(data.value!.rows[index][pk]))}`)
-      .join(' AND ');
-    await api.executeSql(props.serverName, `UPDATE ${escId(props.table)} SET ${setClauses} WHERE ${whereClauses}`, props.database);
-    editingRowIndex.value = null;
-    await fetchData();
-  } catch (err: any) {
-    const msg = err.message?.replace(/^Error invoking remote method '[^']+': (Error: )?/, '') || String(err);
-    showError($t('data_table.error_update'), msg);
-  } finally {
-    savingRow.value = false;
-  }
-};
-
-const deleteRow = async (index: number) => {
-  if (!data.value || !confirm($t('data_table.confirm_delete'))) return;
-  savingRow.value = true;
-  try {
-    const whereClauses = pkColumns.value
-      .map(pk => `${escId(pk)} = ${escVal(data.value!.rows[index][pk] === null ? null : String(data.value!.rows[index][pk]))}`)
-      .join(' AND ');
-    await api.executeSql(props.serverName, `DELETE FROM ${escId(props.table)} WHERE ${whereClauses}`, props.database);
-    await fetchData();
-  } catch (err: any) {
-    const msg = err.message?.replace(/^Error invoking remote method '[^']+': (Error: )?/, '') || String(err);
-    showError($t('data_table.error_delete'), msg);
-  } finally {
-    savingRow.value = false;
-  }
-};
-
-const startNewRow = () => {
-  if (!data.value) return;
-  const vals: Record<string, EditCell> = {};
-  for (const col of data.value.columns) {
-    const ci = columnInfo.value.find(c => c.name === col);
-    vals[col] = { value: ci?.default != null ? String(ci.default) : '', isNull: ci?.nullable ?? true };
-  }
-  newRowValues.value = vals;
-  newRowMode.value = true;
-  editingRowIndex.value = null;
-};
-
-const saveNewRow = async () => {
-  if (!data.value || savingRow.value) return;
-  savingRow.value = true;
-  try {
-    const cols = data.value.columns.map(escId).join(', ');
-    const vals = data.value.columns
-      .map(col => escVal(newRowValues.value[col]?.isNull ? null : newRowValues.value[col]?.value ?? ''))
-      .join(', ');
-    await api.executeSql(props.serverName, `INSERT INTO ${escId(props.table)} (${cols}) VALUES (${vals})`, props.database);
-    newRowMode.value = false;
-    newRowValues.value = {};
-    await fetchData();
-  } catch (err: any) {
-    const msg = err.message?.replace(/^Error invoking remote method '[^']+': (Error: )?/, '') || String(err);
-    showError($t('data_table.error_insert'), msg);
-  } finally {
-    savingRow.value = false;
-  }
 };
 
 // ---- Export ----
@@ -313,19 +463,14 @@ const exportCurrentPage = async () => {
   for (const row of data.value.rows) {
     content += cols.map(col => csvEscape(row[col])).join(',') + '\n';
   }
-  const result = await api.saveExportFile(
-    `${props.table}.csv`,
-    content,
-    [{ name: 'CSV Files', extensions: ['csv'] }]
-  );
-  if (!result?.saved) return;
+  await api.saveExportFile(`${props.table}.csv`, content, [{ name: 'CSV Files', extensions: ['csv'] }]);
 };
 
 const exportAllCsv = async () => {
   showExportMenu.value = false;
   try {
     await api.exportTableData(props.serverName, props.database, props.table, 'csv', appliedFilter.value, sort.value);
-  } catch (err: any) {
+  } catch {
     showError($t('data_table.error_export'));
   }
 };
@@ -334,14 +479,17 @@ const exportSql = async () => {
   showExportMenu.value = false;
   try {
     await api.exportTableData(props.serverName, props.database, props.table, 'sql', appliedFilter.value, sort.value);
-  } catch (err: any) {
+  } catch {
     showError($t('data_table.error_export'));
   }
 };
 </script>
 
 <template>
-  <div class="flex-1 flex flex-col min-h-0 w-full min-w-0 relative" :class="resizingColumn ? 'cursor-col-resize select-none' : ''">
+  <div
+    class="flex-1 flex flex-col min-h-0 w-full min-w-0 relative"
+    :class="resizingColumn ? 'cursor-col-resize select-none' : ''"
+  >
     <div v-if="loading && !data" class="absolute inset-0 bg-slate-50/50 dark:bg-slate-900/50 flex items-center justify-center z-10 rounded-lg">
       <Loader2 class="animate-spin text-blue-500" :size="48" />
     </div>
@@ -371,9 +519,8 @@ const exportSql = async () => {
           <!-- Add row button -->
           <button
             v-if="canEdit && data"
-            @click="newRowMode ? cancelEdit() : startNewRow()"
-            :disabled="savingRow"
-            :title="$t('data_table.add_row')"
+            @click="newRowMode ? cancelNewRow() : startNewRow()"
+            :disabled="savingCell"
             class="flex items-center gap-1 px-2 py-1.5 text-xs font-medium rounded-lg border transition-colors"
             :class="newRowMode
               ? 'bg-red-50 dark:bg-red-500/10 border-red-300 dark:border-red-700 text-red-600 dark:text-red-400'
@@ -384,12 +531,11 @@ const exportSql = async () => {
             <span>{{ newRowMode ? $t('data_table.cancel_edit') : $t('data_table.add_row') }}</span>
           </button>
 
-          <!-- No PK warning -->
           <span v-else-if="data && !canEdit" class="text-xs text-amber-500 dark:text-amber-400 italic">
             {{ $t('data_table.no_primary_key') }}
           </span>
 
-          <!-- Import button -->
+          <!-- Import -->
           <button
             @click="showImportModal = true"
             class="flex items-center gap-1 px-2 py-1.5 text-xs font-medium bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:border-blue-400 hover:text-blue-600 rounded-lg transition-colors"
@@ -398,7 +544,7 @@ const exportSql = async () => {
             <span>{{ $t('import.import') }}</span>
           </button>
 
-          <!-- Export dropdown -->
+          <!-- Export -->
           <div class="relative" ref="exportMenuRef">
             <button
               @click="showExportMenu = !showExportMenu"
@@ -462,7 +608,6 @@ const exportSql = async () => {
               :style="{ width: (columnWidths[col] || 150) + 'px' }"
               :ref="(el) => { if (el) colRefs.set(col, el as HTMLTableColElement); }"
             />
-            <col style="width: 70px" />
           </colgroup>
           <thead class="sticky top-0 z-20 bg-slate-100 dark:bg-slate-800 shadow-sm">
             <tr>
@@ -487,10 +632,9 @@ const exportSql = async () => {
                 <div
                   @mousedown.prevent="handleMouseDown($event, col)"
                   class="absolute top-0 right-0 w-1 h-full cursor-col-resize hover:bg-blue-500 z-10"
-                  :class="[resizingColumn?.name === col ? 'bg-blue-500' : 'bg-transparent group-hover/header:bg-slate-300 dark:group-hover/header:bg-slate-600']"
+                  :class="resizingColumn?.name === col ? 'bg-blue-500' : 'bg-transparent group-hover/header:bg-slate-300 dark:group-hover/header:bg-slate-600'"
                 />
               </th>
-              <th class="px-2 py-2 border-b border-slate-200 dark:border-slate-700 w-[70px]"></th>
             </tr>
           </thead>
           <tbody class="divide-y divide-slate-100 dark:divide-slate-800/50">
@@ -501,13 +645,15 @@ const exportSql = async () => {
                   <input
                     v-if="!newRowValues[col]?.isNull"
                     :value="newRowValues[col]?.value ?? ''"
-                    @input="updateCell(col, ($event.target as HTMLInputElement).value, false)"
+                    @input="updateNewRowCell(col, ($event.target as HTMLInputElement).value, false)"
+                    @keydown.enter.prevent="saveNewRow"
+                    @keydown.escape.prevent="cancelNewRow"
                     class="w-full min-w-0 px-1.5 py-0.5 text-xs rounded border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-1 focus:ring-emerald-500"
                   />
                   <span v-else class="text-slate-400 dark:text-slate-600 italic text-xs px-1">NULL</span>
                   <button
                     type="button"
-                    @click="updateCell(col, '', !newRowValues[col]?.isNull)"
+                    @click="updateNewRowCell(col, '', !newRowValues[col]?.isNull)"
                     class="shrink-0 text-[10px] px-1 py-0.5 rounded border transition-colors"
                     :class="newRowValues[col]?.isNull
                       ? 'border-orange-400 text-orange-500 bg-orange-50 dark:bg-orange-500/10'
@@ -515,14 +661,18 @@ const exportSql = async () => {
                   >NULL</button>
                 </div>
               </td>
-              <td class="px-2 py-1 w-[70px]">
-                <div class="flex items-center gap-0.5 justify-end">
-                  <button @click="saveNewRow" :disabled="savingRow" class="p-1 text-emerald-600 hover:bg-emerald-100 dark:hover:bg-emerald-500/10 rounded transition-colors disabled:opacity-50">
-                    <Check :size="14" />
+            </tr>
+            <!-- New row save/cancel hint -->
+            <tr v-if="newRowMode" class="bg-emerald-50/30 dark:bg-emerald-500/5">
+              <td :colspan="data?.columns.length" class="px-3 py-1 border-b border-emerald-200 dark:border-emerald-800">
+                <div class="flex items-center gap-2">
+                  <button @click="saveNewRow" :disabled="savingCell" class="flex items-center gap-1 px-2 py-0.5 text-xs bg-emerald-600 hover:bg-emerald-500 text-white rounded transition-colors disabled:opacity-50">
+                    <Check :size="11" /> {{ $t('common.save') }}
                   </button>
-                  <button @click="cancelEdit" class="p-1 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700 rounded transition-colors">
-                    <X :size="14" />
+                  <button @click="cancelNewRow" class="flex items-center gap-1 px-2 py-0.5 text-xs text-slate-500 hover:text-slate-700 dark:hover:text-slate-200 transition-colors">
+                    <X :size="11" /> {{ $t('common.cancel') }}
                   </button>
+                  <span class="text-[10px] text-slate-400">Enter = guardar · Esc = cancelar</span>
                 </div>
               </td>
             </tr>
@@ -530,21 +680,29 @@ const exportSql = async () => {
             <DataRow
               v-for="(row, i) in data?.rows"
               :key="getRowKey(row, i)"
-              v-memo="[row, data?.columns, editingRowIndex === i, editingRowIndex === i ? editValues : null]"
+              v-memo="[
+                row,
+                data?.columns,
+                selectedCell?.rowIndex === i ? selectedCell.col : null,
+                editingCell?.rowIndex === i ? editingCell.col : null,
+                editingCell?.rowIndex === i ? editingValue : null,
+              ]"
               :row="row"
               :columns="data?.columns || []"
               :rowIndex="i"
-              :isEditing="editingRowIndex === i"
-              :editValues="editingRowIndex === i ? editValues : undefined"
+              :selectedCol="selectedCell?.rowIndex === i ? selectedCell.col : null"
+              :editingCol="editingCell?.rowIndex === i ? editingCell.col : null"
+              :editingValue="editingValue"
               :canEdit="canEdit"
-              @startEdit="startEdit"
-              @saveEdit="saveEdit"
-              @cancelEdit="cancelEdit"
-              @deleteRow="deleteRow"
-              @updateCell="updateCell"
+              @selectCell="selectCell(i, $event)"
+              @openContextMenu="(col, evt) => openContextMenu(evt, i, col)"
+              @startEditCell="startEditCell(i, $event)"
+              @updateEditValue="updateEditValue"
+              @saveEdit="saveEditCell"
+              @cancelEdit="cancelEditCell"
             />
             <tr v-if="data && data.rows.length === 0 && !newRowMode">
-              <td :colspan="(data.columns.length || 0) + 1" class="px-4 py-8 text-center text-slate-500 italic">
+              <td :colspan="data.columns.length" class="px-4 py-8 text-center text-slate-500 italic">
                 {{ $t('data_table.no_data') }}
               </td>
             </tr>
@@ -552,6 +710,79 @@ const exportSql = async () => {
         </table>
       </div>
     </template>
+
+    <!-- Context Menu (teleported to body for correct z-index) -->
+    <Teleport to="body">
+      <div
+        v-if="contextMenu"
+        ref="contextMenuRef"
+        class="fixed z-[9999] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg shadow-2xl py-1 w-52 text-sm"
+        :style="{ left: contextMenu.x + 'px', top: contextMenu.y + 'px' }"
+        @contextmenu.prevent
+      >
+        <!-- Copy -->
+        <button
+          @click="copyCell"
+          class="w-full flex items-center gap-2.5 px-3 py-1.5 text-xs text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-left"
+        >
+          <Copy :size="13" class="text-slate-400 shrink-0" />
+          Copiar
+          <span class="ml-auto text-[10px] text-slate-400 font-mono">Ctrl+C</span>
+        </button>
+
+        <!-- Paste -->
+        <button
+          @click="pasteCell"
+          :disabled="!canEdit"
+          class="w-full flex items-center gap-2.5 px-3 py-1.5 text-xs text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-left disabled:opacity-40 disabled:cursor-not-allowed"
+        >
+          <Clipboard :size="13" class="text-slate-400 shrink-0" />
+          Pegar
+          <span class="ml-auto text-[10px] text-slate-400 font-mono">Ctrl+V</span>
+        </button>
+
+        <!-- Insert value (with submenu) -->
+        <div class="relative group/insert">
+          <button
+            :disabled="!canEdit"
+            class="w-full flex items-center gap-2.5 px-3 py-1.5 text-xs text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-left disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            <Type :size="13" class="text-slate-400 shrink-0" />
+            Insertar valor
+            <SubArrow :size="12" class="ml-auto text-slate-400" />
+          </button>
+          <!-- Submenu -->
+          <div
+            v-if="canEdit"
+            class="absolute left-full top-0 -mt-1 ml-0.5 w-52 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg shadow-2xl py-1 hidden group-hover/insert:block"
+          >
+            <button
+              v-for="opt in contextInsertOptions"
+              :key="opt.label"
+              @click="insertValue(opt.value, opt.isExpression)"
+              class="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-left"
+            >
+              <span
+                class="font-mono text-[11px]"
+                :class="opt.value === null ? 'text-slate-400 italic' : opt.isExpression ? 'text-blue-600 dark:text-blue-400' : 'text-emerald-600 dark:text-emerald-400'"
+              >{{ opt.label }}</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="my-1 border-t border-slate-100 dark:border-slate-800" />
+
+        <!-- Delete row -->
+        <button
+          @click="deleteRow"
+          :disabled="!canEdit"
+          class="w-full flex items-center gap-2.5 px-3 py-1.5 text-xs text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors text-left disabled:opacity-40 disabled:cursor-not-allowed"
+        >
+          <Trash2 :size="13" class="shrink-0" />
+          Eliminar fila
+        </button>
+      </div>
+    </Teleport>
 
     <CsvImportModal
       v-if="showImportModal"
