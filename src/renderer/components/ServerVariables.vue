@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
-import { Search, RefreshCw, Loader2 } from 'lucide-vue-next';
+import { RefreshCw, Loader2 } from 'lucide-vue-next';
 import { $t } from '../i18n';
 import { api } from '../services/api';
 import { showError } from '../errorService';
+import BaseButton from './ui/BaseButton.vue';
+import SearchInput from './ui/SearchInput.vue';
 
 const props = defineProps<{
   serverName: string;
@@ -72,25 +74,12 @@ onMounted(load);
         </button>
       </div>
 
-      <!-- Search -->
-      <div class="flex items-center gap-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg px-2 py-1 flex-1 min-w-[180px]">
-        <Search :size="13" class="text-slate-400 shrink-0" />
-        <input
-          v-model="search"
-          :placeholder="$t('variables.search_placeholder')"
-          class="flex-1 text-xs bg-transparent text-slate-800 dark:text-slate-200 placeholder-slate-400 focus:outline-none"
-        />
-      </div>
+      <SearchInput v-model="search" :placeholder="$t('variables.search_placeholder')" class="flex-1 min-w-[180px]" />
 
-      <button
-        @click="load"
-        :disabled="loading"
-        class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium border border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:border-blue-400 rounded-lg transition-colors disabled:opacity-40 ml-auto"
-      >
-        <Loader2 v-if="loading" :size="12" class="animate-spin" />
-        <RefreshCw v-else :size="12" />
+      <BaseButton @click="load" :loading="loading" class="ml-auto">
+        <RefreshCw v-if="!loading" :size="12" />
         {{ $t('process_list.refresh') }}
-      </button>
+      </BaseButton>
     </div>
 
     <!-- Table -->

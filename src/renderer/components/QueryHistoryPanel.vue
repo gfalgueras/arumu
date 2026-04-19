@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
-import { Trash2, Play, Search, Clock } from 'lucide-vue-next';
+import { Trash2, Play, Clock } from 'lucide-vue-next';
 import { $t } from '../i18n';
 import { api } from '../services/api';
 import type { QueryHistoryEntry } from '@shared/types/database';
+import SearchInput from './ui/SearchInput.vue';
+import BaseButton from './ui/BaseButton.vue';
 
 const emit = defineEmits<{
   (e: 'use', sql: string): void;
@@ -46,26 +48,21 @@ onMounted(load);
         <Clock :size="14" class="text-blue-500" />
         {{ $t('query_editor.history') }}
       </div>
-      <button
+      <BaseButton
         v-if="history.length > 0"
+        variant="text"
+        size="xs"
+        class="text-red-500 hover:text-red-600"
         @click="clearHistory"
-        class="flex items-center gap-1 text-xs text-red-500 hover:text-red-600 transition-colors"
       >
         <Trash2 :size="12" />
         {{ $t('query_editor.history_clear') }}
-      </button>
+      </BaseButton>
     </div>
 
     <!-- Search -->
     <div class="px-3 py-2 border-b border-slate-200 dark:border-slate-800 shrink-0">
-      <div class="flex items-center gap-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg px-2 py-1">
-        <Search :size="13" class="text-slate-400 shrink-0" />
-        <input
-          v-model="search"
-          :placeholder="$t('sidebar.search_db')"
-          class="flex-1 text-xs bg-transparent text-slate-800 dark:text-slate-200 placeholder-slate-400 focus:outline-none"
-        />
-      </div>
+      <SearchInput v-model="search" :placeholder="$t('sidebar.search_db')" />
     </div>
 
     <!-- List -->
@@ -89,14 +86,16 @@ onMounted(load);
               </span>
               <span class="text-slate-300 dark:text-slate-600">{{ entry.duration }}ms</span>
             </div>
-            <button
+            <BaseButton
+              variant="primary"
+              size="xs"
+              class="opacity-0 group-hover:opacity-100"
               @click="emit('use', entry.sql)"
-              class="shrink-0 flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded bg-blue-500 text-white opacity-0 group-hover:opacity-100 transition-opacity hover:bg-blue-600"
               :title="$t('query_editor.history_use')"
             >
               <Play :size="9" />
               {{ $t('query_editor.history_use') }}
-            </button>
+            </BaseButton>
           </div>
           <!-- Query preview -->
           <pre class="text-xs text-slate-700 dark:text-slate-300 font-mono whitespace-pre-wrap break-all leading-relaxed" :class="entry.error ? 'text-red-500 dark:text-red-400' : ''">{{ preview(entry.sql) }}</pre>

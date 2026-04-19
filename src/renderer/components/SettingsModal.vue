@@ -8,6 +8,7 @@ import { showError } from '../errorService';
 import { applyHotkeys, defaultHotkeys } from '../hotkeys';
 import AppSelect from './AppSelect.vue';
 import HotkeyInput from './HotkeyInput.vue';
+import BaseButton from './ui/BaseButton.vue';
 
 const emit = defineEmits<{
   (e: 'close'): void;
@@ -188,18 +189,12 @@ const densityOptions = [
 
       <!-- Footer -->
       <div class="p-4 bg-slate-50 dark:bg-slate-800/30 border-t border-slate-200 dark:border-slate-800 flex justify-end gap-3 rounded-b-xl">
-        <button
-          @click="emit('close')"
-          class="px-4 py-2 text-sm font-medium text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors"
-        >
+        <BaseButton variant="text" size="md" @click="emit('close')">
           {{ $t('common.cancel') }}
-        </button>
-        <button
-          @click="handleSave"
-          class="px-4 py-2 text-sm font-medium bg-blue-600 hover:bg-blue-500 text-white rounded-lg transition-colors shadow-lg shadow-blue-500/20"
-        >
+        </BaseButton>
+        <BaseButton variant="primary" size="md" @click="handleSave">
           {{ $t('common.save') }}
-        </button>
+        </BaseButton>
       </div>
 
     </div>

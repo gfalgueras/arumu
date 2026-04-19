@@ -1,8 +1,11 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
-import { Trash2, Play, Plus, Bookmark, Search } from 'lucide-vue-next';
+import { Trash2, Play, Plus, Bookmark } from 'lucide-vue-next';
 import { $t } from '../i18n';
 import { api } from '../services/api';
+import SearchInput from './ui/SearchInput.vue';
+import BaseButton from './ui/BaseButton.vue';
+import BaseInput from './ui/BaseInput.vue';
 
 interface Snippet {
   id: string;
@@ -69,11 +72,11 @@ onMounted(load);
       </div>
       <button
         @click="showAddForm = !showAddForm"
-        class="flex items-center gap-1 text-xs px-2 py-1 rounded-lg border transition-colors"
+        :disabled="!currentQuery?.trim()"
+        class="flex items-center gap-1 text-xs px-2 py-1 rounded-lg border transition-colors disabled:opacity-40"
         :class="showAddForm
           ? 'border-red-300 dark:border-red-700 text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10'
           : 'border-blue-300 dark:border-blue-700 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-500/10'"
-        :disabled="!currentQuery?.trim()"
       >
         <Plus :size="12" />
         {{ $t('snippets.add') }}
@@ -83,31 +86,30 @@ onMounted(load);
     <!-- Add form -->
     <div v-if="showAddForm" class="px-3 py-2 border-b border-slate-200 dark:border-slate-800 bg-blue-50/50 dark:bg-blue-500/5 shrink-0">
       <div class="flex items-center gap-2">
-        <input
+        <BaseInput
           v-model="newName"
           :placeholder="$t('snippets.name_placeholder')"
+          small
+          class="flex-1"
           @keyup.enter="addSnippet"
           @keyup.escape="showAddForm = false"
-          class="flex-1 text-xs px-2 py-1.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-blue-500"
           autofocus
         />
-        <button @click="addSnippet" :disabled="!newName.trim()" class="px-3 py-1.5 text-xs bg-blue-600 hover:bg-blue-500 disabled:bg-slate-300 dark:disabled:bg-slate-700 text-white rounded-lg transition-colors">
+        <BaseButton
+          variant="primary"
+          size="sm"
+          :disabled="!newName.trim()"
+          @click="addSnippet"
+        >
           {{ $t('snippets.save') }}
-        </button>
+        </BaseButton>
       </div>
       <p class="text-[10px] text-slate-400 mt-1 truncate">Saves: {{ (currentQuery || '').replace(/\s+/g, ' ').trim().slice(0, 80) }}</p>
     </div>
 
     <!-- Search -->
     <div class="px-3 py-2 border-b border-slate-200 dark:border-slate-800 shrink-0">
-      <div class="flex items-center gap-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg px-2 py-1">
-        <Search :size="13" class="text-slate-400 shrink-0" />
-        <input
-          v-model="search"
-          :placeholder="$t('sidebar.search_db')"
-          class="flex-1 text-xs bg-transparent text-slate-800 dark:text-slate-200 placeholder-slate-400 focus:outline-none"
-        />
-      </div>
+      <SearchInput v-model="search" :placeholder="$t('sidebar.search_db')" />
     </div>
 
     <!-- List -->
@@ -124,21 +126,23 @@ onMounted(load);
           <div class="flex items-center justify-between gap-2 mb-1">
             <span class="text-xs font-medium text-slate-800 dark:text-slate-200 truncate">{{ snippet.name }}</span>
             <div class="flex items-center gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
-              <button
+              <BaseButton
+                variant="primary"
+                size="xs"
                 @click="emit('use', snippet.sql)"
-                class="flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded bg-blue-500 text-white hover:bg-blue-600 transition-colors"
                 :title="$t('snippets.use')"
               >
                 <Play :size="9" />
                 {{ $t('snippets.use') }}
-              </button>
-              <button
+              </BaseButton>
+              <BaseButton
+                variant="icon"
+                class="hover:text-red-500 dark:hover:text-red-400"
                 @click="deleteSnippet(snippet.id)"
-                class="p-0.5 text-slate-400 hover:text-red-500 transition-colors"
                 :title="$t('snippets.delete')"
               >
                 <Trash2 :size="12" />
-              </button>
+              </BaseButton>
             </div>
           </div>
           <pre class="text-xs text-slate-500 dark:text-slate-400 font-mono whitespace-pre-wrap break-all leading-relaxed">{{ preview(snippet.sql) }}</pre>

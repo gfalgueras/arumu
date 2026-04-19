@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue';
-import { RefreshCw, Loader2, Skull } from 'lucide-vue-next';
+import { RefreshCw, Skull } from 'lucide-vue-next';
 import { $t } from '../i18n';
 import { api } from '../services/api';
 import { showError } from '../errorService';
+import BaseButton from './ui/BaseButton.vue';
 
 const props = defineProps<{
   serverName: string;
@@ -85,25 +86,19 @@ const truncate = (val: any, max = 80) => {
     <div class="flex items-center gap-3 p-3 bg-slate-100 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700 shrink-0">
       <span class="text-sm font-medium text-slate-700 dark:text-slate-200">{{ $t('process_list.title') }}</span>
       <div class="ml-auto flex items-center gap-2">
-        <button
+        <BaseButton
           @click="toggleAutoRefresh"
-          class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium border rounded-lg transition-colors"
           :class="autoRefresh
             ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
-            : 'border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:border-blue-400'"
+            : ''"
         >
           <RefreshCw :size="12" :class="autoRefresh ? 'animate-spin' : ''" />
           {{ $t('process_list.auto_refresh') }}
-        </button>
-        <button
-          @click="load"
-          :disabled="loading"
-          class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium border border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:border-blue-400 hover:text-blue-600 rounded-lg transition-colors disabled:opacity-40"
-        >
-          <Loader2 v-if="loading" :size="12" class="animate-spin" />
-          <RefreshCw v-else :size="12" />
+        </BaseButton>
+        <BaseButton @click="load" :loading="loading">
+          <RefreshCw v-if="!loading" :size="12" />
           {{ $t('process_list.refresh') }}
-        </button>
+        </BaseButton>
       </div>
     </div>
 
@@ -121,7 +116,7 @@ const truncate = (val: any, max = 80) => {
         <tbody class="divide-y divide-slate-100 dark:divide-slate-800/50">
           <tr v-if="loading && processes.length === 0">
             <td :colspan="columns.length + 1" class="py-10 text-center">
-              <Loader2 class="animate-spin text-blue-500 mx-auto" :size="28" />
+              <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="animate-spin text-blue-500 mx-auto"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
             </td>
           </tr>
           <tr v-else-if="processes.length === 0">
@@ -139,14 +134,16 @@ const truncate = (val: any, max = 80) => {
               <span v-else :title="String(proc[col])">{{ truncate(proc[col]) }}</span>
             </td>
             <td class="px-2 py-1.5 w-[60px]">
-              <button
+              <BaseButton
+                variant="danger"
+                size="xs"
+                class="opacity-0 group-hover:opacity-100"
                 @click="killProcess(proc.Id)"
-                class="opacity-0 group-hover:opacity-100 flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded bg-red-500 text-white hover:bg-red-600 transition-all"
                 :title="$t('process_list.kill')"
               >
                 <Skull :size="10" />
                 {{ $t('process_list.kill') }}
-              </button>
+              </BaseButton>
             </td>
           </tr>
         </tbody>

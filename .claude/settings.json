@@ -3,7 +3,8 @@
     "allow": [
       "Bash(npx electron-vite *)",
       "Bash(npm install *)",
-      "Read(//c/Users/gfalgueras/AppData/Local/npm-cache/_logs/**)"
+      "Read(//c/Users/gfalgueras/AppData/Local/npm-cache/_logs/**)",
+      "Bash(pnpm typecheck *)"
     ]
   }
 }

@@ -15,6 +15,7 @@ src/
   renderer/       # Vue 3 SPA (browser context)
     App.vue       # Root: state, tab system, sidebar coordination
     components/   # UI components
+      ui/         # Base components: BaseButton, BaseInput, SearchInput
     services/
       api.ts      # Typed wrappers around window.electronAPI.invoke(...)
     i18n.ts       # Translations (en, es, ca, fr)
@@ -93,6 +94,14 @@ pnpm typecheck  # vue-tsc type checking
 pnpm test       # vitest
 pnpm lint       # ESLint on src/renderer
 ```
+
+## Base UI Components (`components/ui/`)
+
+| Component | Props | Purpose |
+|---|---|---|
+| `BaseButton` | `variant` (primary/secondary/ghost/text/danger/icon), `size` (xs/sm/md), `loading`, `disabled` | All button variants |
+| `BaseInput` | `type`, `placeholder`, `required`, `disabled`, `small` | Form text inputs |
+| `SearchInput` | `modelValue`, `placeholder` | Search input with icon |
 
 ## Component Map
 
