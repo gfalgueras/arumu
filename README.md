@@ -1,75 +1,75 @@
-# Arumu - Gestor de Consultas SQL
+# Arumu - SQL Query Manager
 
-Arumu es una aplicación de escritorio moderna y rápida para interactuar con bases de datos MySQL, diseñada para mejorar el flujo de trabajo de desarrolladores y administradores de bases de datos. Desarrollada con tecnologías web modernas, ofrece una interfaz de usuario atractiva y un potente editor SQL.
+Arumu is a modern and fast desktop application for interacting with MySQL databases, designed to enhance the workflow of developers and database administrators. Built with modern web technologies, it features an attractive user interface and a powerful SQL editor.
 
-## 🚀 Tecnologías
+## 🚀 Technologies
 
-Esta aplicación está construida sobre un stack robusto y moderno:
-- **Electron**: Para empaquetar la aplicación multiplataforma.
-- **Vue 3**: Framework progresivo de JavaScript para las interfaces.
-- **TailwindCSS**: Framework de CSS para diseño rápido y moderno.
-- **CodeMirror 6**: Potente editor de texto con soporte avanzado para SQL (autocompletado, resaltado de sintaxis).
-- **MySQL2**: Driver de alto rendimiento para conexión directa a bases de datos.
-- **Vite & Electron-Vite**: Herramientas de compilación ultrarrápidas.
+This application is built on a robust and modern stack:
+- **Electron**: For cross-platform application packaging.
+- **Vue 3**: Progressive JavaScript framework for the interfaces.
+- **TailwindCSS**: CSS framework for rapid and modern design.
+- **CodeMirror 6**: Powerful text editor with advanced support for SQL (autocomplete, syntax highlighting).
+- **MySQL2**: High-performance driver for direct database connections.
+- **Vite & Electron-Vite**: Lightning-fast build tools.
 
-## ✨ Funcionalidades Principales
+## ✨ Key Features
 
-- 🔌 **Conexión Directa a MySQL**: Conéctate a tus bases de datos locales o remotas de forma segura.
-- 📝 **Editor Avanzado de SQL**: Escribe consultas con autocompletado inteligente y resaltado de sintaxis.
-- 🎨 **Interfaz de Usuario Moderna**: Una experiencia de usuario pulida y responsive, impulsada por Vue y TailwindCSS.
-- ⚡ **Alta Performance**: Diseñada para consultas eficientes y tiempos de carga reducidos.
-- 📦 **Multiplataforma**: Disponible en Windows, macOS y Linux.
+- 🔌 **Direct Connection to MySQL**: Connect securely to your local or remote databases.
+- 📝 **Advanced SQL Editor**: Write queries with smart auto-completion and syntax highlighting.
+- 🎨 **Modern User Interface**: A polished and responsive user experience, powered by Vue and TailwindCSS.
+- ⚡ **High Performance**: Designed for efficient queries and reduced loading times.
+- 📦 **Cross-Platform**: Available on Windows, macOS, and Linux.
 
-## ⚙️ Requisitos Previos
+## ⚙️ Prerequisites
 
-Antes de comenzar, asegúrate de tener instalado en tu sistema:
-- [Node.js](https://nodejs.org/) (Versión 18 o superior recomendada)
-- [pnpm](https://pnpm.io/es/) (Gestor de paquetes recomendado para este proyecto)
+Before you start, make sure you have the following installed on your system:
+- [Node.js](https://nodejs.org/) (Version 18 or higher recommended)
+- [pnpm](https://pnpm.io/) (Recommended package manager for this project)
 
-Puedes instalar pnpm globalmente con:
+You can install pnpm globally with:
 ```bash
 npm install -g pnpm
 ```
 
-## 🛠️ Instalación y Uso
+## 🛠️ Installation and Usage
 
-Hemos provisto scripts automáticos de configuración para tu sistema operativo preferido. Estos scripts instalarán las dependencias necesarias.
+We have provided automatic setup scripts for your preferred operating system. These scripts will install the necessary dependencies.
 
-### Opción 1: Usa los scripts de instalación (Recomendado)
+### Option 1: Use the installation scripts (Recommended)
 
-Ejecuta el script correspondiente a tu sistema operativo (situados en la raíz del proyecto):
+Run the script corresponding to your operating system (located in the project root):
 
-- **Windows**: Haz doble clic en `install-windows.bat` o ejecútalo desde tu consola.
-- **Linux**: Ejecuta `bash install-linux.sh`
-- **macOS**: Ejecuta `bash install-macos.sh`
+- **Windows**: Double-click `install-windows.bat` or run it from your console.
+- **Linux**: Run `bash install-linux.sh`
+- **macOS**: Run `bash install-macos.sh`
 
-*(Nota en Mac/Linux: Es posible que necesites darles permisos de ejecución primero con `chmod +x install-linux.sh` o `chmod +x install-macos.sh`).*
+*(Note for Mac/Linux: You may need to grant execution permissions first with `chmod +x install-linux.sh` or `chmod +x install-macos.sh`).*
 
-### Opción 2: Instalación Manual
+### Option 2: Manual Installation
 
-1. Clona el repositorio u obtén el código fuente.
-2. Abre una terminal en la raíz del proyecto.
-3. Instala las dependencias ejecutando:
+1. Clone the repository or get the source code.
+2. Open a terminal in the project root.
+3. Install dependencies by running:
    ```bash
    pnpm install
    ```
 
-## 🏃 Modo de Desarrollo
+## 🏃 Development Mode
 
-Una vez instaladas las dependencias, inicia la aplicación en modo desarrollo (con recarga en caliente de módulos):
+Once dependencies are installed, start the application in development mode (with hot module replacement):
 
 ```bash
 pnpm run dev
 ```
 
-## 📦 Compilación para Producción
+## 📦 Production Build
 
-Para compilar y empaquetar la aplicación y generar los instaladores según tu sistema operativo local, ejecuta:
+To compile and package the application and generate installers for your local operating system, run:
 
 ```bash
 pnpm run dist
 ```
 
-## 📜 Licencia
+## 📜 License
 
 ISC
