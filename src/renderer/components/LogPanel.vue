@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, watch, nextTick, onUnmounted } from 'vue';
 import { ChevronDown, ChevronUp, Trash2, GripHorizontal, AlertCircle, CheckCircle, Info, AlertTriangle, ArrowDownNarrowWide, ArrowUpNarrowWide } from 'lucide-vue-next';
-import { logEntries, clearLogs, type LogLevel } from '../logService';
+import { logEntries, clearLogs, type LogLevel, type QueryType } from '../logService';
 
 const collapsed = ref(false);
 const height = ref(160);
@@ -66,11 +66,26 @@ const levelClass = (level: LogLevel) => {
   return 'text-blue-500 dark:text-blue-400';
 };
 
-const rowClass = (level: LogLevel) => {
-  if (level === 'error') return 'bg-red-50/50 dark:bg-red-900/10 hover:bg-red-100/50 dark:hover:bg-red-900/20';
+const rowClass = (level: LogLevel, queryType?: QueryType) => {
+  if (level === 'error') {
+    if (queryType === 'update') return 'bg-amber-50/80 dark:bg-amber-900/20 hover:bg-amber-100/80 dark:hover:bg-amber-900/30 border-l-2 border-amber-400';
+    if (queryType === 'delete') return 'bg-red-50/80 dark:bg-red-900/20 hover:bg-red-100/80 dark:hover:bg-red-900/30 border-l-2 border-red-500';
+    return 'bg-red-50/50 dark:bg-red-900/10 hover:bg-red-100/50 dark:hover:bg-red-900/20';
+  }
   if (level === 'warn') return 'bg-amber-50/50 dark:bg-amber-900/10 hover:bg-amber-100/50 dark:hover:bg-amber-900/20';
   if (level === 'success') return 'bg-emerald-50/50 dark:bg-emerald-900/10 hover:bg-emerald-100/50 dark:hover:bg-emerald-900/20';
+  // info level — style by query type
+  if (queryType === 'update') return 'bg-amber-50/40 dark:bg-amber-900/10 hover:bg-amber-100/50 dark:hover:bg-amber-900/20 border-l-2 border-amber-400';
+  if (queryType === 'delete') return 'bg-rose-50/40 dark:bg-rose-900/10 hover:bg-rose-100/50 dark:hover:bg-rose-900/20 border-l-2 border-rose-400';
+  if (queryType === 'insert') return 'bg-emerald-50/30 dark:bg-emerald-900/10 hover:bg-emerald-100/50 dark:hover:bg-emerald-900/20 border-l-2 border-emerald-400';
   return 'hover:bg-slate-50 dark:hover:bg-slate-800/40';
+};
+
+const queryTypeBadge = (queryType?: QueryType) => {
+  if (queryType === 'update') return { label: 'UPD', cls: 'bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-400' };
+  if (queryType === 'delete') return { label: 'DEL', cls: 'bg-rose-100 dark:bg-rose-900/40 text-rose-700 dark:text-rose-400' };
+  if (queryType === 'insert') return { label: 'INS', cls: 'bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-400' };
+  return null;
 };
 
 const formatTime = (d: Date) => d.toTimeString().slice(0, 8);
@@ -159,7 +174,7 @@ const formatTime = (d: Date) => d.toTimeString().slice(0, 8);
         v-for="entry in displayedEntries"
         :key="entry.id"
         class="flex items-start gap-2 px-3 py-1 border-b border-slate-100 dark:border-slate-800/50 transition-colors"
-        :class="rowClass(entry.level)"
+        :class="rowClass(entry.level, entry.queryType)"
       >
         <component
           :is="levelIcon(entry.level)"
@@ -168,6 +183,11 @@ const formatTime = (d: Date) => d.toTimeString().slice(0, 8);
           :class="levelClass(entry.level)"
         />
         <span class="text-slate-400 dark:text-slate-500 flex-shrink-0 tabular-nums">{{ formatTime(entry.ts) }}</span>
+        <span
+          v-if="queryTypeBadge(entry.queryType)"
+          :class="queryTypeBadge(entry.queryType)!.cls"
+          class="flex-shrink-0 text-[9px] font-bold px-1 py-0.5 rounded font-mono tracking-wide"
+        >{{ queryTypeBadge(entry.queryType)!.label }}</span>
         <span class="text-slate-700 dark:text-slate-300 break-all">{{ entry.message }}</span>
         <span v-if="entry.detail" class="text-slate-500 dark:text-slate-400 break-all ml-1">— {{ entry.detail }}</span>
       </div>

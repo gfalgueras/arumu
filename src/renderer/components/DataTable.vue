@@ -12,6 +12,8 @@ import { api } from '../services/api';
 import DataRow from './DataTable/DataRow.vue';
 import FilterInput from './DataTable/FilterInput.vue';
 import CsvImportModal from './CsvImportModal.vue';
+import ConfirmModal from './ConfirmModal.vue';
+import { skipUpdateConfirm, skipDeleteConfirm } from '../services/confirmService';
 
 const props = defineProps<{
   serverName: string;
@@ -69,6 +71,23 @@ const exportMenuRef = ref<HTMLElement | null>(null);
 
 // Import
 const showImportModal = ref(false);
+
+// Confirmation dialog
+interface ConfirmState { type: 'update' | 'delete'; sql: string; resolve: (ok: boolean) => void; }
+const confirmState = ref<ConfirmState | null>(null);
+
+const showConfirm = (type: 'update' | 'delete', sql: string): Promise<boolean> =>
+  new Promise(resolve => { confirmState.value = { type, sql, resolve }; });
+
+const onConfirmResult = (ok: boolean, skip: boolean) => {
+  if (skip) {
+    if (confirmState.value?.type === 'update') skipUpdateConfirm.value = true;
+    else skipDeleteConfirm.value = true;
+  }
+  const resolve = confirmState.value?.resolve;
+  confirmState.value = null;
+  resolve?.(ok);
+};
 
 const pkColumns = computed(() =>
   columnInfo.value.filter(c => c.key === 'PRI').map(c => c.name)
@@ -176,14 +195,19 @@ const updateEditValue = (value: string, isNull: boolean) => {
 
 const saveEditCell = async () => {
   if (!editingCell.value || !data.value || savingCell.value) return;
-  savingCell.value = true;
   const { rowIndex, col } = editingCell.value;
+  const setExpr = editingValue.value.isNull ? 'NULL' : escVal(editingValue.value.value);
+  const whereClauses = pkColumns.value
+    .map(pk => `${escId(pk)} = ${escVal(data.value!.rows[rowIndex][pk] === null ? null : String(data.value!.rows[rowIndex][pk]))}`)
+    .join(' AND ');
+  const sql = `UPDATE ${escId(props.table)} SET ${escId(col)} = ${setExpr} WHERE ${whereClauses}`;
+  if (!skipUpdateConfirm.value) {
+    const ok = await showConfirm('update', sql);
+    if (!ok) return;
+  }
+  savingCell.value = true;
   try {
-    const setExpr = editingValue.value.isNull ? 'NULL' : escVal(editingValue.value.value);
-    const whereClauses = pkColumns.value
-      .map(pk => `${escId(pk)} = ${escVal(data.value!.rows[rowIndex][pk] === null ? null : String(data.value!.rows[rowIndex][pk]))}`)
-      .join(' AND ');
-    await api.executeSql(props.serverName, `UPDATE ${escId(props.table)} SET ${escId(col)} = ${setExpr} WHERE ${whereClauses}`, props.database);
+    await api.executeSql(props.serverName, sql, props.database);
     await fetchData();
     editingCell.value = null;
   } catch {
@@ -237,13 +261,18 @@ const insertValue = async (value: string | null, isExpression: boolean) => {
   if (!contextMenu.value || !data.value || !canEdit.value) return;
   const { rowIndex, col } = contextMenu.value;
   closeContextMenu();
+  const setExpr = value === null ? 'NULL' : isExpression ? value : escVal(value);
+  const whereClauses = pkColumns.value
+    .map(pk => `${escId(pk)} = ${escVal(data.value!.rows[rowIndex][pk] === null ? null : String(data.value!.rows[rowIndex][pk]))}`)
+    .join(' AND ');
+  const sql = `UPDATE ${escId(props.table)} SET ${escId(col)} = ${setExpr} WHERE ${whereClauses}`;
+  if (!skipUpdateConfirm.value) {
+    const ok = await showConfirm('update', sql);
+    if (!ok) return;
+  }
   savingCell.value = true;
   try {
-    const setExpr = value === null ? 'NULL' : isExpression ? value : escVal(value);
-    const whereClauses = pkColumns.value
-      .map(pk => `${escId(pk)} = ${escVal(data.value!.rows[rowIndex][pk] === null ? null : String(data.value!.rows[rowIndex][pk]))}`)
-      .join(' AND ');
-    await api.executeSql(props.serverName, `UPDATE ${escId(props.table)} SET ${escId(col)} = ${setExpr} WHERE ${whereClauses}`, props.database);
+    await api.executeSql(props.serverName, sql, props.database);
     await fetchData();
   } catch {
     // error already logged by log panel
@@ -253,15 +282,20 @@ const insertValue = async (value: string | null, isExpression: boolean) => {
 };
 
 const deleteRow = async () => {
-  if (!contextMenu.value || !data.value || !confirm($t('data_table.confirm_delete'))) return;
+  if (!contextMenu.value || !data.value) return;
   const rowIndex = contextMenu.value.rowIndex;
+  const whereClauses = pkColumns.value
+    .map(pk => `${escId(pk)} = ${escVal(data.value!.rows[rowIndex][pk] === null ? null : String(data.value!.rows[rowIndex][pk]))}`)
+    .join(' AND ');
+  const sql = `DELETE FROM ${escId(props.table)} WHERE ${whereClauses}`;
   closeContextMenu();
+  if (!skipDeleteConfirm.value) {
+    const ok = await showConfirm('delete', sql);
+    if (!ok) return;
+  }
   savingCell.value = true;
   try {
-    const whereClauses = pkColumns.value
-      .map(pk => `${escId(pk)} = ${escVal(data.value!.rows[rowIndex][pk] === null ? null : String(data.value!.rows[rowIndex][pk]))}`)
-      .join(' AND ');
-    await api.executeSql(props.serverName, `DELETE FROM ${escId(props.table)} WHERE ${whereClauses}`, props.database);
+    await api.executeSql(props.serverName, sql, props.database);
     selectedCell.value = null;
     await fetchData();
   } catch {
@@ -793,5 +827,15 @@ const exportSql = async () => {
       @close="showImportModal = false"
       @imported="fetchData"
     />
+
+    <Teleport to="body">
+      <ConfirmModal
+        v-if="confirmState"
+        :type="confirmState.type"
+        :sql="confirmState.sql"
+        @confirm="(skip) => onConfirmResult(true, skip)"
+        @cancel="onConfirmResult(false, false)"
+      />
+    </Teleport>
   </div>
 </template>

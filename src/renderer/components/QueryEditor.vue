@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch, onUnmounted, shallowRef, type ComponentPublicInstance } from 'vue';
+import { ref, computed, watch, onMounted, onUnmounted, shallowRef, type ComponentPublicInstance } from 'vue';
 import { Play, Loader2, AlertCircle, Database as DatabaseIcon, GripHorizontal, History, Zap, Bookmark } from 'lucide-vue-next';
 import CodeMirror from 'vue-codemirror6';
 import { sql, MySQL, PostgreSQL, SQLite, SQLDialect } from '@codemirror/lang-sql';
@@ -9,7 +9,7 @@ import { autocompletion, completionKeymap, acceptCompletion } from '@codemirror/
 import { search, searchKeymap, openSearchPanel, closeSearchPanel } from '@codemirror/search';
 import { $t } from '../i18n';
 import { api } from '../services/api';
-import { hotkeys, toCodeMirrorKey } from '../hotkeys';
+import { hotkeys, matchesHotkey, toCodeMirrorKey } from '../hotkeys';
 import QueryHistoryPanel from './QueryHistoryPanel.vue';
 import QuerySnippetsPanel from './QuerySnippetsPanel.vue';
 
@@ -65,9 +65,29 @@ const handleMouseUp = () => {
   window.removeEventListener('mouseup', handleMouseUp);
 };
 
+const handleGlobalKeydown = (e: KeyboardEvent) => {
+  const view = cmRef.value?.view;
+  if (!view) return;
+  // Only intercept when focus is outside the CodeMirror editor
+  if (view.dom.contains(document.activeElement)) return;
+  if (matchesHotkey(e, hotkeys.executeAll)) {
+    e.preventDefault();
+    const text = getSelectionOrAll(view);
+    handleExecute(text, true);
+  } else if (matchesHotkey(e, hotkeys.executeStatement)) {
+    e.preventDefault();
+    handleExecute(getStatementAtCursor(view), false);
+  }
+};
+
+onMounted(() => {
+  window.addEventListener('keydown', handleGlobalKeydown);
+});
+
 onUnmounted(() => {
   window.removeEventListener('mousemove', handleMouseMove);
   window.removeEventListener('mouseup', handleMouseUp);
+  window.removeEventListener('keydown', handleGlobalKeydown);
 });
 
 watch(() => [props.serverName, props.database], async () => {

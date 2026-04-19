@@ -492,7 +492,7 @@ const selectTable = (serverName: string, db: string, table: string) => {
               :class="activeTab === 'db' ? 'border-blue-500 text-blue-500 bg-blue-500/5' : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/50'"
             >
               <Database :size="12" class="text-blue-500 dark:text-blue-400" />
-              DB: {{ selectedDatabase }}
+              DB
             </button>
             <button
               v-if="selectedTable"
