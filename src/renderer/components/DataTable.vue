@@ -36,15 +36,17 @@ const resizingColumn = ref<{
 } | null>(null);
 
 const tableRef = ref<HTMLTableElement | null>(null);
-const colRefs = ref<Record<string, HTMLTableColElement | null>>({});
+// Plain Map — no reactive overhead for DOM refs used only in mousemove handler
+const colRefs = new Map<string, HTMLTableColElement>();
 const limit = 1000;
 
 // Row editing state
 const columnInfo = ref<ColumnInfo[]>([]);
 const editingRowIndex = ref<number | null>(null);
-const editValues = ref<Record<string, EditCell>>({});
+// shallowRef: we always reassign the whole object with spread, never mutate nested props
+const editValues = shallowRef<Record<string, EditCell>>({});
 const newRowMode = ref(false);
-const newRowValues = ref<Record<string, EditCell>>({});
+const newRowValues = shallowRef<Record<string, EditCell>>({});
 const savingRow = ref(false);
 
 // Export dropdown
@@ -58,6 +60,16 @@ const pkColumns = computed(() =>
   columnInfo.value.filter(c => c.key === 'PRI').map(c => c.name)
 );
 const canEdit = computed(() => pkColumns.value.length > 0);
+
+// Precomputed sort map — avoids calling find()+indexOf() per column in template
+const sortIconMap = computed(() => {
+  const map: Record<string, { direction: 'ASC' | 'DESC'; index: number } | undefined> = {};
+  for (let i = 0; i < sort.value.length; i++) {
+    const s = sort.value[i];
+    map[s.column] = { direction: s.direction, index: i + 1 };
+  }
+  return map;
+});
 
 watch(() => [props.serverName, props.database, props.table], async () => {
   page.value = 0;
@@ -108,18 +120,20 @@ const handleSort = (column: string) => {
   }
 };
 
-const getSortIconInfo = (column: string) => {
-  const s = sort.value.find(item => item.column === column);
-  if (!s) return null;
-  return { direction: s.direction, index: sort.value.indexOf(s) + 1 };
-};
-
 const handleApplyFilter = (val: string) => {
   page.value = 0;
   appliedFilter.value = val;
 };
 
-// Column resize
+// Stable key for v-for rows — prevents full re-mount on sort/filter when PK exists
+const getRowKey = (row: any, i: number): string | number => {
+  if (pkColumns.value.length > 0) {
+    return pkColumns.value.map(pk => row[pk]).join('§');
+  }
+  return i;
+};
+
+// Column resize — directly mutates DOM style during drag (no reactive updates until mouseup)
 const handleMouseDown = (e: MouseEvent, column: string) => {
   const currentWidth = columnWidths.value[column] || 150;
   const otherColumnsTotalWidth = data.value?.columns.reduce((acc, col) => {
@@ -133,7 +147,7 @@ const handleMouseMove = (e: MouseEvent) => {
   if (!resizingColumn.value) return;
   const diff = e.clientX - resizingColumn.value.startX;
   const newWidth = Math.max(50, resizingColumn.value.startWidth + diff);
-  const colEl = colRefs.value[resizingColumn.value.name];
+  const colEl = colRefs.get(resizingColumn.value.name);
   if (colEl) colEl.style.width = `${newWidth}px`;
   if (tableRef.value) {
     const newTotalWidth = resizingColumn.value.otherColumnsTotalWidth + newWidth;
@@ -294,7 +308,8 @@ const exportCurrentPage = async () => {
   showExportMenu.value = false;
   if (!data.value) return;
   const cols = data.value.columns;
-  let content = cols.map(csvEscape).join(',') + '\n';
+  const header = cols.map(csvEscape).join(',');
+  let content = header + '\n';
   for (const row of data.value.rows) {
     content += cols.map(col => csvEscape(row[col])).join(',') + '\n';
   }
@@ -445,7 +460,7 @@ const exportSql = async () => {
               v-for="col in data?.columns"
               :key="col"
               :style="{ width: (columnWidths[col] || 150) + 'px' }"
-              :ref="(el) => { if (el) colRefs[col] = el as HTMLTableColElement; }"
+              :ref="(el) => { if (el) colRefs.set(col, el as HTMLTableColElement); }"
             />
             <col style="width: 70px" />
           </colgroup>
@@ -461,11 +476,11 @@ const exportSql = async () => {
                   @click="handleSort(col)"
                 >
                   <span class="truncate">{{ col }}</span>
-                  <div v-if="getSortIconInfo(col)" class="flex items-center gap-0.5 ml-1 text-blue-600 dark:text-blue-400">
-                    <ArrowDown v-if="getSortIconInfo(col)?.direction === 'DESC'" :size="14" />
+                  <div v-if="sortIconMap[col]" class="flex items-center gap-0.5 ml-1 text-blue-600 dark:text-blue-400">
+                    <ArrowDown v-if="sortIconMap[col]!.direction === 'DESC'" :size="14" />
                     <ArrowUp v-else :size="14" />
                     <span v-if="sort.length > 1" class="text-[10px] bg-blue-600 text-white rounded-full w-3.5 h-3.5 flex items-center justify-center font-bold">
-                      {{ getSortIconInfo(col)?.index }}
+                      {{ sortIconMap[col]!.index }}
                     </span>
                   </div>
                 </div>
@@ -514,8 +529,8 @@ const exportSql = async () => {
 
             <DataRow
               v-for="(row, i) in data?.rows"
-              :key="i"
-              v-memo="[row, data?.columns, editingRowIndex === i, editValues]"
+              :key="getRowKey(row, i)"
+              v-memo="[row, data?.columns, editingRowIndex === i, editingRowIndex === i ? editValues : null]"
               :row="row"
               :columns="data?.columns || []"
               :rowIndex="i"

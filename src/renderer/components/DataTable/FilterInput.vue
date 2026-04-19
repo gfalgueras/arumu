@@ -29,29 +29,85 @@ watch(() => props.initialValue, (newVal) => {
   }
 });
 
-const extensions = computed(() => {
-  const baseDialect = props.serverType === 'postgres' ? PostgreSQL : 
+// Stable theme + UI extensions — never recreated
+const themeExtensions = [
+  oneDark,
+  EditorView.lineWrapping,
+  EditorView.theme({
+    "&": {
+      fontSize: "12px",
+      height: "30px",
+      fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
+    },
+    ".cm-scroller": {
+      overflow: "hidden",
+      display: "flex",
+      alignItems: "center"
+    },
+    ".cm-content": {
+      padding: "0 8px 0 30px",
+    },
+    ".cm-line": {
+      padding: "0",
+      lineHeight: "28px"
+    },
+    "&.cm-focused": {
+      outline: "none"
+    },
+    ".cm-gutters": {
+      display: "none"
+    },
+    ".cm-activeLine": {
+      backgroundColor: "transparent !important"
+    }
+  }),
+  EditorState.transactionFilter.of(tr => tr.docChanged && tr.newDoc.lines > 1 ? [] : tr),
+];
+
+// Stable keymaps — recreated only once per component instance
+const makeKeymaps = () => keymap.of([
+  { key: "Tab", run: acceptCompletion },
+  ...completionKeymap,
+  {
+    key: "Enter",
+    run: (view) => {
+      emit('apply', value.value);
+      view.contentDOM.blur();
+      return true;
+    }
+  }
+]);
+
+const keymapExtension = makeKeymaps();
+
+// Dialect changes only when serverType changes (rare)
+const dialect = computed(() => {
+  const baseDialect = props.serverType === 'postgres' ? PostgreSQL :
                       props.serverType === 'sqlite' ? SQLite : MySQL;
-  const dialect = SQLDialect.define({
+  return SQLDialect.define({
     ...baseDialect.spec,
     identifierQuotes: ''
   });
-  
+});
+
+// Full extensions — recomputed when dialect or columns/table change
+// columns and table change on table switch, not on every keystroke
+const extensions = computed(() => {
   const schema: Record<string, string[]> = {};
   if (props.columns.length > 0 && props.table) {
     schema[props.table] = props.columns;
   }
 
+  const currentDialect = dialect.value;
+
   return [
-    sql({ 
-      dialect, 
+    sql({
+      dialect: currentDialect,
       schema,
       upperCaseKeywords: true
     }),
-    oneDark,
     autocompletion({ activateOnTyping: true }),
-    // Add columns as global completions for the filter input
-    dialect.language.data.of({
+    currentDialect.language.data.of({
       autocomplete: (context: any) => {
         const word = context.matchBefore(/\w*/);
         if (!word || (word.from == word.to && !context.explicit)) return null;
@@ -61,66 +117,26 @@ const extensions = computed(() => {
         };
       }
     }),
-    EditorState.transactionFilter.of(tr => tr.docChanged && tr.newDoc.lines > 1 ? [] : tr),
-    EditorView.lineWrapping,
-    EditorView.theme({
-      "&": {
-        fontSize: "12px",
-        height: "30px",
-        fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
-      },
-      ".cm-scroller": {
-        overflow: "hidden",
-        display: "flex",
-        alignItems: "center"
-      },
-      ".cm-content": {
-        padding: "0 8px 0 30px", // Extra padding for Search icon
-      },
-      ".cm-line": {
-        padding: "0",
-        lineHeight: "28px"
-      },
-      "&.cm-focused": {
-        outline: "none"
-      },
-      ".cm-gutters": {
-        display: "none"
-      },
-      ".cm-activeLine": {
-        backgroundColor: "transparent !important"
-      }
-    }),
-    keymap.of([
-      { key: "Tab", run: acceptCompletion },
-      ...completionKeymap,
-      {
-        key: "Enter",
-        run: (view) => {
-          emit('apply', value.value);
-          view.contentDOM.blur();
-          return true;
-        }
-      }
-    ])
+    ...themeExtensions,
+    keymapExtension,
   ];
 });
 </script>
 
 <template>
   <div class="relative group flex items-center">
-    <Search 
-      class="absolute left-2.5 z-10 text-slate-400 group-focus-within:text-blue-500 transition-colors" 
-      :size="14" 
+    <Search
+      class="absolute left-2.5 z-10 text-slate-400 group-focus-within:text-blue-500 transition-colors"
+      :size="14"
     />
-    <div 
+    <div
       class="bg-white dark:bg-[#282c34] border border-slate-300 dark:border-slate-700 rounded overflow-hidden focus-within:ring-1 focus-within:ring-blue-500 w-64 md:w-80 lg:w-96 transition-all shadow-sm"
       :class="{ 'opacity-50 pointer-events-none': isLoading }"
     >
       <CodeMirror
         v-model="value"
         :extensions="extensions"
-        :basic-setup="{ 
+        :basic-setup="{
           lineNumbers: false,
           foldGutter: false,
           highlightActiveLine: false,
