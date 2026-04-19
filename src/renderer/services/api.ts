@@ -43,6 +43,7 @@ export const api = {
   exportTableData: (serverName: string, dbName: string, tableName: string, format: string, filter: string, sort: any[]) => electronAPI.invoke('api:exportTableData', serverName, dbName, tableName, format, filter, clean(sort)),
   tableMaintenanceOp: (serverName: string, dbName: string, tableName: string, op: string) => electronAPI.invoke('api:tableMaintenanceOp', serverName, dbName, tableName, op),
   getServerVariables: (serverName: string) => electronAPI.invoke('api:getServerVariables', serverName),
+  getServerCapabilities: (serverName: string) => electronAPI.invoke('api:getServerCapabilities', serverName),
   openFileDialog: (filters: any[]) => electronAPI.invoke('api:openFileDialog', clean(filters)),
   getSnippets: () => electronAPI.invoke('api:getSnippets'),
   saveSnippet: (snippet: any) => electronAPI.invoke('api:saveSnippet', clean(snippet)),

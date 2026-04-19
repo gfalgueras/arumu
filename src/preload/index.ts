@@ -37,6 +37,7 @@ const ALLOWED_INVOKE_CHANNELS = new Set([
   'api:exportTableData',
   'api:tableMaintenanceOp',
   'api:getServerVariables',
+  'api:getServerCapabilities',
   'api:openFileDialog',
   'api:getSnippets',
   'api:saveSnippet',

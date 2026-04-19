@@ -13,7 +13,9 @@
     "test:coverage": "vitest --coverage",
     "lint": "eslint src/renderer"
   },
-  "keywords": ["alpha"],
+  "keywords": [
+    "alpha"
+  ],
   "author": "",
   "license": "ISC",
   "devDependencies": {
@@ -41,9 +43,13 @@
     "@codemirror/theme-one-dark": "^6.1.3",
     "@codemirror/view": "^6.39.3",
     "@tailwindcss/vite": "^4.1.18",
+    "@types/pg": "^8.20.0",
     "codemirror": "^6.0.2",
     "lucide-vue-next": "^0.563.0",
+    "mssql": "^12.3.1",
     "mysql2": "^3.16.3",
+    "oracledb": "^6.10.0",
+    "pg": "^8.20.0",
     "tailwindcss": "^4.1.18",
     "vue": "^3.5.27",
     "vue-codemirror6": "^1.4.1"

@@ -4,7 +4,19 @@
       "Bash(npx electron-vite *)",
       "Bash(npm install *)",
       "Read(//c/Users/gfalgueras/AppData/Local/npm-cache/_logs/**)",
-      "Bash(pnpm typecheck *)"
+      "Bash(pnpm typecheck *)",
+      "Bash(grep -n \"col\\\\\\\\.unsigned\\\\|col\\\\\\\\.collation\\\\|col\\\\\\\\.virtuality\\\\|col\\\\\\\\.extra\\\\|col\\\\\\\\.comment\" /c/Users/gfalgueras/Desktop/arumu/src/renderer/components/TableSchema.vue)",
+      "Bash(node -e \"const s = require\\('node:sqlite'\\); console.log\\('node:sqlite OK'\\)\")",
+      "Bash(npx electron *)",
+      "Bash(node_modules/.bin/electron --version)",
+      "Bash(node_modules/.bin/electron -e \"console.log\\(process.versions.node\\)\")",
+      "Bash(node_modules/.bin/electron -e \"try { require\\('node:sqlite'\\); console.log\\('available'\\); } catch\\(e\\) { console.log\\('not available:', e.message\\); }\")",
+      "Bash(node_modules/.bin/electron -e \"const {DatabaseSync} = require\\('node:sqlite'\\); const db = new DatabaseSync\\(':memory:'\\); const r = db.prepare\\('SELECT 1 as n'\\).all\\(\\); console.log\\(JSON.stringify\\(r\\)\\); db.close\\(\\);\")",
+      "Bash(node_modules/.bin/electron -e \"const {DatabaseSync} = require\\('node:sqlite'\\); const db = new DatabaseSync\\(':memory:'\\); const s = db.prepare\\('CREATE TABLE t \\(id INTEGER\\)'\\); console.log\\('reader:', s.sourceSQL, Object.keys\\(s\\)\\); db.close\\(\\);\")",
+      "Bash(node_modules/.bin/electron -e ' *)",
+      "Bash(node -e \"const t = require\\('@types/node/sqlite'\\); console.log\\('ok'\\)\")",
+      "Bash(node -e \"const sql = require\\('mssql'\\); console.log\\(Object.keys\\(sql\\).filter\\(k => !k.startsWith\\('_'\\)\\).join\\(', '\\)\\)\")",
+      "Bash(node -e \"const o = require\\('oracledb'\\); console.log\\('version:', o.versionString, 'thin default:', o.thin\\)\")"
     ]
   }
 }

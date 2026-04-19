@@ -1,21 +1,25 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { RefreshCw, Skull } from 'lucide-vue-next';
 import { $t } from '../i18n';
 import { api } from '../services/api';
 import { showError } from '../errorService';
 import BaseButton from './ui/BaseButton.vue';
+import type { ServerCapabilities } from '@shared/types/database';
 
 const props = defineProps<{
   serverName: string;
+  serverType?: string;
 }>();
 
 const processes = ref<any[]>([]);
 const loading = ref(false);
 const autoRefresh = ref(false);
 let refreshInterval: ReturnType<typeof setInterval> | null = null;
+const capabilities = ref<ServerCapabilities | null>(null);
 
-const columns = ['Id', 'User', 'Host', 'db', 'Command', 'Time', 'State', 'Info'];
+const processIdField = computed(() => capabilities.value?.processIdField ?? 'Id');
+const columns = computed(() => processes.value.length ? Object.keys(processes.value[0]) : []);
 
 const load = async () => {
   if (loading.value) return;
@@ -53,7 +57,12 @@ const toggleAutoRefresh = () => {
   }
 };
 
-onMounted(load);
+onMounted(async () => {
+  try {
+    capabilities.value = await api.getServerCapabilities(props.serverName);
+  } catch { /* capabilities optional */ }
+  await load();
+});
 
 onUnmounted(() => {
   if (refreshInterval) clearInterval(refreshInterval);
@@ -126,7 +135,7 @@ const truncate = (val: any, max = 80) => {
           </tr>
           <tr
             v-for="proc in processes"
-            :key="proc.Id"
+            :key="proc[processIdField]"
             class="hover:bg-slate-50 dark:hover:bg-slate-800/40 group transition-colors"
           >
             <td v-for="col in columns" :key="col" class="px-3 py-1.5 text-xs text-slate-600 dark:text-slate-300 border-r border-slate-100 dark:border-slate-800/30 last:border-r-0 max-w-[200px]">
@@ -138,7 +147,7 @@ const truncate = (val: any, max = 80) => {
                 variant="danger"
                 size="xs"
                 class="opacity-0 group-hover:opacity-100"
-                @click="killProcess(proc.Id)"
+                @click="killProcess(proc[processIdField])"
                 :title="$t('process_list.kill')"
               >
                 <Skull :size="10" />

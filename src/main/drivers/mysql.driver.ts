@@ -1,5 +1,5 @@
 import mysql, { Connection } from 'mysql2/promise';
-import { IDatabaseDriver, ConnectionConfig, DatabaseInfo, TableInfo, TableDataResponse, SortConfig, ColumnInfo, TableIndex, ForeignKey, TypeGroup } from '@shared/types/database';
+import { IDatabaseDriver, ConnectionConfig, DatabaseInfo, TableInfo, TableDataResponse, SortConfig, ColumnInfo, TableIndex, ForeignKey, TypeGroup, ServerCapabilities, ServerVariablesResult } from '@shared/types/database';
 
 export class MySQLDriver implements IDatabaseDriver {
   private connection: Connection | null = null;
@@ -406,5 +406,55 @@ export class MySQLDriver implements IDatabaseDriver {
       { group: 'Geometria', types: ['GEOMETRY', 'POINT', 'LINESTRING', 'POLYGON', 'MULTIPOINT', 'MULTILINESTRING', 'MULTIPOLYGON', 'GEOMETRYCOLLECTION'] },
       { group: 'Otros', types: ['ENUM', 'SET', 'JSON'] }
     ];
+  }
+
+  escapeIdentifier(name: string): string {
+    return '`' + name.replace(/`/g, '``') + '`';
+  }
+
+  escapeStringLiteral(val: string): string {
+    return "'" + val.replace(/\\/g, '\\\\').replace(/'/g, "\\'") + "'";
+  }
+
+  async runTableMaintenance(database: string, table: string, op: string): Promise<any> {
+    const db = this.escapeIdentifier(database);
+    const tbl = this.escapeIdentifier(table);
+    return this.executeQuery(`${op.toUpperCase()} TABLE ${db}.${tbl}`);
+  }
+
+  getCapabilities(): ServerCapabilities {
+    return {
+      supportsUnsigned: true,
+      supportsVirtuality: true,
+      supportsCollation: true,
+      supportsColumnComment: true,
+      supportsFullTextIndex: true,
+      supportsSpatialIndex: true,
+      supportsProcessList: true,
+      supportsServerVariables: true,
+      supportsTableMaintenance: true,
+      maintenanceOps: ['ANALYZE', 'OPTIMIZE', 'CHECK', 'REPAIR'],
+      indexTypes: ['PRIMARY', 'UNIQUE', 'INDEX', 'FULLTEXT', 'SPATIAL'],
+      processIdField: 'Id',
+    };
+  }
+
+  async getProcessList(): Promise<any[]> {
+    const [rows]: any = await this.exec('SHOW PROCESSLIST');
+    return rows;
+  }
+
+  async killProcess(processId: number | string): Promise<void> {
+    await this.exec(`KILL ${Number(processId)}`);
+  }
+
+  async getServerVariables(): Promise<ServerVariablesResult> {
+    const [vars]: any = await this.exec('SHOW VARIABLES');
+    const [stat]: any = await this.exec('SHOW GLOBAL STATUS');
+    const normalize = (rows: any[]) => rows.map((r: any) => ({
+      name: r.Variable_name ?? r.variable_name ?? r.Name ?? '',
+      value: String(r.Value ?? r.value ?? ''),
+    }));
+    return { variables: normalize(vars), status: normalize(stat) };
   }
 }

@@ -2,7 +2,27 @@ import { app, BrowserWindow, ipcMain, Menu, safeStorage, dialog } from 'electron
 import path from 'path';
 import fs from 'fs';
 import { MySQLDriver } from './drivers/mysql.driver';
-import type { ServerInfo, StoredServer, DatabaseInfo } from '../shared/types/database';
+import { PostgreSQLDriver } from './drivers/postgres.driver';
+import { SQLiteDriver } from './drivers/sqlite.driver';
+import { SQLServerDriver } from './drivers/sqlserver.driver';
+import { OracleDriver } from './drivers/oracle.driver';
+import type { IDatabaseDriver, ServerInfo, StoredServer, DatabaseInfo } from '../shared/types/database';
+
+function createDriver(server: { type: 'mysql' | 'postgres' | 'sqlite' | 'sqlserver' | 'oracle' }): IDatabaseDriver {
+  switch (server.type) {
+    case 'postgres':
+      return new PostgreSQLDriver();
+    case 'sqlite':
+      return new SQLiteDriver();
+    case 'sqlserver':
+      return new SQLServerDriver();
+    case 'oracle':
+      return new OracleDriver();
+    case 'mysql':
+    default:
+      return new MySQLDriver();
+  }
+}
 
 const DB_ERROR_MESSAGES: Record<string, string> = {
   ECONNREFUSED: 'Connection refused. Check host and port.',
@@ -167,11 +187,16 @@ function createWindow() {
     },
   });
 
-  MySQLDriver.queryLogger = (sql, durationMs, error) => {
+  const queryLogHandler = (sql: string, durationMs: number, error?: string) => {
     if (mainWindow && !mainWindow.isDestroyed()) {
       mainWindow.webContents.send('query:log', { sql, durationMs, error });
     }
   };
+  MySQLDriver.queryLogger = queryLogHandler;
+  PostgreSQLDriver.queryLogger = queryLogHandler;
+  SQLiteDriver.queryLogger = queryLogHandler;
+  SQLServerDriver.queryLogger = queryLogHandler;
+  OracleDriver.queryLogger = queryLogHandler;
 
   mainWindow.on('closed', () => { mainWindow = null; });
 
@@ -214,7 +239,7 @@ app.whenReady().then(() => {
     const server = activeServers.find(s => s.name === serverName);
     if (!server) throw new Error('Server not found');
 
-    const driver = new MySQLDriver();
+    const driver = createDriver(server);
     try {
       if (server.databases && server.databases.length > 0) {
         return server.databases;
@@ -243,7 +268,7 @@ app.whenReady().then(() => {
     const server = activeServers.find(s => s.name === serverName);
     if (!server) throw new Error('Server not found');
 
-    const driver = new MySQLDriver();
+    const driver = createDriver(server);
     try {
       const db = server.databases?.find(d => d.name === dbName);
       if (db && db.tables && db.tables.length > 0) {
@@ -286,7 +311,7 @@ app.whenReady().then(() => {
     const server = activeServers.find(s => s.name === serverName);
     if (!server) throw new Error('Server not found');
 
-    const driver = new MySQLDriver();
+    const driver = createDriver(server);
     try {
       if (server.config) {
         await driver.connect({ ...server.config, database: dbName });
@@ -299,7 +324,7 @@ app.whenReady().then(() => {
   });
 
   ipcMain.handle('api:connect', async (_event, storedServer: StoredServer) => {
-    const driver = new MySQLDriver();
+    const driver = createDriver(storedServer);
     try {
       if (!storedServer || !storedServer.config) {
         throw new Error('Server configuration missing or invalid');
@@ -375,7 +400,7 @@ app.whenReady().then(() => {
     const server = activeServers.find(s => s.name === serverName);
     if (!server) throw new Error('Server not found');
 
-    const driver = new MySQLDriver();
+    const driver = createDriver(server);
     try {
       if (server.config) {
         await driver.connect({ ...server.config, database: dbName });
@@ -391,7 +416,7 @@ app.whenReady().then(() => {
     const server = activeServers.find(s => s.name === serverName);
     if (!server) throw new Error('Server not found');
 
-    const driver = new MySQLDriver();
+    const driver = createDriver(server);
     try {
       if (server.config) {
         await driver.connect({ ...server.config, database: dbName });
@@ -406,7 +431,7 @@ app.whenReady().then(() => {
   ipcMain.handle('api:getTableIndexes', async (_event, serverName: string, dbName: string, tableName: string) => {
     const server = activeServers.find(s => s.name === serverName);
     if (!server) throw new Error('Server not found');
-    const driver = new MySQLDriver();
+    const driver = createDriver(server);
     try {
       if (server.config) {
         await driver.connect({ ...server.config, database: dbName });
@@ -421,7 +446,7 @@ app.whenReady().then(() => {
   ipcMain.handle('api:addIndex', async (_event, serverName: string, dbName: string, tableName: string, index: any) => {
     const server = activeServers.find(s => s.name === serverName);
     if (!server) throw new Error('Server not found');
-    const driver = new MySQLDriver();
+    const driver = createDriver(server);
     try {
       if (server.config) {
         await driver.connect({ ...server.config, database: dbName });
@@ -435,7 +460,7 @@ app.whenReady().then(() => {
   ipcMain.handle('api:dropIndex', async (_event, serverName: string, dbName: string, tableName: string, indexName: string) => {
     const server = activeServers.find(s => s.name === serverName);
     if (!server) throw new Error('Server not found');
-    const driver = new MySQLDriver();
+    const driver = createDriver(server);
     try {
       if (server.config) {
         await driver.connect({ ...server.config, database: dbName });
@@ -449,7 +474,7 @@ app.whenReady().then(() => {
   ipcMain.handle('api:getTableForeignKeys', async (_event, serverName: string, dbName: string, tableName: string) => {
     const server = activeServers.find(s => s.name === serverName);
     if (!server) throw new Error('Server not found');
-    const driver = new MySQLDriver();
+    const driver = createDriver(server);
     try {
       if (server.config) {
         await driver.connect({ ...server.config, database: dbName });
@@ -464,7 +489,7 @@ app.whenReady().then(() => {
   ipcMain.handle('api:addForeignKey', async (_event, serverName: string, dbName: string, tableName: string, fk: any) => {
     const server = activeServers.find(s => s.name === serverName);
     if (!server) throw new Error('Server not found');
-    const driver = new MySQLDriver();
+    const driver = createDriver(server);
     try {
       if (server.config) {
         await driver.connect({ ...server.config, database: dbName });
@@ -478,7 +503,7 @@ app.whenReady().then(() => {
   ipcMain.handle('api:dropForeignKey', async (_event, serverName: string, dbName: string, tableName: string, fkName: string) => {
     const server = activeServers.find(s => s.name === serverName);
     if (!server) throw new Error('Server not found');
-    const driver = new MySQLDriver();
+    const driver = createDriver(server);
     try {
       if (server.config) {
         await driver.connect({ ...server.config, database: dbName });
@@ -492,7 +517,7 @@ app.whenReady().then(() => {
   ipcMain.handle('api:addColumn', async (_event, serverName: string, dbName: string, tableName: string, column: any, afterColumn: any) => {
     const server = activeServers.find(s => s.name === serverName);
     if (!server) throw new Error('Server not found');
-    const driver = new MySQLDriver();
+    const driver = createDriver(server);
     try {
       if (server.config) {
         await driver.connect({ ...server.config, database: dbName });
@@ -506,7 +531,7 @@ app.whenReady().then(() => {
   ipcMain.handle('api:updateColumn', async (_event, serverName: string, dbName: string, tableName: string, oldName: string, column: any, afterColumn: any) => {
     const server = activeServers.find(s => s.name === serverName);
     if (!server) throw new Error('Server not found');
-    const driver = new MySQLDriver();
+    const driver = createDriver(server);
     try {
       if (server.config) {
         await driver.connect({ ...server.config, database: dbName });
@@ -520,7 +545,7 @@ app.whenReady().then(() => {
   ipcMain.handle('api:getTableCreateStatement', async (_event, serverName: string, dbName: string, tableName: string) => {
     const server = activeServers.find(s => s.name === serverName);
     if (!server) throw new Error('Server not found');
-    const driver = new MySQLDriver();
+    const driver = createDriver(server);
     try {
       if (server.config) {
         await driver.connect({ ...server.config, database: dbName });
@@ -536,7 +561,7 @@ app.whenReady().then(() => {
   ipcMain.handle('api:executeSql', async (_event, serverName: string, sql: string, database: string) => {
     const server = activeServers.find(s => s.name === serverName);
     if (!server) throw new Error('Server not found');
-    const driver = new MySQLDriver();
+    const driver = createDriver(server);
     try {
       if (server.config) {
         await driver.connect({ ...server.config, database: database || server.config.database });
@@ -551,19 +576,19 @@ app.whenReady().then(() => {
   ipcMain.handle('api:getSupportedTypes', (_event, serverName: string) => {
     const server = activeServers.find(s => s.name === serverName);
     if (!server) throw new Error('Server not found');
-    return new MySQLDriver().getSupportedTypes();
+    return createDriver(server).getSupportedTypes();
   });
 
   // Table maintenance
   ipcMain.handle('api:tableMaintenanceOp', async (_event, serverName: string, dbName: string, tableName: string, op: string) => {
     const server = activeServers.find(s => s.name === serverName);
     if (!server) throw new Error('Server not found');
-    const ops = ['ANALYZE', 'OPTIMIZE', 'CHECK', 'REPAIR'];
-    if (!ops.includes(op.toUpperCase())) throw new Error('Invalid operation');
-    const driver = new MySQLDriver();
+    const driver = createDriver(server);
+    const allowedOps = driver.getCapabilities().maintenanceOps;
+    if (!allowedOps.includes(op.toUpperCase())) throw new Error('Invalid operation');
     try {
       await driver.connect({ ...server.config!, database: dbName });
-      return await driver.executeQuery(`${op.toUpperCase()} TABLE \`${dbName}\`.\`${tableName}\``);
+      return await driver.runTableMaintenance(dbName, tableName, op);
     } finally {
       await driver.disconnect();
     }
@@ -573,15 +598,19 @@ app.whenReady().then(() => {
   ipcMain.handle('api:getServerVariables', async (_event, serverName: string) => {
     const server = activeServers.find(s => s.name === serverName);
     if (!server) throw new Error('Server not found');
-    const driver = new MySQLDriver();
+    const driver = createDriver(server);
     try {
       await driver.connect(server.config!);
-      const variables = await driver.executeQuery('SHOW VARIABLES');
-      const status = await driver.executeQuery('SHOW GLOBAL STATUS');
-      return { variables, status };
+      return await driver.getServerVariables();
     } finally {
       await driver.disconnect();
     }
+  });
+
+  ipcMain.handle('api:getServerCapabilities', (_event, serverName: string) => {
+    const server = activeServers.find(s => s.name === serverName);
+    if (!server) throw new Error('Server not found');
+    return createDriver(server).getCapabilities();
   });
 
   // CSV import — read file, return content
@@ -625,10 +654,10 @@ app.whenReady().then(() => {
   ipcMain.handle('api:getProcessList', async (_event, serverName: string) => {
     const server = activeServers.find(s => s.name === serverName);
     if (!server) throw new Error('Server not found');
-    const driver = new MySQLDriver();
+    const driver = createDriver(server);
     try {
       await driver.connect(server.config!);
-      return await driver.executeQuery('SHOW PROCESSLIST');
+      return await driver.getProcessList();
     } finally {
       await driver.disconnect();
     }
@@ -637,10 +666,10 @@ app.whenReady().then(() => {
   ipcMain.handle('api:killProcess', async (_event, serverName: string, processId: number) => {
     const server = activeServers.find(s => s.name === serverName);
     if (!server) throw new Error('Server not found');
-    const driver = new MySQLDriver();
+    const driver = createDriver(server);
     try {
       await driver.connect(server.config!);
-      await driver.executeQuery(`KILL ${processId}`);
+      await driver.killProcess(processId);
     } finally {
       await driver.disconnect();
     }
@@ -671,7 +700,7 @@ app.whenReady().then(() => {
     });
     if (canceled || !filePath) return { saved: false };
 
-    const driver = new MySQLDriver();
+    const driver = createDriver(server);
     try {
       await driver.connect({ ...server.config!, database: dbName });
       let allRows: any[] = [];
@@ -686,12 +715,12 @@ app.whenReady().then(() => {
         offset += chunk;
       }
 
-      const escId = (s: string) => '`' + s.replace(/`/g, '``') + '`';
+      const escId = (s: string) => driver.escapeIdentifier(s);
       const escVal = (val: any): string => {
         if (val === null) return 'NULL';
         if (typeof val === 'number') return String(val);
         if (typeof val === 'boolean') return val ? '1' : '0';
-        return "'" + String(val).replace(/\\/g, '\\\\').replace(/'/g, "\\'") + "'";
+        return driver.escapeStringLiteral(String(val));
       };
       const escCsv = (val: any): string => {
         if (val === null) return '';
@@ -710,7 +739,7 @@ app.whenReady().then(() => {
         }
       } else {
         const colList = columns.map(escId).join(', ');
-        content = `-- Export of \`${dbName}\`.\`${tableName}\`\n-- Generated by Arumu\n\n`;
+        content = `-- Export of ${driver.escapeIdentifier(dbName)}.${driver.escapeIdentifier(tableName)}\n-- Generated by Arumu\n\n`;
         for (const row of allRows) {
           const vals = columns.map(col => escVal(row[col])).join(', ');
           content += `INSERT INTO ${escId(tableName)} (${colList}) VALUES (${vals});\n`;

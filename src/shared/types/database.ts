@@ -45,14 +45,14 @@ export interface DatabaseInfo {
 
 export interface ServerInfo {
   name: string;
-  type: 'mysql' | 'postgres' | 'sqlite';
+  type: 'mysql' | 'postgres' | 'sqlite' | 'sqlserver' | 'oracle';
   databases?: DatabaseInfo[];
   config?: ConnectionConfig;
 }
 
 export interface StoredServer {
   name: string;
-  type: 'mysql' | 'postgres' | 'sqlite';
+  type: 'mysql' | 'postgres' | 'sqlite' | 'sqlserver' | 'oracle';
   config: ConnectionConfig;
 }
 
@@ -63,6 +63,7 @@ export interface ConnectionConfig {
   password?: string;
   database?: string;
   defaultFilter?: string; // Comma separated list of databases to hide
+  filePath?: string; // SQLite: path to .db file
 }
 
 export interface TableDataResponse {
@@ -96,6 +97,31 @@ export interface AppState {
 export interface TypeGroup {
   group: string;
   types: string[];
+}
+
+export interface ServerCapabilities {
+  supportsUnsigned: boolean;
+  supportsVirtuality: boolean;
+  supportsCollation: boolean;
+  supportsColumnComment: boolean;
+  supportsFullTextIndex: boolean;
+  supportsSpatialIndex: boolean;
+  supportsProcessList: boolean;
+  supportsServerVariables: boolean;
+  supportsTableMaintenance: boolean;
+  maintenanceOps: string[];
+  indexTypes: string[];
+  processIdField: string;
+}
+
+export interface VariableRow {
+  name: string;
+  value: string;
+}
+
+export interface ServerVariablesResult {
+  variables: VariableRow[];
+  status: VariableRow[];
 }
 
 export interface AppSettings {
@@ -140,4 +166,11 @@ export interface IDatabaseDriver {
   addColumn(database: string, table: string, column: ColumnInfo, afterColumn?: string): Promise<void>;
   updateColumn(database: string, table: string, oldColumnName: string, newColumn: ColumnInfo, afterColumn?: string): Promise<void>;
   getSupportedTypes(): Promise<TypeGroup[]>;
+  getCapabilities(): ServerCapabilities;
+  getProcessList(): Promise<any[]>;
+  killProcess(processId: number | string): Promise<void>;
+  getServerVariables(): Promise<ServerVariablesResult>;
+  escapeIdentifier(name: string): string;
+  escapeStringLiteral(val: string): string;
+  runTableMaintenance(database: string, table: string, op: string): Promise<any>;
 }

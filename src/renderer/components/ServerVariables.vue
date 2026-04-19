@@ -23,8 +23,8 @@ const filtered = computed(() => {
   if (!search.value.trim()) return activeList.value;
   const q = search.value.toLowerCase();
   return activeList.value.filter((row: any) => {
-    const name = (row.Variable_name || row.Name || '').toLowerCase();
-    const val = String(row.Value ?? '').toLowerCase();
+    const name = (row.name || '').toLowerCase();
+    const val = String(row.value ?? '').toLowerCase();
     return name.includes(q) || val.includes(q);
   });
 });
@@ -104,19 +104,19 @@ onMounted(load);
         <tbody class="divide-y divide-slate-50 dark:divide-slate-800/50">
           <tr
             v-for="row in filtered"
-            :key="row.Variable_name || row.Name"
+            :key="row.name"
             class="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors group"
           >
-            <td class="px-4 py-1.5 text-xs font-mono text-blue-700 dark:text-blue-300 border-r border-slate-100 dark:border-slate-800/30 truncate" :title="row.Variable_name || row.Name">
-              {{ row.Variable_name || row.Name }}
+            <td class="px-4 py-1.5 text-xs font-mono text-blue-700 dark:text-blue-300 border-r border-slate-100 dark:border-slate-800/30 truncate" :title="row.name">
+              {{ row.name }}
             </td>
             <td class="px-4 py-1.5 text-xs font-mono text-slate-700 dark:text-slate-300">
               <span
                 :class="{
-                  'text-emerald-600 dark:text-emerald-400': String(row.Value).toUpperCase() === 'ON' || String(row.Value) === '1',
-                  'text-red-500 dark:text-red-400': String(row.Value).toUpperCase() === 'OFF' || String(row.Value) === '0',
+                  'text-emerald-600 dark:text-emerald-400': String(row.value).toUpperCase() === 'ON' || String(row.value) === '1',
+                  'text-red-500 dark:text-red-400': String(row.value).toUpperCase() === 'OFF' || String(row.value) === '0',
                 }"
-              >{{ row.Value ?? '' }}</span>
+              >{{ row.value ?? '' }}</span>
             </td>
           </tr>
         </tbody>
