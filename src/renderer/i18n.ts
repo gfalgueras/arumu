@@ -44,7 +44,6 @@ const translations: Record<string, any> = {
       error_config_not_found_title: 'Configuration not found',
       error_config_not_found_msg: 'Could not find saved configuration for this server.',
       error_get_config: 'Error getting configuration',
-      version: 'Arumu v1.0.0',
     },
     topbar: {
       open_conn_title: 'Open Connection',
@@ -309,7 +308,6 @@ const translations: Record<string, any> = {
       error_config_not_found_title: 'Configuración no encontrada',
       error_config_not_found_msg: 'No se pudo encontrar la configuración guardada para este servidor.',
       error_get_config: 'Error al obtener configuración',
-      version: 'Arumu v1.0.0',
     },
     topbar: {
       open_conn_title: 'Abrir Conexión',
@@ -574,7 +572,6 @@ const translations: Record<string, any> = {
       error_config_not_found_title: 'Configuració no trobada',
       error_config_not_found_msg: "No s'ha pogut trobar la configuració desada per a aquest servidor.",
       error_get_config: 'Error en obtenir la configuració',
-      version: 'Arumu v1.0.0',
     },
     topbar: {
       open_conn_title: 'Obre connexió',
@@ -839,7 +836,6 @@ const translations: Record<string, any> = {
       error_config_not_found_title: 'Configuration introuvable',
       error_config_not_found_msg: 'La configuration enregistrée pour ce serveur est introuvable.',
       error_get_config: 'Erreur lors de la récupération de la configuration',
-      version: 'Arumu v1.0.0',
     },
     topbar: {
       open_conn_title: 'Ouvrir une connexion',

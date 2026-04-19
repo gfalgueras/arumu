@@ -4,6 +4,7 @@ import { Search, Server } from 'lucide-vue-next';
 import ContextMenu from './Sidebar/ContextMenu.vue';
 import ServerItem from './Sidebar/ServerItem.vue';
 import { $t } from '../i18n';
+import { APP_VERSION } from '../config';
 
 const props = defineProps<{
   servers: any[];
@@ -233,7 +234,7 @@ const handleKeyDown = (e: KeyboardEvent) => {
     />
 
     <div class="p-4 bg-slate-200 dark:bg-slate-950 text-xs text-slate-500 dark:text-slate-500 border-t border-slate-300 dark:border-slate-800">
-      {{ $t('sidebar.version') }}
+      {{ APP_VERSION }}
     </div>
 
     <!-- Resize Handle -->

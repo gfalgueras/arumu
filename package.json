@@ -13,7 +13,7 @@
     "test:coverage": "vitest --coverage",
     "lint": "eslint src/renderer"
   },
-  "keywords": [],
+  "keywords": ["alpha"],
   "author": "",
   "license": "ISC",
   "devDependencies": {
