@@ -8,7 +8,6 @@ export default defineConfig({
     hookTimeout: 60_000,
     include: ['tests/**/*.test.ts'],
     pool: 'forks', // isolate processes — avoids native-module issues across test files
-    sequence: { concurrent: true }, // test files run in parallel (each has its own DB connection)
   },
   resolve: {
     alias: {

@@ -300,7 +300,7 @@ export class OracleDriver implements IDatabaseDriver {
     }
 
     const orderBy = (sort && sort.length > 0)
-      ? 'ORDER BY ' + sort.map(s => `${esc(s.column)} ${s.direction === 'DESC' ? 'DESC' : 'ASC'}`).join(', ')
+      ? 'ORDER BY ' + sort.map(s => `${esc(s.column.toUpperCase())} ${s.direction === 'DESC' ? 'DESC' : 'ASC'}`).join(', ')
       : 'ORDER BY ROWID';
 
     const safeLimit = Math.max(1, Math.floor(Number(limit)));
@@ -308,8 +308,9 @@ export class OracleDriver implements IDatabaseDriver {
     const offsetIdx = filterParams.length + 1;
     const limitIdx = filterParams.length + 2;
 
-    const query = `SELECT * FROM ${esc(table)} ${whereClause} ${orderBy} OFFSET :${offsetIdx} ROWS FETCH NEXT :${limitIdx} ROWS ONLY`;
-    const countQuery = `SELECT COUNT(*) as "total" FROM ${esc(table)} ${whereClause}`;
+    const tableRef = esc(table.toUpperCase());
+    const query = `SELECT * FROM ${tableRef} ${whereClause} ${orderBy} OFFSET :${offsetIdx} ROWS FETCH NEXT :${limitIdx} ROWS ONLY`;
+    const countQuery = `SELECT COUNT(*) as "total" FROM ${tableRef} ${whereClause}`;
 
     const [dataRows, countRows] = await Promise.all([
       this.exec(query, [...filterParams, safeOffset, safeLimit]),

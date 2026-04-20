@@ -8,6 +8,7 @@ export const connections: Record<string, ConnectionConfig> = {
     port:     Number(e('TEST_MYSQL_PORT', '3306')),
     user:     e('TEST_MYSQL_USER', 'root'),
     password: e('TEST_MYSQL_PASSWORD', 'root'),
+    database: e('TEST_MYSQL_DB', 'arumu_test'),
   },
   postgres: {
     host:     e('TEST_PG_HOST', '127.0.0.1'),

@@ -1,11 +1,26 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+import { readFileSync } from 'fs';
+import { resolve, dirname } from 'path';
+import { fileURLToPath } from 'url';
 import { OracleDriver } from '../../src/main/drivers/oracle.driver';
 import { runSharedSuite } from './shared-suite';
 import { connections } from './connections';
 
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const SEED_SQL = readFileSync(resolve(__dirname, '../../docker/oracle/seed.sql'), 'utf8');
+
 // Oracle: "database" parameter in schema methods = schema/owner name (uppercase)
 const SCHEMA = 'ARUMU_TEST';
 const TMP = 'TEST_TMP'; // Oracle uppercases unquoted identifiers
+
+const SEED_TABLES = ['ORDER_ITEMS', 'ORDERS', 'PRODUCTS', 'CUSTOMERS', 'CATEGORIES'];
+
+function splitStatements(sql: string): string[] {
+  return sql
+    .split(';')
+    .map(s => s.replace(/--[^\n]*/g, '').trim())
+    .filter(s => s.length > 0);
+}
 
 describe('OracleDriver', () => {
   let driver: OracleDriver;
@@ -13,10 +28,18 @@ describe('OracleDriver', () => {
   beforeAll(async () => {
     driver = new OracleDriver();
     await driver.connect(connections.oracle);
-    // Drop temp table if it exists from a previous run
-    try {
-      await driver.executeQuery(`DROP TABLE "${TMP}"`);
-    } catch { /* doesn't exist — ok */ }
+
+    // Drop seeded tables (FK order) and temp table from previous runs
+    for (const t of [...SEED_TABLES, TMP]) {
+      try { await driver.executeQuery(`DROP TABLE "${t}" CASCADE CONSTRAINTS PURGE`); } catch { /* ok */ }
+    }
+
+    // Seed schema + data
+    for (const stmt of splitStatements(SEED_SQL)) {
+      await driver.executeQuery(stmt);
+    }
+
+    // Temp table for mutation tests
     await driver.executeQuery(`
       CREATE TABLE "${TMP}" (
         "ID"  NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
@@ -26,7 +49,9 @@ describe('OracleDriver', () => {
   });
 
   afterAll(async () => {
-    try { await driver.executeQuery(`DROP TABLE "${TMP}"`); } catch { /* ignore */ }
+    for (const t of [TMP, ...SEED_TABLES]) {
+      try { await driver.executeQuery(`DROP TABLE "${t}" CASCADE CONSTRAINTS PURGE`); } catch { /* ignore */ }
+    }
     await driver.disconnect();
   });
 
