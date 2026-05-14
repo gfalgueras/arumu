@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
-import { Plus, Server, ChevronDown } from 'lucide-vue-next';
+import { ref, onMounted, watch } from 'vue';
+import { Plus, Server, ChevronDown, Pencil } from 'lucide-vue-next';
 import type { StoredServer } from '@shared/types/database';
 import { showError } from '../errorService';
 import { $t } from '../i18n';
@@ -10,6 +10,7 @@ import BaseInput from './ui/BaseInput.vue';
 
 const props = defineProps<{
   editServer?: StoredServer;
+  connectionError?: string;
 }>();
 
 const emit = defineEmits<{
@@ -18,7 +19,10 @@ const emit = defineEmits<{
 }>();
 
 const storedServers = ref<StoredServer[]>([]);
+const internalEditServer = ref<StoredServer | null>(null);
 const showAddForm = ref(!!props.editServer);
+const localError = ref(props.connectionError);
+watch(() => props.connectionError, v => { localError.value = v; });
 const formData = ref({
   name: props.editServer?.name || '',
   type: props.editServer?.type || ('mysql' as 'mysql' | 'postgres' | 'sqlite'),
@@ -40,6 +44,31 @@ onMounted(() => {
   }
 });
 
+const startEditFromList = (server: StoredServer, e: MouseEvent) => {
+  e.stopPropagation();
+  localError.value = undefined;
+  internalEditServer.value = server;
+  formData.value = {
+    name: server.name,
+    type: server.type,
+    host: server.config.host || 'localhost',
+    port: server.config.port || 3306,
+    user: server.config.user || 'root',
+    password: server.config.password || '',
+    defaultFilter: server.config.defaultFilter || 'mysql,information_schema,performance_schema,sys'
+  };
+  showAddForm.value = true;
+};
+
+const cancelForm = () => {
+  if (props.editServer) {
+    emit('close');
+  } else {
+    internalEditServer.value = null;
+    showAddForm.value = false;
+  }
+};
+
 const handleSave = async () => {
   try {
     const serverToSave = {
@@ -54,9 +83,16 @@ const handleSave = async () => {
       }
     };
 
-    if (props.editServer) {
-      await api.updateStoredServer(props.editServer.name, serverToSave);
-      emit('close');
+    const editingName = props.editServer?.name || internalEditServer.value?.name;
+    if (editingName) {
+      await api.updateStoredServer(editingName, serverToSave);
+      if (props.editServer) {
+        emit('close');
+      } else {
+        internalEditServer.value = null;
+        showAddForm.value = false;
+        fetchStoredServers();
+      }
     } else {
       await api.saveStoredServer(serverToSave);
       showAddForm.value = false;
@@ -99,15 +135,26 @@ const handleSave = async () => {
                   <div class="text-xs text-slate-500">{{ server.type }} - {{ server.config.host }}:{{ server.config.port }}</div>
                 </div>
               </div>
+              <button
+                class="p-1.5 rounded text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 opacity-0 group-hover:opacity-100 transition-opacity"
+                :title="$t('common.edit')"
+                @click="startEditFromList(server, $event)"
+              >
+                <Pencil :size="14" />
+              </button>
             </div>
           </div>
           <button
-            @click="showAddForm = true"
+            @click="showAddForm = true; localError = undefined"
             class="w-full py-2 border border-dashed border-slate-400 dark:border-slate-600 rounded flex items-center justify-center gap-2 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:border-slate-600 dark:hover:border-slate-400 transition-colors"
           >
             <Plus :size="18" />
             <span>{{ $t('conn_modal.add_new') }}</span>
           </button>
+          <div v-if="localError" class="flex items-start gap-2 p-3 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 rounded text-sm text-red-700 dark:text-red-400">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="flex-shrink-0 mt-0.5"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>
+            <span>{{ localError }}</span>
+          </div>
         </template>
 
         <form v-else @submit.prevent="handleSave" class="space-y-4 text-sm">
@@ -159,7 +206,7 @@ const handleSave = async () => {
               size="md"
               type="button"
               class="flex-1 justify-center"
-              @click="editServer ? emit('close') : (showAddForm = false)"
+              @click="cancelForm"
             >
               {{ $t('common.cancel') }}
             </BaseButton>

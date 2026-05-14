@@ -46,6 +46,7 @@ const vFocus = {
 const isModalOpen = ref(false);
 const isSettingsOpen = ref(false);
 const editingServer = ref<StoredServer | undefined>(undefined);
+const connectionError = ref<string | undefined>(undefined);
 const loadingServers = ref<string[]>([]);
 const loadingDatabases = ref<string[]>([]);
 const sidebarWidth = ref(256);
@@ -111,6 +112,7 @@ const handleExpandDatabase = async (serverName: string, dbName: string) => {
 
 
 const handleConnect = async (storedServer: StoredServer, closeAndRefresh = true): Promise<boolean> => {
+  connectionError.value = undefined;
   try {
     await api.connect(storedServer);
 
@@ -138,7 +140,7 @@ const handleConnect = async (storedServer: StoredServer, closeAndRefresh = true)
     console.error('Connection error:', error);
     const raw: string = error.message || 'Error desconocido';
     const msg = raw.replace(/^Error invoking remote method '[^']+': (Error: )?/, '');
-    showError($t('conn_modal.error_connect'), msg);
+    connectionError.value = msg;
     return false;
   }
 };
@@ -625,9 +627,10 @@ const selectTable = (serverName: string, db: string, table: string) => {
 
     <ConnectionModal
       v-if="isModalOpen"
-      @close="isModalOpen = false; editingServer = undefined"
+      @close="isModalOpen = false; editingServer = undefined; connectionError = undefined"
       @connect="handleConnect"
       :editServer="editingServer"
+      :connectionError="connectionError"
     />
     <SettingsModal
       v-if="isSettingsOpen"

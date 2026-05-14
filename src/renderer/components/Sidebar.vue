@@ -92,6 +92,8 @@ const visibleItems = computed<VisibleItem[]>(() => {
   for (const server of props.servers) {
     const serverDbs: any[] = server.databases || [];
     const filteredDbs = serverDbs.filter((db: any) => {
+      const isSelected = server.name === props.selectedServerName && db.name === props.selectedDatabase;
+      if (isSelected) return true;
       if (props.dbFilter && !db.name.toLowerCase().includes(props.dbFilter.toLowerCase())) return false;
       if (props.tableFilter && (db.tables || []).length > 0) {
         if (!(db.tables || []).some((t: any) => t.name.toLowerCase().includes(props.tableFilter.toLowerCase()))) return false;
@@ -110,9 +112,10 @@ const visibleItems = computed<VisibleItem[]>(() => {
 
       if (!expandedDbIds.includes(db.name)) continue;
 
-      const tables: any[] = (db.tables || []).filter((t: any) =>
-        !props.tableFilter || t.name.toLowerCase().includes(props.tableFilter.toLowerCase())
-      );
+      const tables: any[] = (db.tables || []).filter((t: any) => {
+        if (server.name === props.selectedServerName && db.name === props.selectedDatabase && t.name === props.selectedTable) return true;
+        return !props.tableFilter || t.name.toLowerCase().includes(props.tableFilter.toLowerCase());
+      });
       for (const t of tables) {
         result.push({ type: 'table', serverName: server.name, dbName: db.name, tableName: t.name });
       }

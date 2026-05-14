@@ -1,6 +1,23 @@
 import mysql, { Connection } from 'mysql2/promise';
 import { IDatabaseDriver, ConnectionConfig, DatabaseInfo, TableInfo, TableDataResponse, SortConfig, ColumnInfo, TableIndex, ForeignKey, TypeGroup, ServerCapabilities, ServerVariablesResult } from '@shared/types/database';
 
+function sanitizeValue(value: unknown): unknown {
+  if (typeof value === 'bigint') return value.toString();
+  if (value instanceof Uint8Array) {
+    const buf = Buffer.from(value);
+    return buf.length > 0 ? buf.readUIntBE(0, Math.min(buf.length, 6)) : 0;
+  }
+  return value;
+}
+
+function sanitizeRows(rows: Record<string, unknown>[]): Record<string, unknown>[] {
+  return rows.map(row => {
+    const clean: Record<string, unknown> = {};
+    for (const key of Object.keys(row)) clean[key] = sanitizeValue(row[key]);
+    return clean;
+  });
+}
+
 export class MySQLDriver implements IDatabaseDriver {
   private connection: Connection | null = null;
 
@@ -260,22 +277,16 @@ export class MySQLDriver implements IDatabaseDriver {
       this.exec(countQuery, params)
     ]);
 
-    const cleanRows = JSON.parse(JSON.stringify(rows, (_key, value) =>
-      typeof value === 'bigint' ? value.toString() : value
-    ));
-
     return {
       columns,
-      rows: cleanRows,
+      rows: sanitizeRows(rows),
       total: (countRows && countRows[0]) ? Number(countRows[0].total) : 0
     };
   }
 
   async executeQuery(sql: string): Promise<any> {
     const [result]: any = await this.exec(sql);
-    return JSON.parse(JSON.stringify(result, (_key, value) =>
-      typeof value === 'bigint' ? value.toString() : value
-    ));
+    return Array.isArray(result) ? sanitizeRows(result) : result;
   }
 
   async addIndex(database: string, table: string, index: TableIndex): Promise<void> {

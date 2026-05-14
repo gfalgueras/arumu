@@ -254,6 +254,8 @@ app.whenReady().then(() => {
           databases = databases.filter(db => !filters.includes(db.name.toLowerCase()));
         }
 
+        const seen = new Set<string>();
+        databases = databases.filter(db => seen.has(db.name) ? false : (seen.add(db.name), true));
         server.databases = databases;
         return databases;
       } else {
@@ -284,21 +286,20 @@ app.whenReady().then(() => {
         throw new Error('Server configuration missing');
       }
 
+      const size = tables.reduce((acc, t) => acc + (Number(t.size) || 0), 0);
       if (db) {
         db.tables = tables;
-        db.size = tables.reduce((acc, t) => acc + (Number(t.size) || 0), 0);
+        db.size = size;
       } else if (server.databases) {
-        server.databases.push({
-          name: dbName,
-          tables,
-          size: tables.reduce((acc, t) => acc + (Number(t.size) || 0), 0)
-        });
+        const existing = server.databases.find(d => d.name === dbName);
+        if (existing) {
+          existing.tables = tables;
+          existing.size = size;
+        } else {
+          server.databases.push({ name: dbName, tables, size });
+        }
       } else {
-        server.databases = [{
-          name: dbName,
-          tables,
-          size: tables.reduce((acc, t) => acc + (Number(t.size) || 0), 0)
-        }];
+        server.databases = [{ name: dbName, tables, size }];
       }
 
       return tables;

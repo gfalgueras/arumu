@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch, onMounted, onUnmounted, shallowRef, type ComponentPublicInstance } from 'vue';
+import { ref, computed, watch, onMounted, onUnmounted, onActivated, onDeactivated, shallowRef, type ComponentPublicInstance } from 'vue';
 import { Play, Loader2, AlertCircle, Database as DatabaseIcon, GripHorizontal, History, Zap, Bookmark } from 'lucide-vue-next';
 import CodeMirror from 'vue-codemirror6';
 import { sql, MySQL, PostgreSQL, SQLite, SQLDialect } from '@codemirror/lang-sql';
@@ -80,8 +80,12 @@ const handleGlobalKeydown = (e: KeyboardEvent) => {
   }
 };
 
-onMounted(() => {
+onActivated(() => {
   window.addEventListener('keydown', handleGlobalKeydown);
+});
+
+onDeactivated(() => {
+  window.removeEventListener('keydown', handleGlobalKeydown);
 });
 
 onUnmounted(() => {

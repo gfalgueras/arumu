@@ -9,6 +9,7 @@ import type { SortConfig, TableDataResponse, ColumnInfo } from '@shared/types/da
 import { showError } from '../errorService';
 import { $t } from '../i18n';
 import { api } from '../services/api';
+import { hotkeys, matchesHotkey } from '../hotkeys';
 import DataRow from './DataTable/DataRow.vue';
 import FilterInput from './DataTable/FilterInput.vue';
 import CsvImportModal from './CsvImportModal.vue';
@@ -364,9 +365,16 @@ const saveNewRow = async () => {
   if (!data.value || savingCell.value) return;
   savingCell.value = true;
   try {
-    const cols = data.value.columns.map(escId).join(', ');
-    const vals = data.value.columns
-      .map(col => escVal(newRowValues.value[col]?.isNull ? null : newRowValues.value[col]?.value ?? ''))
+    const columns = data.value.columns.filter((col: string) => {
+      const cell = newRowValues.value[col];
+      const ci = columnInfo.value.find((c: ColumnInfo) => c.name === col);
+      const isAutoIncrement = ci?.extra?.toUpperCase().includes('AUTO_INCREMENT');
+      const hasValue = cell && !cell.isNull && cell.value !== '';
+      return !(isAutoIncrement && !hasValue);
+    });
+    const cols = columns.map(escId).join(', ');
+    const vals = columns
+      .map(col => valOrExpr(newRowValues.value[col]?.isNull ? null : newRowValues.value[col]?.value ?? ''))
       .join(', ');
     await api.executeSql(props.serverName, `INSERT INTO ${escId(props.table)} (${cols}) VALUES (${vals})`, props.database);
     newRowMode.value = false;
@@ -411,6 +419,9 @@ const handleMouseUp = (e: MouseEvent) => {
 };
 
 const handleKeyNav = (e: KeyboardEvent) => {
+  if (e.key === 'F5' || matchesHotkey(e, hotkeys.executeAll) || matchesHotkey(e, hotkeys.executeStatement)) {
+    e.preventDefault(); fetchData(); return;
+  }
   if (!selectedCell.value || editingCell.value || newRowMode.value || !data.value) return;
   const cols = data.value.columns;
   const { rowIndex, col } = selectedCell.value;
@@ -475,6 +486,13 @@ const escVal = (val: string | null): string => {
   const n = Number(val);
   if (!isNaN(n) && val.trim() !== '') return val;
   return "'" + val.replace(/\\/g, '\\\\').replace(/'/g, "\\'") + "'";
+};
+const SQL_EXPR_RE = /^(CURRENT_TIMESTAMP|CURRENT_DATE|CURRENT_TIME|DEFAULT|TRUE|FALSE|NULL)$/i;
+const isSqlExpr = (val: string) => SQL_EXPR_RE.test(val.trim()) || val.includes('(');
+const valOrExpr = (val: string | null): string => {
+  if (val === null) return 'NULL';
+  if (isSqlExpr(val)) return val;
+  return escVal(val);
 };
 
 // ---- Export ----
