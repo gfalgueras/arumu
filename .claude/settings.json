@@ -23,7 +23,13 @@
       "Bash(node -e \"const p=require\\('./package.json'\\); console.log\\(p.packageManager||'none'\\)\")",
       "Bash(pnpm --version)",
       "PowerShell(New-Item -ItemType Directory -Path \"c:\\\\Users\\\\gfalgueras\\\\Desktop\\\\arumu\\\\resources\" -Force)",
-      "PowerShell(Move-Item -Path \"c:\\\\Users\\\\gfalgueras\\\\Desktop\\\\arumu\\\\icon.png\" -Destination \"c:\\\\Users\\\\gfalgueras\\\\Desktop\\\\arumu\\\\resources\\\\icon.png\")"
+      "PowerShell(Move-Item -Path \"c:\\\\Users\\\\gfalgueras\\\\Desktop\\\\arumu\\\\icon.png\" -Destination \"c:\\\\Users\\\\gfalgueras\\\\Desktop\\\\arumu\\\\resources\\\\icon.png\")",
+      "Bash(git rm *)",
+      "Bash(git commit *)",
+      "Bash(git push *)",
+      "Bash(git tag *)",
+      "Bash(gh release *)",
+      "PowerShell(gh release list --repo gfalgueras/arumu 2>&1)"
     ]
   }
 }

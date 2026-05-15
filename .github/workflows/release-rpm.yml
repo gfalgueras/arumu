@@ -9,15 +9,17 @@ env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
-  build-and-publish:
+  build:
     runs-on: ubuntu-latest
     permissions:
       contents: write
 
+    outputs:
+      rpm_path: ${{ steps.rpm.outputs.path }}
+      rpm_name: ${{ steps.rpm.outputs.name }}
+
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - uses: pnpm/action-setup@v4
         with:
@@ -54,13 +56,14 @@ jobs:
         with:
           files: ${{ steps.rpm.outputs.path }}
 
-      - name: Update docs/rpm on main
+      - name: Build Pages site
         run: |
-          mkdir -p docs/rpm
-          cp "${{ steps.rpm.outputs.path }}" docs/rpm/
-          cp packaging/arumu.repo docs/
+          mkdir -p _site/rpm
+          cp "${{ steps.rpm.outputs.path }}" _site/rpm/
+          cp packaging/arumu.repo _site/
+          createrepo_c _site/rpm
 
-          cat > docs/install.sh <<'EOF'
+          cat > _site/install.sh <<'EOF'
           #!/bin/bash
           set -e
           [[ $EUID -ne 0 ]] && { echo "Run as root: sudo bash"; exit 1; }
@@ -70,11 +73,21 @@ jobs:
           echo "Arumu installed."
           EOF
 
-          createrepo_c --update docs/rpm
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
 
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git checkout main
-          git add docs/
-          git commit -m "rpm: publish ${{ steps.rpm.outputs.name }}"
-          git push origin main
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deploy
+        uses: actions/deploy-pages@v4
