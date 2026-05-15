@@ -21,7 +21,9 @@
       "Bash(Select-Object Name)",
       "Bash(git remote *)",
       "Bash(node -e \"const p=require\\('./package.json'\\); console.log\\(p.packageManager||'none'\\)\")",
-      "Bash(pnpm --version)"
+      "Bash(pnpm --version)",
+      "PowerShell(New-Item -ItemType Directory -Path \"c:\\\\Users\\\\gfalgueras\\\\Desktop\\\\arumu\\\\resources\" -Force)",
+      "PowerShell(Move-Item -Path \"c:\\\\Users\\\\gfalgueras\\\\Desktop\\\\arumu\\\\icon.png\" -Destination \"c:\\\\Users\\\\gfalgueras\\\\Desktop\\\\arumu\\\\resources\\\\icon.png\")"
     ]
   }
 }

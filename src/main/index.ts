@@ -180,6 +180,7 @@ function createWindow() {
     width: 1280,
     height: 800,
     autoHideMenuBar: true,
+    icon: path.join(__dirname, '../../resources/icon.png'),
     webPreferences: {
       preload: path.join(__dirname, '../preload/index.js'),
       contextIsolation: true,
