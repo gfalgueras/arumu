@@ -18,7 +18,10 @@
       "Bash(node -e \"const sql = require\\('mssql'\\); console.log\\(Object.keys\\(sql\\).filter\\(k => !k.startsWith\\('_'\\)\\).join\\(', '\\)\\)\")",
       "Bash(node -e \"const o = require\\('oracledb'\\); console.log\\('version:', o.versionString, 'thin default:', o.thin\\)\")",
       "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\gfalgueras\\\\Desktop\\\\arumu\" -Directory)",
-      "Bash(Select-Object Name)"
+      "Bash(Select-Object Name)",
+      "Bash(git remote *)",
+      "Bash(node -e \"const p=require\\('./package.json'\\); console.log\\(p.packageManager||'none'\\)\")",
+      "Bash(pnpm --version)"
     ]
   }
 }

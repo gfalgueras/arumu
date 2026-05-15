@@ -1,6 +1,6 @@
 [arumu]
 name=Arumu SQL Manager
-baseurl=https://gfalgueras.github.io/sqlmanager/rpm/
+baseurl=https://gfalgueras.github.io/arumu/rpm/
 enabled=1
 gpgcheck=0
 type=rpm

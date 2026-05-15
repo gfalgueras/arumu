@@ -64,6 +64,7 @@
       "electron",
       "electron-winstaller",
       "esbuild",
+      "oracledb",
       "vue-demi"
     ]
   }
