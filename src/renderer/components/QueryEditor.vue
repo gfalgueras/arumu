@@ -53,7 +53,7 @@ const handleMouseMove = (e: MouseEvent) => {
   const rect = editorContainerRef.value.getBoundingClientRect();
   const newHeight = e.clientY - rect.top;
   
-  // Limitar la altura mínima y máxima razonable
+  // Clamp to reasonable min/max height
   if (newHeight > 100 && newHeight < window.innerHeight - 200) {
     height.value = newHeight;
   }

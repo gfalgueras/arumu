@@ -100,7 +100,7 @@ const handleSave = async () => {
     }
   } catch (error: any) {
     console.error('Error saving connection:', error);
-    showError('Error al guardar conexión', error.message);
+    showError('Error saving connection', error.message);
   }
 };
 </script>

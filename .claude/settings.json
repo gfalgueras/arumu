@@ -16,7 +16,9 @@
       "Bash(node_modules/.bin/electron -e ' *)",
       "Bash(node -e \"const t = require\\('@types/node/sqlite'\\); console.log\\('ok'\\)\")",
       "Bash(node -e \"const sql = require\\('mssql'\\); console.log\\(Object.keys\\(sql\\).filter\\(k => !k.startsWith\\('_'\\)\\).join\\(', '\\)\\)\")",
-      "Bash(node -e \"const o = require\\('oracledb'\\); console.log\\('version:', o.versionString, 'thin default:', o.thin\\)\")"
+      "Bash(node -e \"const o = require\\('oracledb'\\); console.log\\('version:', o.versionString, 'thin default:', o.thin\\)\")",
+      "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\gfalgueras\\\\Desktop\\\\arumu\" -Directory)",
+      "Bash(Select-Object Name)"
     ]
   }
 }

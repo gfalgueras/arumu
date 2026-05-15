@@ -11,4 +11,16 @@ win:
 mac:
   target: dmg
 linux:
-  target: AppImage
+  target:
+    - AppImage
+    - rpm
+  category: Development
+  description: Desktop MySQL manager — query editor, table browser, schema editor
+  maintainer: Gin Falgueras <ginardfalgueras@gmail.com>
+rpm:
+  depends:
+    - libxcb
+    - libXScrnSaver
+    - gtk3
+    - nss
+    - xdg-utils

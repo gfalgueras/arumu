@@ -125,7 +125,7 @@ const handleConnect = async (storedServer: StoredServer, closeAndRefresh = true)
       selectedDatabase.value = null;
       selectedTable.value = null;
 
-      // Seleccionar la primera pestaña de query disponible
+      // Select the first available query tab
       if (queryTabs.value.length > 0) {
         activeTab.value = queryTabs.value[0].id;
       }
@@ -138,7 +138,7 @@ const handleConnect = async (storedServer: StoredServer, closeAndRefresh = true)
     return true;
   } catch (error: any) {
     console.error('Connection error:', error);
-    const raw: string = error.message || 'Error desconocido';
+    const raw: string = error.message || 'Unknown error';
     const msg = raw.replace(/^Error invoking remote method '[^']+': (Error: )?/, '');
     connectionError.value = msg;
     return false;
@@ -176,7 +176,7 @@ const initApp = async () => {
     }
     activeTab.value = state.activeTab || (queryTabs.value.length > 0 ? queryTabs.value[0].id : '');
 
-    // Validar que la pestaña activa existe
+    // Ensure the active tab still exists
     if (activeTab.value !== 'data' && activeTab.value !== 'schema' && activeTab.value !== 'processes' && activeTab.value !== 'variables' && activeTab.value !== 'db' && !queryTabs.value.find(t => t.id === activeTab.value)) {
       activeTab.value = queryTabs.value.length > 0 ? queryTabs.value[0].id : '';
     }

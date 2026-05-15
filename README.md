@@ -32,23 +32,8 @@ npm install -g pnpm
 
 ## 🛠️ Installation and Usage
 
-We have provided automatic setup scripts for your preferred operating system. These scripts will install the necessary dependencies.
-
-### Option 1: Use the installation scripts (Recommended)
-
-Run the script corresponding to your operating system (located in the project root):
-
-- **Windows**: Double-click `install-windows.bat` or run it from your console.
-- **Linux**: Run `bash install-linux.sh`
-- **macOS**: Run `bash install-macos.sh`
-
-*(Note for Mac/Linux: You may need to grant execution permissions first with `chmod +x install-linux.sh` or `chmod +x install-macos.sh`).*
-
-### Option 2: Manual Installation
-
-1. Clone the repository or get the source code.
-2. Open a terminal in the project root.
-3. Install dependencies by running:
+1. Clone the repository.
+2. Install dependencies:
    ```bash
    pnpm install
    ```

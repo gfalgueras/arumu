@@ -134,7 +134,7 @@ const formatTime = (d: Date) => d.toTimeString().slice(0, 8);
         <button
           @click="newestFirst = !newestFirst"
           class="flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] transition-colors text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700"
-          :title="newestFirst ? 'Mostrando más nuevos primero' : 'Mostrando más antiguos primero'"
+          :title="newestFirst ? 'Showing newest first' : 'Showing oldest first'"
         >
           <ArrowDownNarrowWide v-if="newestFirst" :size="13" />
           <ArrowUpNarrowWide v-else :size="13" />

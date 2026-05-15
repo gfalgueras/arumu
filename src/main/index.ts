@@ -208,7 +208,7 @@ function createWindow() {
 }
 
 app.whenReady().then(() => {
-  // Configurar el menú de la aplicación
+  // Set up application menu
   const template: Electron.MenuItemConstructorOptions[] = [
     {
       label: 'File',
