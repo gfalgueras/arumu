@@ -85,6 +85,21 @@ jobs:
           echo "Arumu installed."
           EOF
 
+          cat > _site/index.html <<'EOF'
+          <!DOCTYPE html>
+          <html lang="en">
+          <head><meta charset="utf-8"><title>Arumu — DNF Repository</title></head>
+          <body>
+          <h1>Arumu SQL Manager</h1>
+          <h2>Install (Fedora / RHEL)</h2>
+          <pre><code>sudo curl -fsSL https://gfalgueras.github.io/arumu/install.sh | bash</code></pre>
+          <h2>Manual</h2>
+          <pre><code>sudo curl -o /etc/yum.repos.d/arumu.repo https://gfalgueras.github.io/arumu/arumu.repo
+          sudo dnf install arumu</code></pre>
+          </body>
+          </html>
+          EOF
+
       - uses: actions/upload-pages-artifact@v3
         with:
           path: _site
