@@ -6,6 +6,10 @@ directories:
 files:
   - out/**
   - '!**/*.map'
+  - '!**/node_modules/**/{README,README.md,CHANGELOG.md,LICENSE}'
+  - '!**/node_modules/**/{test,tests,__tests__,example,examples,docs}/**'
+  - '!**/node_modules/.bin/**'
+  - '!**/*.{iml,orig,pyc,pyo,rbc,swp}'
 win:
   target: nsis
 mac:
@@ -18,6 +22,7 @@ linux:
   description: Desktop MySQL manager — query editor, table browser, schema editor
   maintainer: Gin Falgueras <ginardfalgueras@gmail.com>
 rpm:
+  compression: xz
   depends:
     - libxcb
     - libXScrnSaver
