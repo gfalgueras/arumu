@@ -13,7 +13,8 @@ export default defineConfig({
   main: {
     build: {
       rollupOptions: {
-        external: NATIVE_EXTERNALS
+        external: NATIVE_EXTERNALS,
+        output: { format: 'cjs', entryFileNames: '[name].js', chunkFileNames: '[name].js' }
       }
     },
     resolve: {
