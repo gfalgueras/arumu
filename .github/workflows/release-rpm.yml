@@ -63,6 +63,13 @@ jobs:
           echo "path=$RPM" >> "$GITHUB_OUTPUT"
           echo "name=$(basename $RPM)" >> "$GITHUB_OUTPUT"
 
+      - name: Upload RPM artifact for smoke test
+        uses: actions/upload-artifact@v4
+        with:
+          name: arumu-rpm
+          path: ${{ steps.rpm.outputs.path }}
+          retention-days: 1
+
       - name: Upload RPM as release asset
         uses: softprops/action-gh-release@v2
         with:
@@ -117,8 +124,37 @@ jobs:
         with:
           path: _site
 
-  deploy:
+  smoke-test-fedora:
     needs: build
+    runs-on: ubuntu-latest
+    container:
+      image: fedora:latest
+    steps:
+      - name: Download RPM artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: arumu-rpm
+          path: /tmp/rpm
+
+      - name: Install RPM
+        run: dnf install -y /tmp/rpm/*.rpm
+
+      - name: Smoke test (headless)
+        run: |
+          dnf install -y xorg-x11-server-Xvfb
+          Xvfb :99 -screen 0 1024x768x24 &
+          sleep 1
+          DISPLAY=:99 timeout 8 arumu --no-sandbox 2>&1 | tee /tmp/arumu.log || true
+          # Fail if any "Cannot find module" or JS error in output
+          if grep -q "Cannot find module\|ReferenceError\|Uncaught Exception" /tmp/arumu.log; then
+            echo "SMOKE TEST FAILED — startup error detected:"
+            cat /tmp/arumu.log
+            exit 1
+          fi
+          echo "Smoke test passed"
+
+  deploy:
+    needs: [build, smoke-test-fedora]
     runs-on: ubuntu-latest
     permissions:
       pages: write
