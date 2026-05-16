@@ -5,7 +5,7 @@ export default defineConfig({
   test: {
     environment: 'node',
     testTimeout: 60_000,
-    hookTimeout: 60_000,
+    hookTimeout: 120_000,
     include: ['tests/**/*.test.ts'],
     pool: 'forks', // isolate processes — avoids native-module issues across test files
   },

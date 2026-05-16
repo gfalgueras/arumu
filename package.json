@@ -25,6 +25,9 @@
   "license": "ISC",
   "devDependencies": {
     "@eslint/js": "^9.39.1",
+    "@testcontainers/mssqlserver": "^11.14.0",
+    "@testcontainers/mysql": "^11.14.0",
+    "@testcontainers/postgresql": "^11.14.0",
     "@types/node": "^25.1.0",
     "@vitejs/plugin-vue": "^6.0.3",
     "electron": "^40.2.1",
@@ -33,6 +36,7 @@
     "eslint": "^9.39.1",
     "globals": "^16.5.0",
     "license-checker": "^25.0.1",
+    "testcontainers": "^11.14.0",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.46.4",
     "vite": "^6.4.2",
@@ -62,10 +66,13 @@
   },
   "pnpm": {
     "onlyBuiltDependencies": [
+      "cpu-features",
       "electron",
       "electron-winstaller",
       "esbuild",
       "oracledb",
+      "protobufjs",
+      "ssh2",
       "vue-demi"
     ]
   }

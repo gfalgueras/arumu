@@ -1,17 +1,20 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { SQLServerDriver } from '../../src/main/drivers/sqlserver.driver';
 import { runSharedSuite } from './shared-suite';
-import { connections } from './connections';
+import { startSQLServer } from './containers';
 
 const DB = 'arumu_test';
 const TMP = '_test_tmp';
 
 describe('SQLServerDriver', () => {
   let driver: SQLServerDriver;
+  let stopContainer: () => Promise<void>;
 
   beforeAll(async () => {
+    const { config, stop } = await startSQLServer();
+    stopContainer = stop;
     driver = new SQLServerDriver();
-    await driver.connect(connections.sqlserver);
+    await driver.connect(config);
     await driver.executeQuery(`IF OBJECT_ID('${DB}.dbo.${TMP}', 'U') IS NOT NULL DROP TABLE [${DB}].[dbo].[${TMP}]`);
     await driver.executeQuery(`
       CREATE TABLE [${DB}].[dbo].[${TMP}] (
@@ -27,6 +30,7 @@ describe('SQLServerDriver', () => {
       await driver.executeQuery(`DROP TABLE [${DB}].[dbo].[${TMP}]`);
     } catch { /* ignore */ }
     await driver.disconnect();
+    await stopContainer();
   });
 
   // ── Shared read-only tests ────────────────────────────────────────────────

@@ -1,17 +1,20 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { MySQLDriver } from '../../src/main/drivers/mysql.driver';
 import { runSharedSuite } from './shared-suite';
-import { connections } from './connections';
+import { startMySQL } from './containers';
 
 const DB = 'arumu_test';
 const TMP = '_test_tmp';
 
 describe('MySQLDriver', () => {
   let driver: MySQLDriver;
+  let stopContainer: () => Promise<void>;
 
   beforeAll(async () => {
+    const { config, stop } = await startMySQL();
+    stopContainer = stop;
     driver = new MySQLDriver();
-    await driver.connect(connections.mysql);
+    await driver.connect(config);
     await driver.executeQuery(`DROP TABLE IF EXISTS \`${DB}\`.\`${TMP}\``);
     await driver.executeQuery(`
       CREATE TABLE \`${DB}\`.\`${TMP}\` (
@@ -25,6 +28,7 @@ describe('MySQLDriver', () => {
   afterAll(async () => {
     await driver.executeQuery(`DROP TABLE IF EXISTS \`${DB}\`.\`${TMP}\``);
     await driver.disconnect();
+    await stopContainer();
   });
 
   // ── Shared read-only tests ────────────────────────────────────────────────

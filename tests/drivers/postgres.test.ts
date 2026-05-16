@@ -1,17 +1,20 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { PostgreSQLDriver } from '../../src/main/drivers/postgres.driver';
 import { runSharedSuite } from './shared-suite';
-import { connections } from './connections';
+import { startPostgres } from './containers';
 
 const DB = 'arumu_test';
 const TMP = '_test_tmp';
 
 describe('PostgreSQLDriver', () => {
   let driver: PostgreSQLDriver;
+  let stopContainer: () => Promise<void>;
 
   beforeAll(async () => {
+    const { config, stop } = await startPostgres();
+    stopContainer = stop;
     driver = new PostgreSQLDriver();
-    await driver.connect(connections.postgres);
+    await driver.connect(config);
     await driver.executeQuery(`DROP TABLE IF EXISTS "${TMP}"`);
     await driver.executeQuery(`
       CREATE TABLE "${TMP}" (
@@ -24,6 +27,7 @@ describe('PostgreSQLDriver', () => {
   afterAll(async () => {
     await driver.executeQuery(`DROP TABLE IF EXISTS "${TMP}"`);
     await driver.disconnect();
+    await stopContainer();
   });
 
   // ── Shared read-only tests ────────────────────────────────────────────────
