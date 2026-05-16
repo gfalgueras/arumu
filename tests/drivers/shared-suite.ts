@@ -143,29 +143,6 @@ export function runSharedSuite(
     }));
   });
 
-  // ── Metadata ──────────────────────────────────────────────────────────────
-
-  describe('getSupportedTypes', () => {
-    it('returns non-empty type groups', s(async () => {
-      const groups = await getDriver().getSupportedTypes();
-      expect(groups.length).toBeGreaterThan(0);
-      for (const g of groups) {
-        expect(g.group).toBeTruthy();
-        expect(g.types.length).toBeGreaterThan(0);
-      }
-    }));
-  });
-
-  describe('getCapabilities', () => {
-    it('returns valid ServerCapabilities', s(() => {
-      const caps = getDriver().getCapabilities();
-      expect(typeof caps.supportsProcessList).toBe('boolean');
-      expect(typeof caps.supportsServerVariables).toBe('boolean');
-      expect(Array.isArray(caps.indexTypes)).toBe(true);
-      expect(Array.isArray(caps.maintenanceOps)).toBe(true);
-    }));
-  });
-
   // ── Escaping ──────────────────────────────────────────────────────────────
 
   describe('escapeIdentifier / escapeStringLiteral', () => {

@@ -4,7 +4,7 @@ import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { OracleDriver } from '../../src/main/drivers/oracle.driver';
 import { runSharedSuite } from './shared-suite';
-import { connections } from './connections';
+import { startOracle } from './containers';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const SEED_SQL = readFileSync(resolve(__dirname, '../../docker/oracle/seed.sql'), 'utf8');
@@ -22,15 +22,16 @@ function splitStatements(sql: string): string[] {
 
 describe('OracleDriver', () => {
   let driver: OracleDriver;
+  let stopContainer: () => Promise<void>;
   let available = false;
   const skip = () => !available;
-  const s = (fn: () => void | Promise<void>) =>
-    async ({ skip: sk }: { skip: () => void }) => { if (!available) { sk(); return; } await fn(); };
 
   beforeAll(async () => {
     try {
+      const { config, stop } = await startOracle();
+      stopContainer = stop;
       driver = new OracleDriver();
-      await driver.connect(connections.oracle);
+      await driver.connect(config);
 
       for (const t of [...SEED_TABLES, TMP]) {
         try { await driver.executeQuery(`DROP TABLE "${t}" CASCADE CONSTRAINTS PURGE`); } catch { /* ok */ }
@@ -46,16 +47,15 @@ describe('OracleDriver', () => {
       `);
       available = true;
     } catch {
-      // Oracle not running — all tests will be skipped
+      // Oracle not available — all tests will be skipped
     }
   });
 
   afterAll(async () => {
     if (!available) return;
-    for (const t of [TMP, ...SEED_TABLES]) {
-      try { await driver.executeQuery(`DROP TABLE "${t}" CASCADE CONSTRAINTS PURGE`); } catch { /* ignore */ }
-    }
+    try { await driver.executeQuery(`DROP TABLE "${TMP}" CASCADE CONSTRAINTS PURGE`); } catch { /* ignore */ }
     await driver.disconnect();
+    await stopContainer();
   });
 
   runSharedSuite(() => driver, {
@@ -64,25 +64,29 @@ describe('OracleDriver', () => {
   }, skip);
 
   describe('mutations', () => {
-    it('addColumn appends new column', s(async () => {
+    it('addColumn appends new column', async ({ skip: sk }) => {
+      if (!available) { sk(); return; }
       await driver.addColumn(SCHEMA, TMP, { name: 'EXTRA', type: 'VARCHAR2', length: 50, nullable: true });
       const cols = await driver.getTableColumns(SCHEMA, TMP);
       expect(cols.map(c => c.name)).toContain('EXTRA');
-    }));
+    });
 
-    it('addIndex creates regular index', s(async () => {
+    it('addIndex creates regular index', async ({ skip: sk }) => {
+      if (!available) { sk(); return; }
       await driver.addIndex(SCHEMA, TMP, { name: 'IDX_TMP_VAL', columns: ['VAL'], unique: false, type: 'INDEX' });
       const idxs = await driver.getTableIndexes(SCHEMA, TMP);
       expect(idxs.map(i => i.name)).toContain('IDX_TMP_VAL');
-    }));
+    });
 
-    it('dropIndex removes index', s(async () => {
+    it('dropIndex removes index', async ({ skip: sk }) => {
+      if (!available) { sk(); return; }
       await driver.dropIndex(SCHEMA, TMP, 'IDX_TMP_VAL');
       const idxs = await driver.getTableIndexes(SCHEMA, TMP);
       expect(idxs.map(i => i.name)).not.toContain('IDX_TMP_VAL');
-    }));
+    });
 
-    it('addForeignKey adds FK', s(async () => {
+    it('addForeignKey adds FK', async ({ skip: sk }) => {
+      if (!available) { sk(); return; }
       await driver.executeQuery(`ALTER TABLE "${TMP}" ADD "CAT_ID" NUMBER`);
       await driver.addForeignKey(SCHEMA, TMP, {
         name: 'FK_TMP_CAT',
@@ -93,31 +97,35 @@ describe('OracleDriver', () => {
       });
       const fks = await driver.getTableForeignKeys(SCHEMA, TMP);
       expect(fks.map(f => f.name)).toContain('FK_TMP_CAT');
-    }));
+    });
 
-    it('dropForeignKey removes FK', s(async () => {
+    it('dropForeignKey removes FK', async ({ skip: sk }) => {
+      if (!available) { sk(); return; }
       await driver.dropForeignKey(SCHEMA, TMP, 'FK_TMP_CAT');
       const fks = await driver.getTableForeignKeys(SCHEMA, TMP);
       expect(fks.map(f => f.name)).not.toContain('FK_TMP_CAT');
-    }));
+    });
 
-    it('executeQuery INSERT / SELECT / DELETE', s(async () => {
+    it('executeQuery INSERT / SELECT / DELETE', async ({ skip: sk }) => {
+      if (!available) { sk(); return; }
       await driver.executeQuery(`INSERT INTO "${TMP}" ("VAL") VALUES ('hello')`);
       const rows = await driver.executeQuery(`SELECT * FROM "${TMP}" WHERE "VAL"='hello'`);
       expect(Array.isArray(rows)).toBe(true);
       expect((rows as any[]).length).toBeGreaterThan(0);
       await driver.executeQuery(`DELETE FROM "${TMP}" WHERE "VAL"='hello'`);
-    }));
+    });
   });
 
   describe('killProcess', () => {
-    it('rejects invalid process id format', s(async () => {
+    it('rejects invalid process id format', async ({ skip: sk }) => {
+      if (!available) { sk(); return; }
       await expect(driver.killProcess('not-valid')).rejects.toThrow('sid,serial#');
-    }));
+    });
   });
 
   describe('getProcessList', () => {
-    it('returns array or fails gracefully on privilege error', s(async () => {
+    it('returns array or fails gracefully on privilege error', async ({ skip: sk }) => {
+      if (!available) { sk(); return; }
       try {
         const procs = await driver.getProcessList();
         expect(Array.isArray(procs)).toBe(true);
@@ -125,11 +133,12 @@ describe('OracleDriver', () => {
         if (/ORA-00942|ORA-01031/.test(err.message || '')) return;
         throw err;
       }
-    }));
+    });
   });
 
   describe('getServerVariables', () => {
-    it('returns variables array or fails gracefully on privilege error', s(async () => {
+    it('returns variables array or fails gracefully on privilege error', async ({ skip: sk }) => {
+      if (!available) { sk(); return; }
       try {
         const result = await driver.getServerVariables();
         expect(Array.isArray(result.variables)).toBe(true);
@@ -139,6 +148,6 @@ describe('OracleDriver', () => {
         if (/ORA-00942|ORA-01031/.test(err.message || '')) return;
         throw err;
       }
-    }));
+    });
   });
 });

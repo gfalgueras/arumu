@@ -2,6 +2,7 @@ import { resolve } from 'path'
 import { MySqlContainer, type StartedMySqlContainer } from '@testcontainers/mysql'
 import { PostgreSqlContainer, type StartedPostgreSqlContainer } from '@testcontainers/postgresql'
 import { MSSQLServerContainer, type StartedMSSQLServerContainer } from '@testcontainers/mssqlserver'
+import { GenericContainer, Wait, type StartedTestContainer } from 'testcontainers'
 import type { ConnectionConfig } from '@shared/types/database'
 
 const DOCKER_DIR = resolve(__dirname, '../../docker')
@@ -91,6 +92,31 @@ export async function startSQLServer(): Promise<StartedContainer<StartedMSSQLSer
       user: 'sa',
       password: MSSQL_PASSWORD,
       database: 'arumu_test',
+    },
+    stop: () => container.stop(),
+  }
+}
+
+export async function startOracle(): Promise<StartedContainer<StartedTestContainer>> {
+  const container = await new GenericContainer('gvenzl/oracle-free:23-slim-faststart')
+    .withEnvironment({
+      ORACLE_PASSWORD: 'oracle',
+      APP_USER: 'arumu_test',
+      APP_USER_PASSWORD: 'arumu_test',
+    })
+    .withExposedPorts(1521)
+    .withWaitStrategy(Wait.forLogMessage('DATABASE IS READY TO USE!'))
+    .withStartupTimeout(180_000)
+    .start()
+
+  return {
+    container,
+    config: {
+      host: container.getHost(),
+      port: container.getMappedPort(1521),
+      user: 'arumu_test',
+      password: 'arumu_test',
+      database: 'FREEPDB1',
     },
     stop: () => container.stop(),
   }

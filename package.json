@@ -12,11 +12,7 @@
     "test": "vitest",
     "test:integration": "vitest run tests/drivers",
     "test:coverage": "vitest --coverage",
-    "lint": "eslint src/renderer",
-    "docker:start": "bash docker/scripts/start.sh",
-    "docker:stop": "bash docker/scripts/stop.sh",
-    "docker:test": "bash docker/scripts/test.sh",
-    "docker:test:down": "bash docker/scripts/test.sh --down"
+    "lint": "eslint src/renderer"
   },
   "keywords": [
     "alpha"
