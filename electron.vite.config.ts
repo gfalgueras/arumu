@@ -5,8 +5,9 @@ import vue from '@vitejs/plugin-vue'
 import tailwindcss from '@tailwindcss/vite'
 
 // Only externalize electron, Node built-ins, and native addons (oracledb has .node files).
-// Everything else (mysql2, pg, mssql, ...) is bundled into out/main/index.js so
+// Everything else (mysql2, pg, mssql, ...) is bundled into out/main/index.cjs so
 // electron-builder doesn't need to resolve pnpm's symlink tree at package time.
+// Output as .cjs (not .js) because package.json has "type":"module".
 const NATIVE_EXTERNALS = ['electron', 'oracledb', ...builtinModules, ...builtinModules.map(m => `node:${m}`)]
 
 export default defineConfig({
@@ -14,7 +15,7 @@ export default defineConfig({
     build: {
       rollupOptions: {
         external: NATIVE_EXTERNALS,
-        output: { format: 'cjs', entryFileNames: '[name].js', chunkFileNames: '[name].js' }
+        output: { format: 'cjs', entryFileNames: '[name].cjs', chunkFileNames: '[name].cjs' }
       }
     },
     resolve: {
