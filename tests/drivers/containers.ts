@@ -28,6 +28,7 @@ export async function startMySQL(): Promise<StartedContainer<StartedMySqlContain
       port: container.getMappedPort(3306),
       user: 'root',
       password: 'root',
+      database: 'arumu_test',
     },
     stop: () => container.stop(),
   }

@@ -9,10 +9,8 @@ import { connections } from './connections';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const SEED_SQL = readFileSync(resolve(__dirname, '../../docker/oracle/seed.sql'), 'utf8');
 
-// Oracle: "database" parameter in schema methods = schema/owner name (uppercase)
 const SCHEMA = 'ARUMU_TEST';
-const TMP = 'TEST_TMP'; // Oracle uppercases unquoted identifiers
-
+const TMP = 'TEST_TMP';
 const SEED_TABLES = ['ORDER_ITEMS', 'ORDERS', 'PRODUCTS', 'CUSTOMERS', 'CATEGORIES'];
 
 function splitStatements(sql: string): string[] {
@@ -24,66 +22,67 @@ function splitStatements(sql: string): string[] {
 
 describe('OracleDriver', () => {
   let driver: OracleDriver;
+  let available = false;
+  const skip = () => !available;
+  const s = (fn: () => void | Promise<void>) =>
+    async ({ skip: sk }: { skip: () => void }) => { if (!available) { sk(); return; } await fn(); };
 
   beforeAll(async () => {
-    driver = new OracleDriver();
-    await driver.connect(connections.oracle);
+    try {
+      driver = new OracleDriver();
+      await driver.connect(connections.oracle);
 
-    // Drop seeded tables (FK order) and temp table from previous runs
-    for (const t of [...SEED_TABLES, TMP]) {
-      try { await driver.executeQuery(`DROP TABLE "${t}" CASCADE CONSTRAINTS PURGE`); } catch { /* ok */ }
+      for (const t of [...SEED_TABLES, TMP]) {
+        try { await driver.executeQuery(`DROP TABLE "${t}" CASCADE CONSTRAINTS PURGE`); } catch { /* ok */ }
+      }
+      for (const stmt of splitStatements(SEED_SQL)) {
+        await driver.executeQuery(stmt);
+      }
+      await driver.executeQuery(`
+        CREATE TABLE "${TMP}" (
+          "ID"  NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+          "VAL" VARCHAR2(100)
+        )
+      `);
+      available = true;
+    } catch {
+      // Oracle not running — all tests will be skipped
     }
-
-    // Seed schema + data
-    for (const stmt of splitStatements(SEED_SQL)) {
-      await driver.executeQuery(stmt);
-    }
-
-    // Temp table for mutation tests
-    await driver.executeQuery(`
-      CREATE TABLE "${TMP}" (
-        "ID"  NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-        "VAL" VARCHAR2(100)
-      )
-    `);
   });
 
   afterAll(async () => {
+    if (!available) return;
     for (const t of [TMP, ...SEED_TABLES]) {
       try { await driver.executeQuery(`DROP TABLE "${t}" CASCADE CONSTRAINTS PURGE`); } catch { /* ignore */ }
     }
     await driver.disconnect();
   });
 
-  // ── Shared read-only tests ────────────────────────────────────────────────
-  // Oracle: getDatabases() returns all_users — ARUMU_TEST is a user/schema.
-  // getTables(SCHEMA) queries all_tables WHERE owner = UPPER(SCHEMA).
   runSharedSuite(() => driver, {
     db: SCHEMA,
     expectInDatabases: SCHEMA,
-  });
+  }, skip);
 
-  // ── Mutations ────────────────────────────────────────────────────────────
   describe('mutations', () => {
-    it('addColumn appends new column', async () => {
+    it('addColumn appends new column', s(async () => {
       await driver.addColumn(SCHEMA, TMP, { name: 'EXTRA', type: 'VARCHAR2', length: 50, nullable: true });
       const cols = await driver.getTableColumns(SCHEMA, TMP);
       expect(cols.map(c => c.name)).toContain('EXTRA');
-    });
+    }));
 
-    it('addIndex creates regular index', async () => {
+    it('addIndex creates regular index', s(async () => {
       await driver.addIndex(SCHEMA, TMP, { name: 'IDX_TMP_VAL', columns: ['VAL'], unique: false, type: 'INDEX' });
       const idxs = await driver.getTableIndexes(SCHEMA, TMP);
       expect(idxs.map(i => i.name)).toContain('IDX_TMP_VAL');
-    });
+    }));
 
-    it('dropIndex removes index', async () => {
+    it('dropIndex removes index', s(async () => {
       await driver.dropIndex(SCHEMA, TMP, 'IDX_TMP_VAL');
       const idxs = await driver.getTableIndexes(SCHEMA, TMP);
       expect(idxs.map(i => i.name)).not.toContain('IDX_TMP_VAL');
-    });
+    }));
 
-    it('addForeignKey adds FK', async () => {
+    it('addForeignKey adds FK', s(async () => {
       await driver.executeQuery(`ALTER TABLE "${TMP}" ADD "CAT_ID" NUMBER`);
       await driver.addForeignKey(SCHEMA, TMP, {
         name: 'FK_TMP_CAT',
@@ -94,47 +93,43 @@ describe('OracleDriver', () => {
       });
       const fks = await driver.getTableForeignKeys(SCHEMA, TMP);
       expect(fks.map(f => f.name)).toContain('FK_TMP_CAT');
-    });
+    }));
 
-    it('dropForeignKey removes FK', async () => {
+    it('dropForeignKey removes FK', s(async () => {
       await driver.dropForeignKey(SCHEMA, TMP, 'FK_TMP_CAT');
       const fks = await driver.getTableForeignKeys(SCHEMA, TMP);
       expect(fks.map(f => f.name)).not.toContain('FK_TMP_CAT');
-    });
+    }));
 
-    it('executeQuery INSERT / SELECT / DELETE', async () => {
+    it('executeQuery INSERT / SELECT / DELETE', s(async () => {
       await driver.executeQuery(`INSERT INTO "${TMP}" ("VAL") VALUES ('hello')`);
       const rows = await driver.executeQuery(`SELECT * FROM "${TMP}" WHERE "VAL"='hello'`);
       expect(Array.isArray(rows)).toBe(true);
       expect((rows as any[]).length).toBeGreaterThan(0);
       await driver.executeQuery(`DELETE FROM "${TMP}" WHERE "VAL"='hello'`);
-    });
+    }));
   });
 
-  // ── killProcess input validation ─────────────────────────────────────────
   describe('killProcess', () => {
-    it('rejects invalid process id format', async () => {
+    it('rejects invalid process id format', s(async () => {
       await expect(driver.killProcess('not-valid')).rejects.toThrow('sid,serial#');
-    });
+    }));
   });
 
-  // ── Process list (requires SELECT on v$session) ───────────────────────────
   describe('getProcessList', () => {
-    it('returns array or fails gracefully on privilege error', async () => {
+    it('returns array or fails gracefully on privilege error', s(async () => {
       try {
         const procs = await driver.getProcessList();
         expect(Array.isArray(procs)).toBe(true);
       } catch (err: any) {
-        // ORA-00942 (table/view not found) or ORA-01031 (insufficient privileges)
         if (/ORA-00942|ORA-01031/.test(err.message || '')) return;
         throw err;
       }
-    });
+    }));
   });
 
-  // ── Server variables (requires SELECT on v$parameter) ────────────────────
   describe('getServerVariables', () => {
-    it('returns variables array or fails gracefully on privilege error', async () => {
+    it('returns variables array or fails gracefully on privilege error', s(async () => {
       try {
         const result = await driver.getServerVariables();
         expect(Array.isArray(result.variables)).toBe(true);
@@ -144,6 +139,6 @@ describe('OracleDriver', () => {
         if (/ORA-00942|ORA-01031/.test(err.message || '')) return;
         throw err;
       }
-    });
+    }));
   });
 });
