@@ -43,7 +43,7 @@ jobs:
           key: electron-builder-${{ hashFiles('electron-builder.yml') }}
 
       - name: Install system deps
-        run: sudo apt-get update -qq && sudo apt-get install -y rpm createrepo-c fakeroot
+        run: sudo apt-get update -qq && sudo apt-get install -y rpm createrepo-c fakeroot drpm
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -69,11 +69,20 @@ jobs:
           files: ${{ steps.rpm.outputs.path }}
 
       - name: Build Pages site
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          mkdir -p _site/rpm
+          mkdir -p _site/rpm /tmp/old-rpms
+
+          # Download RPMs from last 3 releases for delta generation
+          gh release list --limit 3 --json tagName --jq '.[].tagName' | while read tag; do
+            gh release download "$tag" --pattern "*.rpm" --dir /tmp/old-rpms/ 2>/dev/null || true
+          done
+
           cp "${{ steps.rpm.outputs.path }}" _site/rpm/
+          cp /tmp/old-rpms/*.rpm _site/rpm/ 2>/dev/null || true
           cp packaging/arumu.repo _site/
-          createrepo_c _site/rpm
+          createrepo_c --deltas _site/rpm/
 
           cat > _site/install.sh <<'EOF'
           #!/bin/bash
