@@ -1,6 +1,6 @@
 {
   "name": "arumu",
-  "version": "1.0.15",
+  "version": "1.0.16",
   "description": "",
   "main": "out/main/index.cjs",
   "type": "module",

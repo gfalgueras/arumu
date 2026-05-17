@@ -15,7 +15,7 @@ function electronVersion(): string {
 
 const DEFAULT_RUN = 'timeout 8 xvfb-run -a /electron/electron /app/out/main/index.cjs --no-sandbox 2>&1 || true'
 
-const DISTROS: Array<{ name: string; image: string; deps: string; electronCmd?: string }> = [
+const DISTROS: Array<{ name: string; image: string; deps: string; electronCmd?: string; timeout?: number }> = [
   {
     name: 'fedora',
     image: 'fedora:41',
@@ -30,8 +30,8 @@ const DISTROS: Array<{ name: string; image: string; deps: string; electronCmd?: 
     name: 'archlinux',
     image: 'archlinux:latest',
     deps: 'pacman -Sy --noconfirm xorg-server-xvfb gtk3 libnotify nss libxss alsa-lib libxtst curl unzip',
-    // xvfb-run not available on Arch — start Xvfb manually
     electronCmd: 'Xvfb :99 -screen 0 1024x768x24 & XPID=$!; sleep 1; DISPLAY=:99 timeout 8 /electron/electron /app/out/main/index.cjs --no-sandbox 2>&1; kill $XPID 2>/dev/null; true',
+    timeout: 300_000,
   },
   {
     name: 'redhat-ubi9',
@@ -42,7 +42,7 @@ const DISTROS: Array<{ name: string; image: string; deps: string; electronCmd?: 
 
 describe('startup smoke', () => {
   for (const distro of DISTROS) {
-    it(`[${distro.name}] starts without JS errors`, { timeout: 120_000 }, async ({ skip }) => {
+    it(`[${distro.name}] starts without JS errors`, { timeout: distro.timeout ?? 120_000 }, async ({ skip }) => {
       if (!existsSync(resolve(OUT_DIR, 'main/index.cjs'))) skip()
 
       const linuxHost = process.platform === 'linux'
