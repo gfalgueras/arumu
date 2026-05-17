@@ -1,0 +1,200 @@
+name: Release RPM
+
+on:
+  push:
+    tags:
+      - 'v[0-9]*.[0-9]*.[0-9]*'
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Cache Electron binary
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/electron
+          key: electron-${{ hashFiles('**/package.json') }}
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build app
+        run: pnpm build
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-out
+          path: out/
+          retention-days: 1
+
+  test-drivers:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Driver tests
+        run: pnpm test:drivers
+
+  test-bundle:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Download build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: app-out
+          path: out/
+
+      - name: Smoke tests
+        run: pnpm test:smoke
+
+  deploy:
+    needs: [build, test-drivers, test-bundle]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy-pages.outputs.page_url }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Cache Electron binary
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/electron
+          key: electron-${{ hashFiles('**/package.json') }}
+
+      - name: Cache electron-builder
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/electron-builder
+          key: electron-builder-${{ hashFiles('electron-builder.yml') }}
+
+      - name: Install system deps
+        run: sudo apt-get update -qq && sudo apt-get install -y rpm createrepo-c fakeroot deltarpm || sudo apt-get install -y rpm createrepo-c fakeroot
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Download build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: app-out
+          path: out/
+
+      - name: Package RPM
+        run: npx electron-builder --linux rpm
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload RPM as release asset
+        uses: softprops/action-gh-release@v2
+        with:
+          files: release/**/*.rpm
+
+      - name: Build Pages site
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mkdir -p _site/rpm /tmp/old-rpms
+
+          gh release list --limit 3 --json tagName --jq '.[].tagName' | while read tag; do
+            gh release download "$tag" --pattern "*.rpm" --dir /tmp/old-rpms/ 2>/dev/null || true
+          done
+
+          find release/ -name "*.rpm" -exec cp {} _site/rpm/ \;
+          cp /tmp/old-rpms/*.rpm _site/rpm/ 2>/dev/null || true
+          cp packaging/arumu.repo _site/
+          if command -v makedeltarpm &>/dev/null; then
+            createrepo_c --deltas _site/rpm/
+          else
+            createrepo_c _site/rpm/
+          fi
+
+          cat > _site/install.sh <<'EOF'
+          #!/bin/bash
+          set -e
+          [[ $EUID -ne 0 ]] && { echo "Run as root: sudo bash"; exit 1; }
+          curl -fsSL https://gfalgueras.github.io/arumu/arumu.repo \
+            -o /etc/yum.repos.d/arumu.repo
+          dnf install -y arumu
+          echo "Arumu installed."
+          EOF
+
+          cat > _site/index.html <<'EOF'
+          <!DOCTYPE html>
+          <html lang="en">
+          <head><meta charset="utf-8"><title>Arumu — DNF Repository</title></head>
+          <body>
+          <h1>Arumu SQL Manager</h1>
+          <h2>Install (Fedora / RHEL)</h2>
+          <pre><code>sudo curl -fsSL https://gfalgueras.github.io/arumu/install.sh | bash</code></pre>
+          <h2>Manual</h2>
+          <pre><code>sudo curl -o /etc/yum.repos.d/arumu.repo https://gfalgueras.github.io/arumu/arumu.repo
+          sudo dnf install arumu</code></pre>
+          </body>
+          </html>
+          EOF
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+      - name: Deploy to GitHub Pages
+        id: deploy-pages
+        uses: actions/deploy-pages@v4

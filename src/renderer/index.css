@@ -1,0 +1,74 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* CodeMirror autocomplete overrides */
+.cm-tooltip.cm-tooltip-autocomplete {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace !important;
+  font-size: 13px !important;
+  background: #21252b !important;
+  border: 1px solid #181a1f !important;
+  border-radius: 6px !important;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.4) !important;
+  overflow: hidden !important;
+}
+
+.cm-tooltip-autocomplete ul {
+  font-family: inherit !important;
+}
+
+.cm-tooltip-autocomplete ul li {
+  color: #abb2bf !important;
+  padding: 3px 10px !important;
+}
+
+.cm-tooltip-autocomplete ul li[aria-selected] {
+  background: #2c5f8a !important;
+  color: #e8f4fd !important;
+}
+
+.cm-completionLabel {
+  font-family: inherit !important;
+}
+
+.cm-completionIcon {
+  opacity: 0.6;
+}
+
+@layer base {
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  html.dark ::-webkit-scrollbar-thumb {
+    @apply bg-slate-700 rounded-full;
+  }
+
+  html.dark ::-webkit-scrollbar-thumb:hover {
+    @apply bg-slate-600;
+  }
+
+  html:not(.dark) ::-webkit-scrollbar-thumb {
+    @apply bg-slate-300 rounded-full;
+  }
+
+  html:not(.dark) ::-webkit-scrollbar-thumb:hover {
+    @apply bg-slate-400;
+  }
+
+  /* Firefox */
+  html.dark * {
+    scrollbar-width: thin;
+    scrollbar-color: theme('colors.slate.700') transparent;
+  }
+
+  html:not(.dark) * {
+    scrollbar-width: thin;
+    scrollbar-color: theme('colors.slate.300') transparent;
+  }
+}

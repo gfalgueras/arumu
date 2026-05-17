@@ -1,0 +1,28 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "electron-vite dev (debug)",
+      "type": "shell",
+      "command": "pnpm exec electron-vite dev --inspect=9229",
+      "isBackground": true,
+      "problemMatcher": {
+        "owner": "electron-vite",
+        "pattern": {
+          "regexp": "^(.*)$",
+          "message": 1
+        },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": "electron-vite",
+          "endsPattern": "\\u001b\\[32mready\\u001b\\[39m|ready in|\\[main\\].*watching"
+        }
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "clear": true
+      }
+    }
+  ]
+}

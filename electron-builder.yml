@@ -1,0 +1,32 @@
+appId: com.arumu.app
+productName: Arumu
+directories:
+  output: release
+  buildResources: resources
+files:
+  - out/**
+  - '!**/*.map'
+  - '!**/node_modules/**/{README,README.md,CHANGELOG.md,LICENSE}'
+  - '!**/node_modules/**/{test,tests,__tests__,example,examples,docs}/**'
+  - '!**/node_modules/.bin/**'
+  - '!**/*.{iml,orig,pyc,pyo,rbc,swp}'
+win:
+  target: nsis
+mac:
+  target: dmg
+linux:
+  icon: resources/icon.png
+  target:
+    - AppImage
+    - rpm
+  category: Development
+  description: Desktop MySQL manager — query editor, table browser, schema editor
+  maintainer: Ginard Falgueras <ginardfalgueras@gmail.com>
+rpm:
+  compression: xz
+  depends:
+    - libxcb
+    - libXScrnSaver
+    - gtk3
+    - nss
+    - xdg-utils
