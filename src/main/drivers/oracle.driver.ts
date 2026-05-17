@@ -1,8 +1,15 @@
-import oracledb from 'oracledb';
+import type oracledb from 'oracledb';
 import {
   IDatabaseDriver, ConnectionConfig, DatabaseInfo, TableInfo, TableDataResponse,
   SortConfig, ColumnInfo, TableIndex, ForeignKey, TypeGroup, ServerCapabilities, ServerVariablesResult
 } from '@shared/types/database';
+
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+let _odb: typeof oracledb | null = null
+function odb(): typeof oracledb {
+  if (!_odb) _odb = require('oracledb')
+  return _odb!
+}
 
 export class OracleDriver implements IDatabaseDriver {
   private connection: oracledb.Connection | null = null;
@@ -15,13 +22,13 @@ export class OracleDriver implements IDatabaseDriver {
     const t0 = Date.now();
     try {
       const result = await this.connection.execute(querySql, params, {
-        outFormat: oracledb.OUT_FORMAT_OBJECT,
+        outFormat: odb().OUT_FORMAT_OBJECT,
         fetchTypeHandler: (meta) => {
-          if (meta.dbType === oracledb.DB_TYPE_CLOB || meta.dbType === oracledb.DB_TYPE_NCLOB) {
-            return { type: oracledb.DB_TYPE_VARCHAR };
+          if (meta.dbType === odb().DB_TYPE_CLOB || meta.dbType === odb().DB_TYPE_NCLOB) {
+            return { type: odb().DB_TYPE_VARCHAR };
           }
-          if (meta.dbType === oracledb.DB_TYPE_BLOB || meta.dbType === oracledb.DB_TYPE_RAW) {
-            return { type: oracledb.DB_TYPE_VARCHAR };
+          if (meta.dbType === odb().DB_TYPE_BLOB || meta.dbType === odb().DB_TYPE_RAW) {
+            return { type: odb().DB_TYPE_VARCHAR };
           }
         },
       });
@@ -38,10 +45,10 @@ export class OracleDriver implements IDatabaseDriver {
     const t0 = Date.now();
     try {
       const result = await this.connection.execute(querySql, params, {
-        outFormat: oracledb.OUT_FORMAT_OBJECT,
+        outFormat: odb().OUT_FORMAT_OBJECT,
         fetchTypeHandler: (meta) => {
-          if (meta.dbType === oracledb.DB_TYPE_CLOB || meta.dbType === oracledb.DB_TYPE_NCLOB) {
-            return { type: oracledb.DB_TYPE_VARCHAR };
+          if (meta.dbType === odb().DB_TYPE_CLOB || meta.dbType === odb().DB_TYPE_NCLOB) {
+            return { type: odb().DB_TYPE_VARCHAR };
           }
         },
       });
@@ -63,7 +70,7 @@ export class OracleDriver implements IDatabaseDriver {
 
   async connect(config: ConnectionConfig): Promise<void> {
     const connectString = `${config.host}:${config.port || 1521}/${config.database || 'ORCL'}`;
-    this.connection = await oracledb.getConnection({
+    this.connection = await odb().getConnection({
       user: config.user,
       password: config.password,
       connectString,

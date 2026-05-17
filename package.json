@@ -1,6 +1,6 @@
 {
   "name": "arumu",
-  "version": "1.0.14",
+  "version": "1.0.15",
   "description": "",
   "main": "out/main/index.cjs",
   "type": "module",
@@ -10,7 +10,9 @@
     "dist": "electron-vite build && electron-builder",
     "typecheck": "vue-tsc --noEmit",
     "test": "vitest",
-    "test:integration": "vitest run tests/drivers",
+    "test:ci": "vitest run",
+    "test:drivers": "vitest run tests/drivers",
+    "test:smoke": "vitest run tests/smoke",
     "test:coverage": "vitest --coverage",
     "lint": "eslint src"
   },
