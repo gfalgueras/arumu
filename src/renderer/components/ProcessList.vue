@@ -57,15 +57,19 @@ const toggleAutoRefresh = () => {
   }
 };
 
+const onKeydown = (e: KeyboardEvent) => { if (e.key === 'F5') { e.preventDefault(); e.stopImmediatePropagation(); load(); } };
+
 onMounted(async () => {
   try {
     capabilities.value = await api.getServerCapabilities(props.serverName);
   } catch { /* capabilities optional */ }
   await load();
+  window.addEventListener('keydown', onKeydown);
 });
 
 onUnmounted(() => {
   if (refreshInterval) clearInterval(refreshInterval);
+  window.removeEventListener('keydown', onKeydown);
 });
 
 const colLabel = (col: string): string => {

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { RefreshCw, Loader2 } from 'lucide-vue-next';
 import { $t } from '../i18n';
 import { api } from '../services/api';
@@ -43,7 +43,10 @@ const load = async () => {
   }
 };
 
-onMounted(load);
+const onKeydown = (e: KeyboardEvent) => { if (e.key === 'F5') { e.preventDefault(); e.stopImmediatePropagation(); load(); } };
+
+onMounted(() => { load(); window.addEventListener('keydown', onKeydown); });
+onUnmounted(() => { window.removeEventListener('keydown', onKeydown); });
 </script>
 
 <template>

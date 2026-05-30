@@ -8,7 +8,7 @@ import tailwindcss from '@tailwindcss/vite'
 // Everything else (mysql2, pg, mssql, ...) is bundled into out/main/index.cjs so
 // electron-builder doesn't need to resolve pnpm's symlink tree at package time.
 // Output as .cjs (not .js) because package.json has "type":"module".
-const NATIVE_EXTERNALS = ['electron', 'oracledb', ...builtinModules, ...builtinModules.map(m => `node:${m}`)]
+const NATIVE_EXTERNALS = ['electron', 'oracledb', 'pg-native', ...builtinModules, ...builtinModules.map(m => `node:${m}`)]
 
 export default defineConfig({
   main: {

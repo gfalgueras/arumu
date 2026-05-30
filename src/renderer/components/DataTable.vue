@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, watch, computed, shallowRef } from 'vue';
+import { ref, onMounted, onUnmounted, watch, computed, shallowRef, nextTick } from 'vue';
 import {
   ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight,
   ArrowUp, ArrowDown, Loader2, Download, ChevronDown, Plus, Check, X, Upload,
@@ -15,6 +15,7 @@ import FilterInput from './DataTable/FilterInput.vue';
 import CsvImportModal from './CsvImportModal.vue';
 import ConfirmModal from './ConfirmModal.vue';
 import { skipUpdateConfirm, skipDeleteConfirm } from '../services/confirmService';
+import { tableDataCache } from '../services/tableDataCache';
 
 const props = defineProps<{
   serverName: string;
@@ -104,21 +105,38 @@ const sortIconMap = computed(() => {
   return map;
 });
 
-watch(() => [props.serverName, props.database, props.table], async () => {
-  page.value = 0;
-  sort.value = [];
-  appliedFilter.value = '';
-  columnWidths.value = {};
-  selectedCell.value = null;
-  editingCell.value = null;
-  newRowMode.value = false;
-  contextMenu.value = null;
-  try {
-    columnInfo.value = await api.getColumns(props.serverName, props.database, props.table);
-  } catch {
-    columnInfo.value = [];
+// Per-instance flags — not shared across DataTable instances
+let _initializing = true;
+let _blockPaginationFetch = false;
+
+// Fires when the user navigates to a different table
+watch(
+  () => [props.serverName, props.database, props.table] as const,
+  async () => {
+    if (_initializing) return;
+    _blockPaginationFetch = true;
+    columnWidths.value = {};
+    selectedCell.value = null;
+    editingCell.value = null;
+    newRowMode.value = false;
+    contextMenu.value = null;
+    page.value = 0;
+    sort.value = [];
+    appliedFilter.value = '';
+    try {
+      columnInfo.value = await api.getColumns(props.serverName, props.database, props.table);
+    } catch { columnInfo.value = []; }
+    await fetchData();
+    await nextTick();
+    _blockPaginationFetch = false;
   }
-}, { immediate: true });
+);
+
+// Fires on pagination / sort / filter changes initiated by the user
+watch([page, appliedFilter, sort], () => {
+  if (_initializing || _blockPaginationFetch) return;
+  fetchData();
+}, { deep: true });
 
 const fetchData = async () => {
   loading.value = true;
@@ -139,9 +157,6 @@ const fetchData = async () => {
   }
 };
 
-watch(() => [props.serverName, props.database, props.table, page.value, sort.value, appliedFilter.value], () => {
-  fetchData();
-}, { immediate: true });
 
 const handleSort = (column: string) => {
   if (editingCell.value || newRowMode.value) return;
@@ -459,11 +474,29 @@ const handleGlobalClick = (e: MouseEvent) => {
   }
 };
 
-onMounted(() => {
+onMounted(async () => {
   window.addEventListener('mousemove', handleMouseMove);
   window.addEventListener('mouseup', handleMouseUp);
   document.addEventListener('mousedown', handleGlobalClick);
   window.addEventListener('keydown', handleKeyNav);
+
+  const cached = tableDataCache.get(props.serverName, props.database, props.table);
+  if (cached) {
+    data.value = cached.data;
+    columnInfo.value = cached.columnInfo;
+    page.value = cached.page;
+    sort.value = [...cached.sort];
+    appliedFilter.value = cached.appliedFilter;
+    columnWidths.value = { ...cached.columnWidths };
+  } else {
+    try {
+      columnInfo.value = await api.getColumns(props.serverName, props.database, props.table);
+    } catch { columnInfo.value = []; }
+    fetchData();
+  }
+
+  await nextTick();
+  _initializing = false;
 });
 
 onUnmounted(() => {
@@ -471,6 +504,15 @@ onUnmounted(() => {
   window.removeEventListener('mouseup', handleMouseUp);
   document.removeEventListener('mousedown', handleGlobalClick);
   window.removeEventListener('keydown', handleKeyNav);
+
+  tableDataCache.set(props.serverName, props.database, props.table, {
+    data: data.value,
+    columnInfo: columnInfo.value,
+    page: page.value,
+    sort: [...sort.value],
+    appliedFilter: appliedFilter.value,
+    columnWidths: { ...columnWidths.value },
+  });
 });
 
 const totalPages = computed(() => data.value ? Math.ceil(data.value.total / limit) : 0);

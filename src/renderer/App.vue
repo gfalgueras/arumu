@@ -177,7 +177,7 @@ const initApp = async () => {
     activeTab.value = state.activeTab || (queryTabs.value.length > 0 ? queryTabs.value[0].id : '');
 
     // Ensure the active tab still exists
-    if (activeTab.value !== 'data' && activeTab.value !== 'schema' && activeTab.value !== 'processes' && activeTab.value !== 'variables' && activeTab.value !== 'db' && !queryTabs.value.find(t => t.id === activeTab.value)) {
+    if (activeTab.value !== 'data' && activeTab.value !== 'schema' && activeTab.value !== 'processes' && activeTab.value !== 'variables' && !queryTabs.value.find(t => t.id === activeTab.value)) {
       activeTab.value = queryTabs.value.length > 0 ? queryTabs.value[0].id : '';
     }
     expandedServerNames.value = state.expandedServerNames || [];
@@ -345,7 +345,7 @@ const handleConfigServer = async (serverName: string) => {
   }
 };
 
-const fixedTabs = ['variables', 'processes', 'db', 'schema', 'data'];
+const fixedTabs = ['variables', 'processes', 'schema', 'data'];
 
 const ensureVisibleTab = (visibleIds: string[]) => {
   const isQueryTab = queryTabs.value.some(t => t.id === activeTab.value);
@@ -396,8 +396,6 @@ const removeQueryTab = (id: string) => {
       activeTab.value = queryTabs.value[Math.max(0, index - 1)].id;
     } else if (selectedTable.value) {
       activeTab.value = 'data';
-    } else if (selectedDatabase.value) {
-      activeTab.value = 'db';
     } else {
       activeTab.value = 'variables';
     }
@@ -426,7 +424,7 @@ const selectDatabase = (serverName: string, db: string) => {
   selectedServerName.value = serverName;
   selectedDatabase.value = db;
   selectedTable.value = null;
-  ensureVisibleTab(['variables', 'processes', 'db', ...queryTabs.value.map(t => t.id)]);
+  ensureVisibleTab(['variables', 'processes', ...queryTabs.value.map(t => t.id)]);
 };
 
 const selectTable = (serverName: string, db: string, table: string) => {
@@ -486,15 +484,6 @@ const selectTable = (serverName: string, db: string, table: string) => {
             >
               <Server :size="12" class="text-blue-500 dark:text-blue-400" />
               {{ $t('process_list.title') }}
-            </button>
-            <button
-              v-if="selectedDatabase"
-              @click="activeTab = 'db'"
-              class="flex items-center gap-1.5 px-4 py-2 text-sm font-medium border-b-2 whitespace-nowrap transition-colors"
-              :class="activeTab === 'db' ? 'border-blue-500 text-blue-500 bg-blue-500/5' : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/50'"
-            >
-              <Database :size="12" class="text-blue-500 dark:text-blue-400" />
-              DB
             </button>
             <button
               v-if="selectedTable"
@@ -558,9 +547,6 @@ const selectTable = (serverName: string, db: string, table: string) => {
 
           <!-- Tab Content -->
           <div class="flex-1 min-h-0 flex flex-col min-w-0">
-            <div v-if="activeTab === 'db' && selectedDatabase" class="flex-1 flex items-center justify-center text-slate-400 dark:text-slate-600 text-sm italic">
-              {{ selectedDatabase }}
-            </div>
             <ServerVariables
               v-if="activeTab === 'variables'"
               :serverName="selectedServerName!"
@@ -569,37 +555,31 @@ const selectTable = (serverName: string, db: string, table: string) => {
               v-if="activeTab === 'processes'"
               :serverName="selectedServerName!"
             />
-            <KeepAlive>
-              <TableSchema 
-                v-if="activeTab === 'schema' && selectedTable && selectedServerName && selectedDatabase"
-                :key="`schema:${selectedServerName}:${selectedDatabase}:${selectedTable}`"
-                :serverName="selectedServerName"
-                :database="selectedDatabase"
-                :table="selectedTable"
-                v-model:height="tableSchemaHeight"
-              />
-            </KeepAlive>
-            <KeepAlive>
-              <DataTable 
-                v-if="activeTab === 'data' && selectedTable && selectedServerName && selectedDatabase"
-                :key="`data:${selectedServerName}:${selectedDatabase}:${selectedTable}`"
-                :serverName="selectedServerName"
-                :serverType="selectedServerType"
-                :database="selectedDatabase"
-                :table="selectedTable"
-              />
-            </KeepAlive>
-            <KeepAlive>
-              <QueryEditor
-                v-if="activeTab !== 'data' && activeTab !== 'schema' && queryTabs.find(t => t.id === activeTab)"
-                :key="activeTab"
-                :serverName="selectedServerName!"
-                :serverType="selectedServerType"
-                :database="selectedDatabase"
-                v-model="queryTabs.find(t => t.id === activeTab)!.query"
-                v-model:height="queryEditorHeight"
-              />
-            </KeepAlive>
+            <TableSchema
+              v-if="activeTab === 'schema' && selectedTable && selectedServerName && selectedDatabase"
+              :key="`schema:${selectedServerName}:${selectedDatabase}:${selectedTable}`"
+              :serverName="selectedServerName"
+              :database="selectedDatabase"
+              :table="selectedTable"
+              v-model:height="tableSchemaHeight"
+            />
+            <DataTable
+              v-if="activeTab === 'data' && selectedTable && selectedServerName && selectedDatabase"
+              :key="`data:${selectedServerName}:${selectedDatabase}:${selectedTable}`"
+              :serverName="selectedServerName"
+              :serverType="selectedServerType"
+              :database="selectedDatabase"
+              :table="selectedTable"
+            />
+            <QueryEditor
+              v-if="activeTab !== 'data' && activeTab !== 'schema' && queryTabs.find(t => t.id === activeTab)"
+              :key="activeTab"
+              :serverName="selectedServerName!"
+              :serverType="selectedServerType"
+              :database="selectedDatabase"
+              v-model="queryTabs.find(t => t.id === activeTab)!.query"
+              v-model:height="queryEditorHeight"
+            />
           </div>
         </div>
         <div v-else class="flex-1 flex flex-col items-center justify-center">

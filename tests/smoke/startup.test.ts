@@ -40,7 +40,7 @@ const DISTROS: Array<{ name: string; image: string; deps: string; electronCmd?: 
   },
 ]
 
-describe('startup smoke', () => {
+describe.concurrent('startup smoke', () => {
   for (const distro of DISTROS) {
     it(`[${distro.name}] starts without JS errors`, { timeout: distro.timeout ?? 120_000 }, async ({ skip }) => {
       if (!existsSync(resolve(OUT_DIR, 'main/index.cjs'))) skip()
