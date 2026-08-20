@@ -37,10 +37,7 @@ All DB work runs in main process via `ipcMain.handle('api:<name>', ...)`. Preloa
 
 ## Database Driver Pattern
 
-- All drivers implement `IDatabaseDriver` (`src/shared/types/database.ts`).
-- Only `MySQLDriver` exists currently (`mysql2/promise`, single connection, not pooled).
-- Each IPC handler: instantiate driver → `connect()` → do work → `disconnect()` in `finally`.
-- Active server metadata in `activeServers: ServerInfo[]` array in `main/index.ts`.
+All drivers implement `IDatabaseDriver` (`src/shared/types/database.ts`). Only `MySQLDriver` exists (single connection, not pooled). Details: [src/main/CLAUDE.md](src/main/CLAUDE.md).
 
 ## Data Serialization for IPC
 
@@ -50,7 +47,7 @@ Vue Proxy objects and BigInt values cannot cross IPC boundary.
 
 ## Password Encryption
 
-Passwords encrypted with Electron's `safeStorage`. Format: `enc:<base64>`. Helpers: `encryptPassword`/`decryptPassword` in `main/index.ts`.
+Passwords encrypted via Electron `safeStorage`, format `enc:<base64>`. Details: [src/main/CLAUDE.md](src/main/CLAUDE.md#config-files-arumu).
 
 ## Persistence Files (`~/.arumu/`)
 
@@ -81,9 +78,7 @@ Tailwind CSS v4 via `@tailwindcss/vite` (no `tailwind.config.js`). Dark mode use
 
 ## Error Handling
 
-- Renderer: `showError(title, message)` from `errorService.ts` → triggers `<ErrorModal />`.
-- Main: MySQL error codes mapped in `DB_ERROR_MESSAGES`.
-- All errors also written to `~/.arumu/error.log`.
+All errors written to `~/.arumu/error.log`. Renderer: [src/renderer/CLAUDE.md](src/renderer/CLAUDE.md#error-handling-errorservicets). Main: [src/main/CLAUDE.md](src/main/CLAUDE.md#error-handling).
 
 ## Commands
 
@@ -121,17 +116,6 @@ pnpm lint       # ESLint on src/renderer
 | `CsvImportModal.vue` | CSV file picker with column mapping |
 | `ErrorModal.vue` | Global error dialog |
 
-## Active Tab System
+## Active Tab System & State Persistence
 
-`activeTab` in `App.vue`:
-- `'data'` — DataTable (requires `selectedTable`)
-- `'schema'` — TableSchema (requires `selectedTable`)
-- `'processes'` — ProcessList
-- `'variables'` — ServerVariables
-- `<uuid>` — Query editor tab
-
-`lastActiveQueryTabId` tracks last focused query tab.
-
-## State Persistence
-
-Deep `watch` in `App.vue` saves UI state with 1-second debounce via `api.saveAppState()`. Restored in `initApp()` on startup, which also silently reconnects active servers.
+Owned by `App.vue` — see [src/renderer/CLAUDE.md](src/renderer/CLAUDE.md).
