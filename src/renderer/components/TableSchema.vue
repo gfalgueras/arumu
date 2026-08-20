@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import { ref, watch, shallowRef, computed, onUnmounted } from 'vue';
 import { Loader2, Key, List, Link, Columns, Copy, Check, Plus, X, GripHorizontal, Trash2, AlertCircle, Save, ArrowUp, ArrowDown, Wrench } from 'lucide-vue-next';
-import type { ColumnInfo, TableIndex, ForeignKey, TypeGroup } from '@shared/types/database';
+import type { ColumnInfo, TableIndex, ForeignKey, TypeGroup, SchemaChanges } from '@shared/types/database';
 import MultiSelect from './MultiSelect.vue';
 import CodeModal from './CodeModal.vue';
 import { showError } from '../errorService';
 import { $t } from '../i18n';
 import { api } from '../services/api';
+import { diffSchema, buildAlterSql } from '../services/schemaDiff';
 
 const props = defineProps<{
   serverName: string;
@@ -140,58 +141,14 @@ const sortedIndexes = computed(() => {
 
 const getReferencedTableColumns = (tableName: string) => allDatabaseSchema.value[tableName] || [];
 
-const getPendingChanges = () => {
-  const colChanges = columns.value.map(curr => {
-    const origIdx = originalColumns.value.findIndex(o => o._id === curr._id);
-    if (origIdx === -1) return null;
-    
-    const orig = originalColumns.value[origIdx];
-    const currIdx = columns.value.indexOf(curr);
-    
-    const propertiesChanged = JSON.stringify(curr) !== JSON.stringify(orig);
-    
-    // Position change: predecessor changed or was first and isn't now, or vice versa
-    const currPrevId = currIdx > 0 ? columns.value[currIdx - 1]._id : null;
-    const origPrevId = origIdx > 0 ? originalColumns.value[origIdx - 1]._id : null;
-    const positionChanged = currPrevId !== origPrevId;
-
-    if (propertiesChanged || positionChanged) {
-      const afterColumn = currIdx > 0 ? columns.value[currIdx - 1].name : '';
-      return { oldName: orig.name, newCol: curr, afterColumn };
-    }
-    return null;
-  }).filter(Boolean) as { oldName: string, newCol: ColumnInfo, afterColumn?: string }[];
-
-  const columnsToAdd = columns.value.filter(curr => {
-    return !originalColumns.value.some(o => o._id === curr._id);
-  }).map(curr => {
-    const idx = columns.value.indexOf(curr);
-    const afterColumn = idx > 0 ? columns.value[idx - 1].name : '';
-    return { col: curr, afterColumn };
-  });
-
-  const indexesToDrop = originalIndexes.value.filter(orig => {
-    const current = indexes.value.find(curr => curr.name === orig.name);
-    return !current || JSON.stringify(current) !== JSON.stringify(orig);
-  });
-
-  const indexesToAdd = indexes.value.filter(curr => {
-    const orig = originalIndexes.value.find(o => o.name === curr.name);
-    return !orig || JSON.stringify(orig) !== JSON.stringify(curr);
-  });
-
-  const fksToDrop = originalFKs.value.filter(orig => {
-    const current = foreignKeys.value.find(curr => curr.name === orig.name);
-    return !current || JSON.stringify(current) !== JSON.stringify(orig);
-  });
-
-  const fksToAdd = foreignKeys.value.filter(curr => {
-    const orig = originalFKs.value.find(o => o.name === curr.name);
-    return !orig || JSON.stringify(orig) !== JSON.stringify(curr);
-  });
-
-  return { columnsToUpdate: colChanges, columnsToAdd, indexesToDrop, indexesToAdd, fksToDrop, fksToAdd };
-};
+const getPendingChanges = (): SchemaChanges => diffSchema({
+  columns: columns.value,
+  originalColumns: originalColumns.value,
+  indexes: indexes.value,
+  originalIndexes: originalIndexes.value,
+  foreignKeys: foreignKeys.value,
+  originalFKs: originalFKs.value,
+});
 
 const fetchSupportedTypes = async () => {
   try {
@@ -479,115 +436,7 @@ const handleCopyCreate = async () => {
   }
 };
 
-const getAlterSql = () => {
-  const { columnsToUpdate, columnsToAdd, indexesToDrop, indexesToAdd, fksToDrop, fksToAdd } = getPendingChanges();
-  
-  const escapedDb = props.database.replace(/`/g, '``');
-  const escapedTable = props.table.replace(/`/g, '``');
-  const fullTableName = `\`${escapedDb}\`.\`${escapedTable}\``;
-
-  const parts: string[] = [];
-
-  // Update Columns
-  for (const { oldName, newCol, afterColumn } of columnsToUpdate) {
-    let columnType = newCol.type;
-    if (newCol.length) {
-      columnType += `(${newCol.length})`;
-    }
-    let sql = `CHANGE COLUMN \`${oldName.replace(/`/g, '``')}\` \`${newCol.name.replace(/`/g, '``')}\` ${columnType}`;
-    if (newCol.unsigned) sql += ' UNSIGNED';
-    if (!newCol.nullable) sql += ' NOT NULL';
-    else sql += ' NULL';
-    
-    if (newCol.default !== undefined) {
-      if (newCol.default === null) sql += ' DEFAULT NULL';
-      else if (newCol.default.toUpperCase() === 'CURRENT_TIMESTAMP') sql += ' DEFAULT CURRENT_TIMESTAMP';
-      else sql += ` DEFAULT '${newCol.default.replace(/'/g, "''")}'`;
-    }
-    
-    if (newCol.extra) sql += ` ${newCol.extra}`;
-    if (newCol.comment) sql += ` COMMENT '${newCol.comment.replace(/'/g, "''")}'`;
-    
-    if (afterColumn !== undefined) {
-      if (afterColumn === '') sql += ' FIRST';
-      else sql += ` AFTER \`${afterColumn.replace(/`/g, '``')}\``;
-    }
-    
-    parts.push(sql);
-  }
-
-  // New Columns
-  for (const { col, afterColumn } of columnsToAdd) {
-    let columnType = col.type;
-    if (col.length) {
-      columnType += `(${col.length})`;
-    }
-    let sql = `ADD COLUMN \`${col.name.replace(/`/g, '``')}\` ${columnType}`;
-    if (col.unsigned) sql += ' UNSIGNED';
-    if (!col.nullable) sql += ' NOT NULL';
-    else sql += ' NULL';
-    
-    if (col.default !== undefined) {
-      if (col.default === null) sql += ' DEFAULT NULL';
-      else if (col.default.toUpperCase() === 'CURRENT_TIMESTAMP') sql += ' DEFAULT CURRENT_TIMESTAMP';
-      else sql += ` DEFAULT '${col.default.replace(/'/g, "''")}'`;
-    }
-    
-    if (col.extra) sql += ` ${col.extra}`;
-    if (col.comment) sql += ` COMMENT '${col.comment.replace(/'/g, "''")}'`;
-    
-    if (afterColumn !== undefined) {
-      if (afterColumn === '') sql += ' FIRST';
-      else sql += ` AFTER \`${afterColumn.replace(/`/g, '``')}\``;
-    }
-    
-    parts.push(sql);
-  }
-
-  // DROPs
-  for (const fk of fksToDrop) {
-    parts.push(`DROP FOREIGN KEY \`${fk.name.replace(/`/g, '``')}\``);
-  }
-  for (const idx of indexesToDrop) {
-    if (idx.name === 'PRIMARY') {
-      parts.push(`DROP PRIMARY KEY`);
-    } else {
-      parts.push(`DROP INDEX \`${idx.name.replace(/`/g, '``')}\``);
-    }
-  }
-
-  // ADDs
-  for (const idx of indexesToAdd) {
-    const cols = idx.columns.map(col => `\`${col.replace(/`/g, '``')}\``).join(', ');
-    if (idx.type === 'PRIMARY') {
-      parts.push(`ADD PRIMARY KEY (${cols})`);
-    } else {
-      let type = 'INDEX';
-      if (idx.type === 'UNIQUE') type = 'UNIQUE INDEX';
-      else if (idx.type === 'FULLTEXT') type = 'FULLTEXT INDEX';
-      else if (idx.type === 'SPATIAL') type = 'SPATIAL INDEX';
-      
-      const name = idx.name ? `\`${idx.name.replace(/`/g, '``')}\`` : '';
-      parts.push(`ADD ${type} ${name} (${cols})`);
-    }
-  }
-
-  for (const fk of fksToAdd) {
-    const cols = fk.columns.map(col => `\`${col.replace(/`/g, '``')}\``).join(', ');
-    const refTable = `\`${escapedDb}\`.\`${fk.referencedTable.replace(/`/g, '``')}\``;
-    const refCols = fk.referencedColumns.map(col => `\`${col.replace(/`/g, '``')}\``).join(', ');
-    const name = fk.name ? `CONSTRAINT \`${fk.name.replace(/`/g, '``')}\`` : '';
-    
-    let sql = `ADD ${name} FOREIGN KEY (${cols}) REFERENCES ${refTable} (${refCols})`;
-    if (fk.updateRule) sql += ` ON UPDATE ${fk.updateRule}`;
-    if (fk.deleteRule) sql += ` ON DELETE ${fk.deleteRule}`;
-    parts.push(sql);
-  }
-
-  if (parts.length === 0) return null;
-
-  return `ALTER TABLE ${fullTableName}\n  ${parts.join(',\n  ')};`;
-};
+const getAlterSql = () => buildAlterSql(props.database, props.table, getPendingChanges());
 
 const handleCopyAlter = async () => {
   const alterSql = getAlterSql();

@@ -16,6 +16,7 @@ import CsvImportModal from './CsvImportModal.vue';
 import ConfirmModal from './ConfirmModal.vue';
 import { skipUpdateConfirm, skipDeleteConfirm } from '../services/confirmService';
 import { tableDataCache } from '../services/tableDataCache';
+import { escId, escVal, valOrExpr, rowsToCsv } from '../services/sqlValue';
 
 const props = defineProps<{
   serverName: string;
@@ -521,43 +522,12 @@ const totalWidth = computed(() => {
   return data.value?.columns.reduce((acc, col) => acc + (columnWidths.value[col] || 150), 0) || 0;
 });
 
-// ---- SQL helpers ----
-
-const escId = (s: string) => '`' + s.replace(/`/g, '``') + '`';
-const escVal = (val: string | null): string => {
-  if (val === null) return 'NULL';
-  const n = Number(val);
-  if (!isNaN(n) && val.trim() !== '') return val;
-  return "'" + val.replace(/\\/g, '\\\\').replace(/'/g, "\\'") + "'";
-};
-const SQL_EXPR_RE = /^(CURRENT_TIMESTAMP|CURRENT_DATE|CURRENT_TIME|DEFAULT|TRUE|FALSE|NULL)$/i;
-const isSqlExpr = (val: string) => SQL_EXPR_RE.test(val.trim()) || val.includes('(');
-const valOrExpr = (val: string | null): string => {
-  if (val === null) return 'NULL';
-  if (isSqlExpr(val)) return val;
-  return escVal(val);
-};
-
 // ---- Export ----
-
-const csvEscape = (val: unknown): string => {
-  if (val === null) return '';
-  const s = String(val);
-  if (s.includes(',') || s.includes('"') || s.includes('\n') || s.includes('\r')) {
-    return '"' + s.replace(/"/g, '""') + '"';
-  }
-  return s;
-};
 
 const exportCurrentPage = async () => {
   showExportMenu.value = false;
   if (!data.value) return;
-  const cols = data.value.columns;
-  const header = cols.map(csvEscape).join(',');
-  let content = header + '\n';
-  for (const row of data.value.rows) {
-    content += cols.map(col => csvEscape(row[col])).join(',') + '\n';
-  }
+  const content = rowsToCsv(data.value.columns, data.value.rows);
   await api.saveExportFile(`${props.table}.csv`, content, [{ name: 'CSV Files', extensions: ['csv'] }]);
 };
 
