@@ -6,13 +6,16 @@ import {
 
 export class SQLServerDriver implements IDatabaseDriver {
   private pool: sql.ConnectionPool | null = null;
+  private transaction: sql.Transaction | null = null;
 
   static queryLogger: ((sql: string, durationMs: number, error?: string) => void) | null = null;
 
   // Converts positional ? params to @p1, @p2... and builds the mssql request
   private buildRequest(querySql: string, params: unknown[] = []): { request: sql.Request; sql: string } {
     if (!this.pool) throw new Error('Not connected');
-    const request = this.pool.request();
+    // Inside a transaction, requests must be bound to it or they run on a
+    // separate pooled connection and miss the transaction entirely.
+    const request = this.transaction ? new sql.Request(this.transaction) : this.pool.request();
     let idx = 0;
     const parameterized = querySql.replace(/\?/g, () => `@p${++idx}`);
     for (let i = 0; i < params.length; i++) {
@@ -72,9 +75,35 @@ export class SQLServerDriver implements IDatabaseDriver {
   }
 
   async disconnect(): Promise<void> {
+    this.transaction = null;
     if (this.pool) {
       try { await this.pool.close(); } catch { /* ignore */ }
       this.pool = null;
+    }
+  }
+
+  async beginTransaction(): Promise<void> {
+    if (!this.pool) throw new Error('Not connected');
+    const transaction = new sql.Transaction(this.pool);
+    await transaction.begin();
+    this.transaction = transaction;
+  }
+
+  async commit(): Promise<void> {
+    if (!this.transaction) throw new Error('No active transaction');
+    try {
+      await this.transaction.commit();
+    } finally {
+      this.transaction = null;
+    }
+  }
+
+  async rollback(): Promise<void> {
+    if (!this.transaction) throw new Error('No active transaction');
+    try {
+      await this.transaction.rollback();
+    } finally {
+      this.transaction = null;
     }
   }
 
@@ -448,6 +477,7 @@ export class SQLServerDriver implements IDatabaseDriver {
 
   getCapabilities(): ServerCapabilities {
     return {
+      supportsTransactionalDDL: true,
       supportsUnsigned: false,
       supportsVirtuality: false,
       supportsCollation: false,

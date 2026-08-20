@@ -103,6 +103,12 @@ export interface TypeGroup {
 }
 
 export interface ServerCapabilities {
+  /**
+   * Whether DDL (ALTER TABLE, CREATE INDEX, ...) participates in transactions.
+   * False on MySQL and Oracle, where DDL triggers an implicit COMMIT, so a
+   * multi-step schema migration cannot be rolled back as a unit there.
+   */
+  supportsTransactionalDDL: boolean;
   supportsUnsigned: boolean;
   supportsVirtuality: boolean;
   supportsCollation: boolean;
@@ -164,6 +170,14 @@ export type QueryResult = Record<string, unknown>[] | Record<string, unknown>;
 export interface IDatabaseDriver {
   connect(config: ConnectionConfig): Promise<void>;
   disconnect(): Promise<void>;
+  /**
+   * Transaction control. Outside an explicit transaction every statement is
+   * expected to auto-commit. See `ServerCapabilities.supportsTransactionalDDL`
+   * for whether schema changes can actually be rolled back.
+   */
+  beginTransaction(): Promise<void>;
+  commit(): Promise<void>;
+  rollback(): Promise<void>;
   getDatabases(): Promise<DatabaseInfo[]>;
   getTables(database: string): Promise<TableInfo[]>;
   getSchema(database: string): Promise<Record<string, string[]>>;

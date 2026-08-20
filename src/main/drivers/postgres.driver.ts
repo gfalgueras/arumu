@@ -90,6 +90,18 @@ export class PostgreSQLDriver implements IDatabaseDriver {
     }
   }
 
+  async beginTransaction(): Promise<void> {
+    await this.exec('BEGIN');
+  }
+
+  async commit(): Promise<void> {
+    await this.exec('COMMIT');
+  }
+
+  async rollback(): Promise<void> {
+    await this.exec('ROLLBACK');
+  }
+
   async getDatabases(): Promise<DatabaseInfo[]> {
     const rows = await this.exec<{ name: string }>(
       `SELECT datname as name FROM pg_database WHERE datistemplate = false ORDER BY datname`
@@ -478,6 +490,7 @@ export class PostgreSQLDriver implements IDatabaseDriver {
 
   getCapabilities(): ServerCapabilities {
     return {
+      supportsTransactionalDDL: true,
       supportsUnsigned: false,
       supportsVirtuality: false,
       supportsCollation: false,

@@ -13,8 +13,18 @@ function odb(): typeof oracledb {
 
 export class OracleDriver implements IDatabaseDriver {
   private connection: oracledb.Connection | null = null;
+  private inTransaction = false;
 
   static queryLogger: ((sql: string, durationMs: number, error?: string) => void) | null = null;
+
+  /**
+   * node-oracledb defaults `autoCommit` to false, so without this every
+   * INSERT/UPDATE/DELETE was silently rolled back when the connection closed.
+   * Statements auto-commit unless an explicit transaction is open.
+   */
+  private get autoCommit(): boolean {
+    return !this.inTransaction;
+  }
 
   // Positional :1, :2 bind variables
   private async exec<T = Record<string, unknown>>(querySql: string, params: unknown[] = []): Promise<T[]> {
@@ -23,6 +33,7 @@ export class OracleDriver implements IDatabaseDriver {
     try {
       const result = await this.connection.execute<T>(querySql, params, {
         outFormat: odb().OUT_FORMAT_OBJECT,
+        autoCommit: this.autoCommit,
         fetchTypeHandler: (meta) => {
           if (meta.dbType === odb().DB_TYPE_CLOB || meta.dbType === odb().DB_TYPE_NCLOB) {
             return { type: odb().DB_TYPE_VARCHAR };
@@ -46,6 +57,7 @@ export class OracleDriver implements IDatabaseDriver {
     try {
       const result = await this.connection.execute<Record<string, unknown>>(querySql, params, {
         outFormat: odb().OUT_FORMAT_OBJECT,
+        autoCommit: this.autoCommit,
         fetchTypeHandler: (meta) => {
           if (meta.dbType === odb().DB_TYPE_CLOB || meta.dbType === odb().DB_TYPE_NCLOB) {
             return { type: odb().DB_TYPE_VARCHAR };
@@ -78,9 +90,35 @@ export class OracleDriver implements IDatabaseDriver {
   }
 
   async disconnect(): Promise<void> {
+    this.inTransaction = false;
     if (this.connection) {
       try { await this.connection.close(); } catch { /* ignore */ }
       this.connection = null;
+    }
+  }
+
+  // Oracle has no explicit BEGIN — a transaction starts with the first DML.
+  // Flipping this flag just turns off the per-statement autoCommit above.
+  async beginTransaction(): Promise<void> {
+    if (!this.connection) throw new Error('Not connected');
+    this.inTransaction = true;
+  }
+
+  async commit(): Promise<void> {
+    if (!this.connection) throw new Error('Not connected');
+    try {
+      await this.connection.commit();
+    } finally {
+      this.inTransaction = false;
+    }
+  }
+
+  async rollback(): Promise<void> {
+    if (!this.connection) throw new Error('Not connected');
+    try {
+      await this.connection.rollback();
+    } finally {
+      this.inTransaction = false;
     }
   }
 
@@ -469,6 +507,7 @@ export class OracleDriver implements IDatabaseDriver {
 
   getCapabilities(): ServerCapabilities {
     return {
+      supportsTransactionalDDL: false, // Oracle implicitly commits on DDL
       supportsUnsigned: false,
       supportsVirtuality: false,
       supportsCollation: false,

@@ -141,6 +141,52 @@ export function runSharedSuite(
       expect(Array.isArray(rows)).toBe(true);
       expect((rows as any[]).length).toBe(10);
     }));
+
+    // Identifiers are left unquoted on purpose: every dialect's seed creates
+    // `categories` unquoted, and Oracle folds unquoted names to upper case —
+    // so a quoted lower-case "categories" would not resolve there.
+    const countNamed = async (label: string) => {
+      const rows = await getDriver().executeQuery(
+        `SELECT name FROM categories WHERE name = '${label}'`,
+      );
+      return (rows as any[]).length;
+    };
+    const insertNamed = (label: string) =>
+      getDriver().executeQuery(`INSERT INTO categories (name) VALUES ('${label}')`);
+    const deleteNamed = (label: string) =>
+      getDriver().executeQuery(`DELETE FROM categories WHERE name = '${label}'`);
+
+    // Regression guard: the Oracle driver left node-oracledb's autoCommit at
+    // its `false` default, so writes were silently discarded on disconnect.
+    // The suite only ever ran SELECTs, so nothing caught it.
+    it('DML auto-commits and is visible to a later read', s(async () => {
+      await insertNamed('dml-roundtrip');
+      try {
+        expect(await countNamed('dml-roundtrip')).toBe(1);
+      } finally {
+        await deleteNamed('dml-roundtrip');
+      }
+    }));
+
+    it('rollback discards DML', s(async () => {
+      await getDriver().beginTransaction();
+      await insertNamed('tx-rollback');
+      await getDriver().rollback();
+
+      expect(await countNamed('tx-rollback')).toBe(0);
+    }));
+
+    it('commit persists DML', s(async () => {
+      await getDriver().beginTransaction();
+      await insertNamed('tx-commit');
+      await getDriver().commit();
+
+      try {
+        expect(await countNamed('tx-commit')).toBe(1);
+      } finally {
+        await deleteNamed('tx-commit');
+      }
+    }));
   });
 
   // ── Escaping ──────────────────────────────────────────────────────────────

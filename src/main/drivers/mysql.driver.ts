@@ -60,6 +60,18 @@ export class MySQLDriver implements IDatabaseDriver {
     }
   }
 
+  async beginTransaction(): Promise<void> {
+    await this.exec('START TRANSACTION');
+  }
+
+  async commit(): Promise<void> {
+    await this.exec('COMMIT');
+  }
+
+  async rollback(): Promise<void> {
+    await this.exec('ROLLBACK');
+  }
+
   async getDatabases(): Promise<DatabaseInfo[]> {
     const [rows] = await this.exec('SHOW DATABASES') as [RowDataPacket[], FieldPacket[]];
     return rows.map((row) => ({
@@ -439,6 +451,7 @@ export class MySQLDriver implements IDatabaseDriver {
 
   getCapabilities(): ServerCapabilities {
     return {
+      supportsTransactionalDDL: false, // MySQL implicitly commits on DDL
       supportsUnsigned: true,
       supportsVirtuality: true,
       supportsCollation: true,

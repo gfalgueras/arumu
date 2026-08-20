@@ -58,6 +58,18 @@ export class SQLiteDriver implements IDatabaseDriver {
     }
   }
 
+  async beginTransaction(): Promise<void> {
+    this.run('BEGIN');
+  }
+
+  async commit(): Promise<void> {
+    this.run('COMMIT');
+  }
+
+  async rollback(): Promise<void> {
+    this.run('ROLLBACK');
+  }
+
   async getDatabases(): Promise<DatabaseInfo[]> {
     const rows = this.exec<{ name: string }>('PRAGMA database_list');
     return rows.map((r) => ({ name: r.name, tables: [] }));
@@ -302,6 +314,7 @@ export class SQLiteDriver implements IDatabaseDriver {
 
   getCapabilities(): ServerCapabilities {
     return {
+      supportsTransactionalDDL: true,
       supportsUnsigned: false,
       supportsVirtuality: false,
       supportsCollation: false,
