@@ -6,6 +6,7 @@ import { PostgreSQLDriver } from './drivers/postgres.driver';
 import { SQLiteDriver } from './drivers/sqlite.driver';
 import { SQLServerDriver } from './drivers/sqlserver.driver';
 import { OracleDriver } from './drivers/oracle.driver';
+import { connectionPool } from './connection-pool';
 import type {
   IDatabaseDriver, ServerInfo, StoredServer, ColumnInfo, TableIndex,
   ForeignKey, SortConfig, AppState, AppSettings, QueryHistoryEntry, QuerySnippet,
@@ -186,11 +187,13 @@ const findActiveServer = (serverName: string): ServerInfo => {
 };
 
 /**
- * Resolves the named active server, connects a driver to `database` (omit to
- * use the server's own default), runs `fn`, and always disconnects.
+ * Resolves the named active server, leases a driver connected to `database`
+ * (omit to use the server's own default), runs `fn`, and returns the
+ * connection to the pool.
  *
  * Every DB-backed IPC handler goes through this, so connection lifetime is
- * owned in exactly one place.
+ * owned in exactly one place. On error the connection is discarded rather
+ * than reused, since a failed query may have left it in a bad state.
  */
 async function withDriver<T>(
   serverName: string,
@@ -198,12 +201,20 @@ async function withDriver<T>(
   fn: (driver: IDatabaseDriver, server: ServerInfo) => Promise<T>,
 ): Promise<T> {
   const server = findActiveServer(serverName);
-  const driver = createDriver(server);
-  try {
+
+  let driver = connectionPool.take(serverName, database);
+  if (!driver) {
+    driver = createDriver(server);
     await driver.connect(database ? { ...server.config!, database } : server.config!);
-    return await fn(driver, server);
-  } finally {
-    await driver.disconnect();
+  }
+
+  try {
+    const result = await fn(driver, server);
+    connectionPool.release(serverName, database, driver);
+    return result;
+  } catch (err) {
+    await driver.disconnect().catch(() => { /* already failing; discard */ });
+    throw err;
   }
 }
 
@@ -346,8 +357,9 @@ app.whenReady().then(() => {
     }
   });
 
-  ipcMain.handle('api:disconnectServer', (_event, name: string) => {
+  ipcMain.handle('api:disconnectServer', async (_event, name: string) => {
     activeServers = activeServers.filter(s => s.name !== name);
+    await connectionPool.evict(name);
   });
 
   ipcMain.handle('api:getStoredServers', () => getStoredServers());
@@ -362,7 +374,7 @@ app.whenReady().then(() => {
     return newServer;
   });
 
-  ipcMain.handle('api:updateStoredServer', (_event, name: string, updatedServer: StoredServer) => {
+  ipcMain.handle('api:updateStoredServer', async (_event, name: string, updatedServer: StoredServer) => {
     const servers = getStoredServers();
     const index = servers.findIndex(s => s.name === name);
     if (index === -1) throw new Error('Server not found');
@@ -374,6 +386,8 @@ app.whenReady().then(() => {
     if (activeIndex !== -1) {
       activeServers[activeIndex] = { ...updatedServer, databases: [] };
     }
+    // Pooled connections were opened with the old credentials/host.
+    await connectionPool.evict(name);
     return servers[index];
   });
 
@@ -569,4 +583,9 @@ app.whenReady().then(() => {
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit();
+});
+
+// Close pooled connections rather than leaving the DB server to time them out.
+app.on('will-quit', () => {
+  void connectionPool.evict();
 });
