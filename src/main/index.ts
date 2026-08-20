@@ -440,6 +440,20 @@ app.whenReady().then(() => {
     withDriver(serverName, database || findActiveServer(serverName).config!.database, driver =>
       driver.executeQuery(sql)));
 
+  ipcMain.handle('api:importRows', async (_event, serverName: string, dbName: string, tableName: string, columns: string[], rows: (string | null)[][]) =>
+    withDriver(serverName, dbName, async driver => {
+      // All-or-nothing: a half-imported CSV is worse than a failed one.
+      await driver.beginTransaction();
+      try {
+        const imported = await driver.insertRows(dbName, tableName, columns, rows);
+        await driver.commit();
+        return imported;
+      } catch (err) {
+        await driver.rollback().catch(() => { /* surface the original error */ });
+        throw err;
+      }
+    }));
+
   ipcMain.handle('api:getSupportedTypes', (_event, serverName: string) =>
     createDriver(findActiveServer(serverName)).getSupportedTypes());
 

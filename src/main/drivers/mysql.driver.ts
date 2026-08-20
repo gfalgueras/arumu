@@ -1,4 +1,5 @@
 import mysql, { Connection, RowDataPacket, FieldPacket, QueryResult as MySQLQueryResult } from 'mysql2/promise';
+import { batchRows, buildValuesClause } from './bulk-insert';
 import { IDatabaseDriver, ConnectionConfig, DatabaseInfo, TableInfo, TableDataResponse, SortConfig, ColumnInfo, TableIndex, ForeignKey, TypeGroup, ServerCapabilities, ServerVariablesResult, QueryResult } from '@shared/types/database';
 
 // mysql2's execute() result shape: row data for SELECTs, OkPacket/ResultSetHeader for writes.
@@ -421,6 +422,18 @@ export class MySQLDriver implements IDatabaseDriver {
       else sql += ` AFTER \`${afterColumn.replace(/`/g, '``')}\``;
     }
     await this.exec(sql);
+  }
+
+  async insertRows(database: string, table: string, columns: string[], rows: (string | null)[][]): Promise<number> {
+    if (rows.length === 0 || columns.length === 0) return 0;
+    const target = `${this.escapeIdentifier(database)}.${this.escapeIdentifier(table)}`;
+    const colList = columns.map(c => this.escapeIdentifier(c)).join(', ');
+
+    for (const batch of batchRows(rows, columns.length)) {
+      const values = buildValuesClause(batch.length, columns.length, () => '?');
+      await this.exec(`INSERT INTO ${target} (${colList}) VALUES ${values}`, batch.flat());
+    }
+    return rows.length;
   }
 
   async getSupportedTypes(): Promise<TypeGroup[]> {

@@ -1,4 +1,5 @@
 import { Client, QueryResult as PgQueryResult } from 'pg';
+import { batchRows, buildValuesClause } from './bulk-insert';
 import {
   IDatabaseDriver, ConnectionConfig, DatabaseInfo, TableInfo, TableDataResponse,
   SortConfig, ColumnInfo, TableIndex, ForeignKey, TypeGroup, ServerCapabilities, ServerVariablesResult, QueryResult
@@ -472,6 +473,17 @@ export class PostgreSQLDriver implements IDatabaseDriver {
     if (newColumn.name !== oldColumnName) {
       await this.exec(`ALTER TABLE ${tbl} RENAME COLUMN ${oldCol} TO ${esc(newColumn.name)}`);
     }
+  }
+
+  async insertRows(_database: string, table: string, columns: string[], rows: (string | null)[][]): Promise<number> {
+    if (rows.length === 0 || columns.length === 0) return 0;
+    const colList = columns.map(c => this.escapeIdentifier(c)).join(', ');
+
+    for (const batch of batchRows(rows, columns.length)) {
+      const values = buildValuesClause(batch.length, columns.length, i => `$${i + 1}`);
+      await this.exec(`INSERT INTO ${this.escapeIdentifier(table)} (${colList}) VALUES ${values}`, batch.flat());
+    }
+    return rows.length;
   }
 
   async getSupportedTypes(): Promise<TypeGroup[]> {

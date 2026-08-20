@@ -1,4 +1,5 @@
 import type oracledb from 'oracledb';
+import { batchRows } from './bulk-insert';
 import {
   IDatabaseDriver, ConnectionConfig, DatabaseInfo, TableInfo, TableDataResponse,
   SortConfig, ColumnInfo, TableIndex, ForeignKey, TypeGroup, ServerCapabilities, ServerVariablesResult, QueryResult
@@ -491,6 +492,33 @@ export class OracleDriver implements IDatabaseDriver {
     // Rename column last (Oracle 9i+)
     if (newColumn.name !== oldColumnName) {
       await this.exec(`ALTER TABLE ${tbl} RENAME COLUMN ${oldCol} TO ${esc(newColumn.name)}`);
+    }
+  }
+
+  /**
+   * Oracle has no multi-row VALUES clause, so this uses executeMany — which is
+   * the fastest bulk path anyway, sending one statement with an array of binds.
+   */
+  async insertRows(_database: string, table: string, columns: string[], rows: (string | null)[][]): Promise<number> {
+    if (!this.connection) throw new Error('Not connected');
+    if (rows.length === 0 || columns.length === 0) return 0;
+
+    const colList = columns.map(c => this.escapeIdentifier(c.toUpperCase())).join(', ');
+    const binds = columns.map((_c, i) => `:${i + 1}`).join(', ');
+    const sql = `INSERT INTO ${this.escapeIdentifier(table.toUpperCase())} (${colList}) VALUES (${binds})`;
+
+    const t0 = Date.now();
+    try {
+      for (const batch of batchRows(rows, columns.length)) {
+        await this.connection.executeMany(sql, batch as oracledb.BindParameters[], {
+          autoCommit: this.autoCommit,
+        });
+      }
+      OracleDriver.queryLogger?.(sql, Date.now() - t0);
+      return rows.length;
+    } catch (err: unknown) {
+      OracleDriver.queryLogger?.(sql, Date.now() - t0, err instanceof Error ? err.message : String(err));
+      throw err;
     }
   }
 

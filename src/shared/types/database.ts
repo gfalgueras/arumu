@@ -193,6 +193,11 @@ export interface IDatabaseDriver {
   dropForeignKey(database: string, table: string, fkName: string): Promise<void>;
   addColumn(database: string, table: string, column: ColumnInfo, afterColumn?: string): Promise<void>;
   updateColumn(database: string, table: string, oldColumnName: string, newColumn: ColumnInfo, afterColumn?: string): Promise<void>;
+  /**
+   * Bulk-inserts rows using parameter binding, batching internally to stay
+   * under each engine's per-statement bind limit. Returns the row count.
+   */
+  insertRows(database: string, table: string, columns: string[], rows: (string | null)[][]): Promise<number>;
   getSupportedTypes(): Promise<TypeGroup[]>;
   getCapabilities(): ServerCapabilities;
   getProcessList(): Promise<Record<string, unknown>[]>;

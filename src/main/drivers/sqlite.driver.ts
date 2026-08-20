@@ -1,4 +1,5 @@
 import { DatabaseSync, StatementSync, type SQLInputValue } from 'node:sqlite';
+import { batchRows, buildValuesClause } from './bulk-insert';
 import {
   IDatabaseDriver, ConnectionConfig, DatabaseInfo, TableInfo, TableDataResponse,
   SortConfig, ColumnInfo, TableIndex, ForeignKey, TypeGroup, ServerCapabilities, ServerVariablesResult, QueryResult
@@ -299,6 +300,17 @@ export class SQLiteDriver implements IDatabaseDriver {
 
   async updateColumn(_database: string, _table: string, _oldColumnName: string, _newColumn: ColumnInfo, _afterColumn?: string): Promise<void> {
     throw new Error('SQLite requires table recreation to modify columns. This operation is not supported yet.');
+  }
+
+  async insertRows(_database: string, table: string, columns: string[], rows: (string | null)[][]): Promise<number> {
+    if (rows.length === 0 || columns.length === 0) return 0;
+    const colList = columns.map(c => this.escapeIdentifier(c)).join(', ');
+
+    for (const batch of batchRows(rows, columns.length)) {
+      const values = buildValuesClause(batch.length, columns.length, () => '?');
+      this.run(`INSERT INTO ${this.escapeIdentifier(table)} (${colList}) VALUES ${values}`, batch.flat());
+    }
+    return rows.length;
   }
 
   async getSupportedTypes(): Promise<TypeGroup[]> {

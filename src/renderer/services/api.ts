@@ -51,6 +51,8 @@ export const api = {
   updateColumn: (serverName: string, dbName: string, tableName: string, oldName: string, column: ColumnInfo, afterColumn?: string): Promise<void> => electronAPI.invoke('api:updateColumn', serverName, dbName, tableName, oldName, clean(column), afterColumn) as Promise<void>,
   getTableCreateStatement: (serverName: string, dbName: string, tableName: string): Promise<{ statement: string }> => electronAPI.invoke('api:getTableCreateStatement', serverName, dbName, tableName) as Promise<{ statement: string }>,
   executeSql: (serverName: string, sql: string, database: string): Promise<QueryResult> => electronAPI.invoke('api:executeSql', serverName, sql, database) as Promise<QueryResult>,
+  importRows: (serverName: string, dbName: string, tableName: string, columns: string[], rows: (string | null)[][]): Promise<number> =>
+    electronAPI.invoke('api:importRows', serverName, dbName, tableName, clean(columns), clean(rows)) as Promise<number>,
   getSupportedTypes: (serverName: string): Promise<TypeGroup[]> => electronAPI.invoke('api:getSupportedTypes', serverName) as Promise<TypeGroup[]>,
   getSchema: (serverName: string, dbName: string): Promise<Record<string, string[]>> => electronAPI.invoke('api:getSchema', serverName, dbName) as Promise<Record<string, string[]>>,
   getQueryHistory: (): Promise<QueryHistoryEntry[]> => electronAPI.invoke('api:getQueryHistory') as Promise<QueryHistoryEntry[]>,

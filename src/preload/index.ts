@@ -27,6 +27,7 @@ const ALLOWED_INVOKE_CHANNELS = new Set([
   'api:updateColumn',
   'api:getTableCreateStatement',
   'api:executeSql',
+  'api:importRows',
   'api:getSupportedTypes',
   'api:getQueryHistory',
   'api:addQueryHistory',

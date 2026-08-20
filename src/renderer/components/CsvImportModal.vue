@@ -99,14 +99,6 @@ watch(firstRowIsHeader, () => {
   }
 });
 
-const escId = (s: string) => '`' + s.replace(/`/g, '``') + '`';
-const escVal = (val: string): string => {
-  if (val === '') return 'NULL';
-  const n = Number(val);
-  if (!isNaN(n) && val.trim() !== '') return val;
-  return "'" + val.replace(/\\/g, '\\\\').replace(/'/g, "\\'") + "'";
-};
-
 const doImport = async () => {
   if (csvRows.value.length === 0) return;
   importing.value = true;
@@ -121,19 +113,18 @@ const doImport = async () => {
     return;
   }
 
-  const colList = mappedCols.map(({ col }) => escId(col)).join(', ');
-  let imported = 0;
+  // An empty cell means NULL; everything else goes over as a bound parameter
+  // and is coerced by the target column's type.
+  const columns = mappedCols.map(({ col }) => col);
+  const rows = csvRows.value.map(row =>
+    mappedCols.map(({ idx }) => {
+      const val = row[idx] ?? '';
+      return val === '' ? null : val;
+    }),
+  );
 
   try {
-    for (const row of csvRows.value) {
-      const vals = mappedCols.map(({ idx }) => escVal(row[idx] ?? '')).join(', ');
-      await api.executeSql(
-        props.serverName,
-        `INSERT INTO ${escId(props.table)} (${colList}) VALUES (${vals})`,
-        props.database
-      );
-      imported++;
-    }
+    const imported = await api.importRows(props.serverName, props.database, props.table, columns, rows);
     alert($t('import.success').replace('{n}', String(imported)));
     emit('imported');
     emit('close');
