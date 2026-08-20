@@ -14,7 +14,8 @@
     "test:drivers": "vitest run tests/drivers",
     "test:smoke": "vitest run tests/smoke",
     "test:coverage": "vitest --coverage",
-    "lint": "eslint src"
+    "lint": "eslint src",
+    "prepare": "husky"
   },
   "keywords": [
     "alpha"
@@ -43,7 +44,9 @@
     "electron-vite": "^3.1.0",
     "eslint": "^9.39.1",
     "globals": "^16.5.0",
+    "husky": "^9.1.7",
     "license-checker": "^25.0.1",
+    "lint-staged": "^17.3.0",
     "lucide-vue-next": "^0.563.0",
     "mssql": "^12.3.1",
     "mysql2": "^3.16.3",
@@ -73,5 +76,8 @@
       "ssh2",
       "vue-demi"
     ]
+  },
+  "lint-staged": {
+    "src/**/*.{ts,tsx}": "eslint --fix"
   }
 }
