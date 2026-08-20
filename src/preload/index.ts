@@ -4,6 +4,7 @@ const ALLOWED_INVOKE_CHANNELS = new Set([
   'log:error',
   'api:getServers',
   'api:getDatabases',
+  'api:refreshServerTree',
   'api:getTables',
   'api:getSchema',
   'api:connect',

@@ -28,6 +28,7 @@ const clean = <T>(obj: T): T | undefined => obj !== undefined ? JSON.parse(JSON.
 export const api = {
   getServers: (): Promise<ServerInfo[]> => electronAPI.invoke('api:getServers') as Promise<ServerInfo[]>,
   getDatabases: (serverName: string): Promise<DatabaseInfo[]> => electronAPI.invoke('api:getDatabases', serverName) as Promise<DatabaseInfo[]>,
+  refreshServerTree: (serverName: string): Promise<DatabaseInfo[]> => electronAPI.invoke('api:refreshServerTree', serverName) as Promise<DatabaseInfo[]>,
   getTables: (serverName: string, dbName: string): Promise<TableInfo[]> => electronAPI.invoke('api:getTables', serverName, dbName) as Promise<TableInfo[]>,
   getColumns: (serverName: string, dbName: string, tableName: string): Promise<ColumnInfo[]> => electronAPI.invoke('api:getTableColumns', serverName, dbName, tableName) as Promise<ColumnInfo[]>,
   connect: (storedServer: StoredServer): Promise<ServerInfo> => electronAPI.invoke('api:connect', clean(storedServer)) as Promise<ServerInfo>,

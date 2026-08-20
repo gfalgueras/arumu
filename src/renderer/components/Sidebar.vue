@@ -32,6 +32,7 @@ const emit = defineEmits<{
   (e: 'selectTable', serverName: string, db: string, table: string): void;
   (e: 'expandServer', serverName: string): void;
   (e: 'expandDatabase', serverName: string, db: string): void;
+  (e: 'refreshServer', serverName: string): void;
   (e: 'configServer', serverName: string): void;
   (e: 'resizeMouseDown', event: MouseEvent): void;
   (e: 'openConnection'): void;
@@ -225,6 +226,7 @@ const handleKeyDown = (e: KeyboardEvent) => {
           @selectTable="(dbName, table) => handleSelectTable(server.name, dbName, table)"
           @expand="emit('expandServer', server.name)"
           @expandDatabase="(db) => emit('expandDatabase', server.name, db)"
+          @refresh="emit('refreshServer', server.name)"
           @contextMenu="handleContextMenu"
           @toggleDatabase="(db, open) => handleToggleDatabase(server.name, db, open)"
         />

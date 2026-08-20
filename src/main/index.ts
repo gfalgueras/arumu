@@ -179,6 +179,19 @@ const saveAppSettings = (settings: AppSettings) => {
 let activeServers: ServerInfo[] = [];
 let mainWindow: BrowserWindow | null = null;
 
+/**
+ * Statements that can change what's in the DB/table tree. The check is
+ * deliberately loose — a false positive just costs one refetch, while a miss
+ * leaves the sidebar showing tables that no longer exist.
+ */
+const DDL_PATTERN = /^\s*(?:CREATE|DROP|ALTER|TRUNCATE|RENAME)\b/i;
+
+/** Drops the cached tree for a server so the next read refetches it. */
+const invalidateTree = (serverName: string): void => {
+  const server = activeServers.find(s => s.name === serverName);
+  if (server) server.databases = [];
+};
+
 const findActiveServer = (serverName: string): ServerInfo => {
   const server = activeServers.find(s => s.name === serverName);
   if (!server) throw new Error('Server not found');
@@ -279,12 +292,9 @@ app.whenReady().then(() => {
     }));
   });
 
-  ipcMain.handle('api:getDatabases', async (_event, serverName: string) => {
-    // Served from the in-memory tree when present; no connection is opened.
-    const cached = findActiveServer(serverName);
-    if (cached.databases && cached.databases.length > 0) return cached.databases;
-
-    return withDriver(serverName, undefined, async (driver, server) => {
+  /** Reads the database list, applies the server's hide-list, and caches it. */
+  const loadDatabases = (serverName: string) =>
+    withDriver(serverName, undefined, async (driver, server) => {
       let databases = await driver.getDatabases();
 
       if (server.config!.defaultFilter) {
@@ -297,6 +307,12 @@ app.whenReady().then(() => {
       server.databases = databases;
       return databases;
     });
+
+  ipcMain.handle('api:getDatabases', async (_event, serverName: string) => {
+    // Served from the in-memory tree when present; no connection is opened.
+    const cached = findActiveServer(serverName);
+    if (cached.databases && cached.databases.length > 0) return cached.databases;
+    return loadDatabases(serverName);
   });
 
   ipcMain.handle('api:getTables', async (_event, serverName: string, dbName: string) => {
@@ -436,9 +452,19 @@ app.whenReady().then(() => {
       statement: await driver.getTableCreateStatement(dbName, tableName),
     })));
 
-  ipcMain.handle('api:executeSql', async (_event, serverName: string, sql: string, database: string) =>
-    withDriver(serverName, database || findActiveServer(serverName).config!.database, driver =>
-      driver.executeQuery(sql)));
+  ipcMain.handle('api:executeSql', async (_event, serverName: string, sql: string, database: string) => {
+    const result = await withDriver(serverName, database || findActiveServer(serverName).config!.database, driver =>
+      driver.executeQuery(sql));
+    // CREATE/DROP/RENAME change what the sidebar should be showing.
+    if (DDL_PATTERN.test(sql)) invalidateTree(serverName);
+    return result;
+  });
+
+  /** Manual sidebar refresh: drop the cached tree and read it back. */
+  ipcMain.handle('api:refreshServerTree', async (_event, serverName: string) => {
+    invalidateTree(serverName);
+    return loadDatabases(serverName);
+  });
 
   ipcMain.handle('api:importRows', async (_event, serverName: string, dbName: string, tableName: string, columns: string[], rows: (string | null)[][]) =>
     withDriver(serverName, dbName, async driver => {

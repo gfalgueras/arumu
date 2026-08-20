@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, watch, provide } from 'vue';
-import { Server, ChevronRight, ChevronDown, Loader2, Check } from 'lucide-vue-next';
+import { Server, ChevronRight, ChevronDown, Loader2, Check, RefreshCw } from 'lucide-vue-next';
 import DatabaseItem from './DatabaseItem.vue';
 import { $t } from '../../i18n';
 
@@ -29,6 +29,7 @@ const emit = defineEmits<{
   (e: 'expandDatabase', db: string): void;
   (e: 'contextMenu', event: MouseEvent, name: string): void;
   (e: 'toggleDatabase', db: string, open: boolean): void;
+  (e: 'refresh', serverName: string): void;
 }>();
 
 const serverTotalSize = computed(() =>
@@ -80,6 +81,15 @@ const shouldShow = computed(() => {
         <Check v-if="isActive" :size="12" class="flex-shrink-0 text-emerald-500 dark:text-emerald-400" />
       </div>
       <Loader2 v-if="isLoading" :size="16" class="animate-spin text-blue-500 flex-shrink-0" />
+      <button
+        v-else
+        type="button"
+        class="flex-shrink-0 p-0.5 rounded text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-slate-300 dark:hover:bg-slate-600"
+        :title="$t('sidebar.refresh_tree')"
+        @click.stop="emit('refresh', name)"
+      >
+        <RefreshCw :size="13" />
+      </button>
     </div>
     <div v-if="isOpen">
       <DatabaseItem

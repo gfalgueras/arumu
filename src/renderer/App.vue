@@ -14,6 +14,7 @@ import ServerVariables from './components/ServerVariables.vue';
 import { showError } from './errorService';
 import { $t, setLocale } from './i18n';
 import { api } from './services/api';
+import { tableDataCache } from './services/tableDataCache';
 import { hotkeys, applyHotkeys, matchesHotkey } from './hotkeys';
 import type { ServerInfo, StoredServer, AppSettings, TableInfo } from '@shared/types/database';
 
@@ -75,6 +76,35 @@ const handleExpandServer = async (serverName: string) => {
     );
   } catch (error) {
     console.error('Error fetching databases:', error);
+    showError($t('sidebar.error_databases'));
+  } finally {
+    loadingServers.value = loadingServers.value.filter(id => id !== serverName);
+  }
+};
+
+/**
+ * Re-reads a server's tree from the database, discarding the cached copy in
+ * main and any cached table pages. Needed because schema changes made outside
+ * the app (or from the query editor) otherwise never show up.
+ */
+const handleRefreshServer = async (serverName: string) => {
+  if (loadingServers.value.includes(serverName)) return;
+
+  loadingServers.value.push(serverName);
+  try {
+    const databases = await api.refreshServerTree(serverName);
+    servers.value = servers.value.map(s =>
+      s.name === serverName ? { ...s, databases } : s
+    );
+    tableDataCache.invalidate(serverName);
+
+    // Re-populate the databases the user currently has open.
+    const openDbs = expandedDatabaseIds.value
+      .filter(id => id.startsWith(`${serverName}:`))
+      .map(id => id.slice(serverName.length + 1));
+    await Promise.all(openDbs.map(db => handleExpandDatabase(serverName, db)));
+  } catch (error) {
+    console.error('Error refreshing server:', error);
     showError($t('sidebar.error_databases'));
   } finally {
     loadingServers.value = loadingServers.value.filter(id => id !== serverName);
@@ -458,6 +488,7 @@ const selectTable = (serverName: string, db: string, table: string) => {
       @selectTable="selectTable"
       @expandServer="handleExpandServer"
       @expandDatabase="handleExpandDatabase"
+      @refreshServer="handleRefreshServer"
       @configServer="handleConfigServer"
       :loadingServers="loadingServers"
       :loadingDatabases="loadingDatabases"
