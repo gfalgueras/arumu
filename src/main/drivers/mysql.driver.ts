@@ -1,5 +1,6 @@
 import mysql, { Connection, RowDataPacket, FieldPacket, QueryResult as MySQLQueryResult } from 'mysql2/promise';
 import { batchRows, buildValuesClause } from './bulk-insert';
+import { parseFilter } from './filter';
 import { IDatabaseDriver, ConnectionConfig, DatabaseInfo, TableInfo, TableDataResponse, SortConfig, ColumnInfo, TableIndex, ForeignKey, TypeGroup, ServerCapabilities, ServerVariablesResult, QueryResult } from '@shared/types/database';
 
 // mysql2's execute() result shape: row data for SELECTs, OkPacket/ResultSetHeader for writes.
@@ -253,24 +254,14 @@ export class MySQLDriver implements IDatabaseDriver {
     let whereClause = '';
     const params: unknown[] = [];
     if (filter && columns.length > 0) {
-      const trimmedFilter = filter.trim();
-      const lowerFilter = trimmedFilter.toLowerCase();
-      const isRawWhere = lowerFilter.startsWith('where ') ||
-                         lowerFilter.includes('=') ||
-                         lowerFilter.includes('>') ||
-                         lowerFilter.includes('<') ||
-                         lowerFilter.includes(' like ') ||
-                         lowerFilter.includes(' is null') ||
-                         lowerFilter.includes(' is not null') ||
-                         lowerFilter.includes(' between ') ||
-                         lowerFilter.includes(' in (');
-      if (isRawWhere) {
-        whereClause = lowerFilter.startsWith('where ') ? trimmedFilter : `WHERE ${trimmedFilter}`;
-      } else if (columns.length > 0) {
+      const parsed = parseFilter(filter);
+      if (parsed.isSearch) {
         const searchTerms = columns.map((col: string) => `${this.escapeIdentifier(col)} LIKE ?`).join(' OR ');
         whereClause = `WHERE ${searchTerms}`;
         const filterValue = `%${filter}%`;
         columns.forEach(() => params.push(filterValue));
+      } else {
+        whereClause = parsed.whereClause;
       }
     }
 

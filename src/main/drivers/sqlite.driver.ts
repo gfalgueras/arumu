@@ -1,5 +1,6 @@
 import { DatabaseSync, StatementSync, type SQLInputValue } from 'node:sqlite';
 import { batchRows, buildValuesClause } from './bulk-insert';
+import { parseFilter } from './filter';
 import {
   IDatabaseDriver, ConnectionConfig, DatabaseInfo, TableInfo, TableDataResponse,
   SortConfig, ColumnInfo, TableIndex, ForeignKey, TypeGroup, ServerCapabilities, ServerVariablesResult, QueryResult
@@ -211,15 +212,13 @@ export class SQLiteDriver implements IDatabaseDriver {
     let whereClause = '';
 
     if (filter && columns.length > 0) {
-      const trimmed = filter.trim();
-      const lower = trimmed.toLowerCase();
-      const isRaw = lower.startsWith('where ') || lower.includes('=') || lower.includes('>') || lower.includes('<') || lower.includes(' like ') || lower.includes(' is null') || lower.includes(' is not null') || lower.includes(' between ') || lower.includes(' in (');
-      if (isRaw) {
-        whereClause = lower.startsWith('where ') ? trimmed : `WHERE ${trimmed}`;
-      } else {
+      const parsed = parseFilter(filter);
+      if (parsed.isSearch) {
         const searchTerms = columns.map(col => `CAST(${esc(col)} AS TEXT) LIKE ?`).join(' OR ');
         whereClause = `WHERE ${searchTerms}`;
         columns.forEach(() => filterParams.push(`%${filter}%`));
+      } else {
+        whereClause = parsed.whereClause;
       }
     }
 
