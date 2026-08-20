@@ -7,7 +7,7 @@ import { SQLiteDriver } from './drivers/sqlite.driver';
 import { SQLServerDriver } from './drivers/sqlserver.driver';
 import { OracleDriver } from './drivers/oracle.driver';
 import type {
-  IDatabaseDriver, ServerInfo, StoredServer, TableInfo, ColumnInfo, TableIndex,
+  IDatabaseDriver, ServerInfo, StoredServer, ColumnInfo, TableIndex,
   ForeignKey, SortConfig, AppState, AppSettings, QueryHistoryEntry, QuerySnippet,
 } from '../shared/types/database';
 
@@ -178,6 +178,35 @@ const saveAppSettings = (settings: AppSettings) => {
 let activeServers: ServerInfo[] = [];
 let mainWindow: BrowserWindow | null = null;
 
+const findActiveServer = (serverName: string): ServerInfo => {
+  const server = activeServers.find(s => s.name === serverName);
+  if (!server) throw new Error('Server not found');
+  if (!server.config) throw new Error('Server configuration missing');
+  return server;
+};
+
+/**
+ * Resolves the named active server, connects a driver to `database` (omit to
+ * use the server's own default), runs `fn`, and always disconnects.
+ *
+ * Every DB-backed IPC handler goes through this, so connection lifetime is
+ * owned in exactly one place.
+ */
+async function withDriver<T>(
+  serverName: string,
+  database: string | undefined,
+  fn: (driver: IDatabaseDriver, server: ServerInfo) => Promise<T>,
+): Promise<T> {
+  const server = findActiveServer(serverName);
+  const driver = createDriver(server);
+  try {
+    await driver.connect(database ? { ...server.config!, database } : server.config!);
+    return await fn(driver, server);
+  } finally {
+    await driver.disconnect();
+  }
+}
+
 function createWindow() {
   mainWindow = new BrowserWindow({
     width: 1280,
@@ -240,93 +269,48 @@ app.whenReady().then(() => {
   });
 
   ipcMain.handle('api:getDatabases', async (_event, serverName: string) => {
-    const server = activeServers.find(s => s.name === serverName);
-    if (!server) throw new Error('Server not found');
+    // Served from the in-memory tree when present; no connection is opened.
+    const cached = findActiveServer(serverName);
+    if (cached.databases && cached.databases.length > 0) return cached.databases;
 
-    const driver = createDriver(server);
-    try {
-      if (server.databases && server.databases.length > 0) {
-        return server.databases;
+    return withDriver(serverName, undefined, async (driver, server) => {
+      let databases = await driver.getDatabases();
+
+      if (server.config!.defaultFilter) {
+        const filters = server.config!.defaultFilter.split(',').map(f => f.trim().toLowerCase());
+        databases = databases.filter(db => !filters.includes(db.name.toLowerCase()));
       }
 
-      if (server.config) {
-        await driver.connect(server.config);
-        let databases = await driver.getDatabases();
-
-        if (server.config.defaultFilter) {
-          const filters = server.config.defaultFilter.split(',').map(f => f.trim().toLowerCase());
-          databases = databases.filter(db => !filters.includes(db.name.toLowerCase()));
-        }
-
-        const seen = new Set<string>();
-        databases = databases.filter(db => seen.has(db.name) ? false : (seen.add(db.name), true));
-        server.databases = databases;
-        return databases;
-      } else {
-        throw new Error('Server configuration missing');
-      }
-    } finally {
-      await driver.disconnect();
-    }
+      const seen = new Set<string>();
+      databases = databases.filter(db => seen.has(db.name) ? false : (seen.add(db.name), true));
+      server.databases = databases;
+      return databases;
+    });
   });
 
   ipcMain.handle('api:getTables', async (_event, serverName: string, dbName: string) => {
-    const server = activeServers.find(s => s.name === serverName);
-    if (!server) throw new Error('Server not found');
+    const cachedDb = findActiveServer(serverName).databases?.find(d => d.name === dbName);
+    if (cachedDb?.tables && cachedDb.tables.length > 0) return cachedDb.tables;
 
-    const driver = createDriver(server);
-    try {
-      const db = server.databases?.find(d => d.name === dbName);
-      if (db && db.tables && db.tables.length > 0) {
-        return db.tables;
-      }
-
-      let tables: TableInfo[] = [];
-      if (server.config) {
-        const config = { ...server.config, database: dbName };
-        await driver.connect(config);
-        tables = await driver.getTables(dbName);
-      } else {
-        throw new Error('Server configuration missing');
-      }
-
+    return withDriver(serverName, dbName, async (driver, server) => {
+      const tables = await driver.getTables(dbName);
       const size = tables.reduce((acc, t) => acc + (Number(t.size) || 0), 0);
+
+      const db = server.databases?.find(d => d.name === dbName);
       if (db) {
         db.tables = tables;
         db.size = size;
       } else if (server.databases) {
-        const existing = server.databases.find(d => d.name === dbName);
-        if (existing) {
-          existing.tables = tables;
-          existing.size = size;
-        } else {
-          server.databases.push({ name: dbName, tables, size });
-        }
+        server.databases.push({ name: dbName, tables, size });
       } else {
         server.databases = [{ name: dbName, tables, size }];
       }
-
       return tables;
-    } finally {
-      await driver.disconnect();
-    }
+    });
   });
 
-  ipcMain.handle('api:getSchema', async (_event, serverName: string, dbName: string) => {
-    const server = activeServers.find(s => s.name === serverName);
-    if (!server) throw new Error('Server not found');
-
-    const driver = createDriver(server);
-    try {
-      if (server.config) {
-        await driver.connect({ ...server.config, database: dbName });
-        return await driver.getSchema(dbName);
-      }
-      throw new Error('Server configuration missing');
-    } finally {
-      await driver.disconnect();
-    }
-  });
+  ipcMain.handle('api:getSchema', async (_event, serverName: string, dbName: string) =>
+    withDriver(serverName, dbName, driver => driver.getSchema(dbName)));
 
   ipcMain.handle('api:connect', async (_event, storedServer: StoredServer) => {
     const driver = createDriver(storedServer);
@@ -402,222 +386,62 @@ app.whenReady().then(() => {
     writeErrorLog('renderer', message, stack);
   });
 
-  ipcMain.handle('api:getTableData', async (_event, serverName: string, dbName: string, tableName: string, options: { limit: number; offset: number; sort?: SortConfig[]; filter?: string }) => {
-    const server = activeServers.find(s => s.name === serverName);
-    if (!server) throw new Error('Server not found');
+  ipcMain.handle('api:getTableData', async (_event, serverName: string, dbName: string, tableName: string, options: { limit: number; offset: number; sort?: SortConfig[]; filter?: string }) =>
+    withDriver(serverName, dbName, driver =>
+      driver.getTableData(dbName, tableName, options.limit, options.offset, options.sort, options.filter)));
 
-    const driver = createDriver(server);
-    try {
-      if (server.config) {
-        await driver.connect({ ...server.config, database: dbName });
-        return await driver.getTableData(dbName, tableName, options.limit, options.offset, options.sort, options.filter);
-      }
-      throw new Error('Server configuration missing');
-    } finally {
-      await driver.disconnect();
-    }
-  });
+  ipcMain.handle('api:getTableColumns', async (_event, serverName: string, dbName: string, tableName: string) =>
+    withDriver(serverName, dbName, driver => driver.getTableColumns(dbName, tableName)));
 
-  ipcMain.handle('api:getTableColumns', async (_event, serverName: string, dbName: string, tableName: string) => {
-    const server = activeServers.find(s => s.name === serverName);
-    if (!server) throw new Error('Server not found');
+  ipcMain.handle('api:getTableIndexes', async (_event, serverName: string, dbName: string, tableName: string) =>
+    withDriver(serverName, dbName, driver => driver.getTableIndexes(dbName, tableName)));
 
-    const driver = createDriver(server);
-    try {
-      if (server.config) {
-        await driver.connect({ ...server.config, database: dbName });
-        return await driver.getTableColumns(dbName, tableName);
-      }
-      throw new Error('Server configuration missing');
-    } finally {
-      await driver.disconnect();
-    }
-  });
+  ipcMain.handle('api:addIndex', async (_event, serverName: string, dbName: string, tableName: string, index: TableIndex) =>
+    withDriver(serverName, dbName, driver => driver.addIndex(dbName, tableName, index)));
 
-  ipcMain.handle('api:getTableIndexes', async (_event, serverName: string, dbName: string, tableName: string) => {
-    const server = activeServers.find(s => s.name === serverName);
-    if (!server) throw new Error('Server not found');
-    const driver = createDriver(server);
-    try {
-      if (server.config) {
-        await driver.connect({ ...server.config, database: dbName });
-        return await driver.getTableIndexes(dbName, tableName);
-      }
-      throw new Error('Server configuration missing');
-    } finally {
-      await driver.disconnect();
-    }
-  });
+  ipcMain.handle('api:dropIndex', async (_event, serverName: string, dbName: string, tableName: string, indexName: string) =>
+    withDriver(serverName, dbName, driver => driver.dropIndex(dbName, tableName, indexName)));
 
-  ipcMain.handle('api:addIndex', async (_event, serverName: string, dbName: string, tableName: string, index: TableIndex) => {
-    const server = activeServers.find(s => s.name === serverName);
-    if (!server) throw new Error('Server not found');
-    const driver = createDriver(server);
-    try {
-      if (server.config) {
-        await driver.connect({ ...server.config, database: dbName });
-        await driver.addIndex(dbName, tableName, index);
-      } else throw new Error('Server configuration missing');
-    } finally {
-      await driver.disconnect();
-    }
-  });
+  ipcMain.handle('api:getTableForeignKeys', async (_event, serverName: string, dbName: string, tableName: string) =>
+    withDriver(serverName, dbName, driver => driver.getTableForeignKeys(dbName, tableName)));
 
-  ipcMain.handle('api:dropIndex', async (_event, serverName: string, dbName: string, tableName: string, indexName: string) => {
-    const server = activeServers.find(s => s.name === serverName);
-    if (!server) throw new Error('Server not found');
-    const driver = createDriver(server);
-    try {
-      if (server.config) {
-        await driver.connect({ ...server.config, database: dbName });
-        await driver.dropIndex(dbName, tableName, indexName);
-      } else throw new Error('Server configuration missing');
-    } finally {
-      await driver.disconnect();
-    }
-  });
+  ipcMain.handle('api:addForeignKey', async (_event, serverName: string, dbName: string, tableName: string, fk: ForeignKey) =>
+    withDriver(serverName, dbName, driver => driver.addForeignKey(dbName, tableName, fk)));
 
-  ipcMain.handle('api:getTableForeignKeys', async (_event, serverName: string, dbName: string, tableName: string) => {
-    const server = activeServers.find(s => s.name === serverName);
-    if (!server) throw new Error('Server not found');
-    const driver = createDriver(server);
-    try {
-      if (server.config) {
-        await driver.connect({ ...server.config, database: dbName });
-        return await driver.getTableForeignKeys(dbName, tableName);
-      }
-      throw new Error('Server configuration missing');
-    } finally {
-      await driver.disconnect();
-    }
-  });
+  ipcMain.handle('api:dropForeignKey', async (_event, serverName: string, dbName: string, tableName: string, fkName: string) =>
+    withDriver(serverName, dbName, driver => driver.dropForeignKey(dbName, tableName, fkName)));
 
-  ipcMain.handle('api:addForeignKey', async (_event, serverName: string, dbName: string, tableName: string, fk: ForeignKey) => {
-    const server = activeServers.find(s => s.name === serverName);
-    if (!server) throw new Error('Server not found');
-    const driver = createDriver(server);
-    try {
-      if (server.config) {
-        await driver.connect({ ...server.config, database: dbName });
-        await driver.addForeignKey(dbName, tableName, fk);
-      } else throw new Error('Server configuration missing');
-    } finally {
-      await driver.disconnect();
-    }
-  });
+  ipcMain.handle('api:addColumn', async (_event, serverName: string, dbName: string, tableName: string, column: ColumnInfo, afterColumn?: string) =>
+    withDriver(serverName, dbName, driver => driver.addColumn(dbName, tableName, column, afterColumn)));
 
-  ipcMain.handle('api:dropForeignKey', async (_event, serverName: string, dbName: string, tableName: string, fkName: string) => {
-    const server = activeServers.find(s => s.name === serverName);
-    if (!server) throw new Error('Server not found');
-    const driver = createDriver(server);
-    try {
-      if (server.config) {
-        await driver.connect({ ...server.config, database: dbName });
-        await driver.dropForeignKey(dbName, tableName, fkName);
-      } else throw new Error('Server configuration missing');
-    } finally {
-      await driver.disconnect();
-    }
-  });
+  ipcMain.handle('api:updateColumn', async (_event, serverName: string, dbName: string, tableName: string, oldName: string, column: ColumnInfo, afterColumn?: string) =>
+    withDriver(serverName, dbName, driver => driver.updateColumn(dbName, tableName, oldName, column, afterColumn)));
 
-  ipcMain.handle('api:addColumn', async (_event, serverName: string, dbName: string, tableName: string, column: ColumnInfo, afterColumn?: string) => {
-    const server = activeServers.find(s => s.name === serverName);
-    if (!server) throw new Error('Server not found');
-    const driver = createDriver(server);
-    try {
-      if (server.config) {
-        await driver.connect({ ...server.config, database: dbName });
-        await driver.addColumn(dbName, tableName, column, afterColumn);
-      } else throw new Error('Server configuration missing');
-    } finally {
-      await driver.disconnect();
-    }
-  });
+  ipcMain.handle('api:getTableCreateStatement', async (_event, serverName: string, dbName: string, tableName: string) =>
+    withDriver(serverName, dbName, async driver => ({
+      statement: await driver.getTableCreateStatement(dbName, tableName),
+    })));
 
-  ipcMain.handle('api:updateColumn', async (_event, serverName: string, dbName: string, tableName: string, oldName: string, column: ColumnInfo, afterColumn?: string) => {
-    const server = activeServers.find(s => s.name === serverName);
-    if (!server) throw new Error('Server not found');
-    const driver = createDriver(server);
-    try {
-      if (server.config) {
-        await driver.connect({ ...server.config, database: dbName });
-        await driver.updateColumn(dbName, tableName, oldName, column, afterColumn);
-      } else throw new Error('Server configuration missing');
-    } finally {
-      await driver.disconnect();
-    }
-  });
+  ipcMain.handle('api:executeSql', async (_event, serverName: string, sql: string, database: string) =>
+    withDriver(serverName, database || findActiveServer(serverName).config!.database, driver =>
+      driver.executeQuery(sql)));
 
-  ipcMain.handle('api:getTableCreateStatement', async (_event, serverName: string, dbName: string, tableName: string) => {
-    const server = activeServers.find(s => s.name === serverName);
-    if (!server) throw new Error('Server not found');
-    const driver = createDriver(server);
-    try {
-      if (server.config) {
-        await driver.connect({ ...server.config, database: dbName });
-        const statement = await driver.getTableCreateStatement(dbName, tableName);
-        return { statement };
-      }
-      throw new Error('Server configuration missing');
-    } finally {
-      await driver.disconnect();
-    }
-  });
-
-  ipcMain.handle('api:executeSql', async (_event, serverName: string, sql: string, database: string) => {
-    const server = activeServers.find(s => s.name === serverName);
-    if (!server) throw new Error('Server not found');
-    const driver = createDriver(server);
-    try {
-      if (server.config) {
-        await driver.connect({ ...server.config, database: database || server.config.database });
-        return await driver.executeQuery(sql);
-      }
-      throw new Error('Server configuration missing');
-    } finally {
-      await driver.disconnect();
-    }
-  });
-
-  ipcMain.handle('api:getSupportedTypes', (_event, serverName: string) => {
-    const server = activeServers.find(s => s.name === serverName);
-    if (!server) throw new Error('Server not found');
-    return createDriver(server).getSupportedTypes();
-  });
+  ipcMain.handle('api:getSupportedTypes', (_event, serverName: string) =>
+    createDriver(findActiveServer(serverName)).getSupportedTypes());
 
   // Table maintenance
   ipcMain.handle('api:tableMaintenanceOp', async (_event, serverName: string, dbName: string, tableName: string, op: string) => {
-    const server = activeServers.find(s => s.name === serverName);
-    if (!server) throw new Error('Server not found');
-    const driver = createDriver(server);
-    const allowedOps = driver.getCapabilities().maintenanceOps;
+    const allowedOps = createDriver(findActiveServer(serverName)).getCapabilities().maintenanceOps;
     if (!allowedOps.includes(op.toUpperCase())) throw new Error('Invalid operation');
-    try {
-      await driver.connect({ ...server.config!, database: dbName });
-      return await driver.runTableMaintenance(dbName, tableName, op);
-    } finally {
-      await driver.disconnect();
-    }
+    return withDriver(serverName, dbName, driver => driver.runTableMaintenance(dbName, tableName, op));
   });
 
   // Server variables
-  ipcMain.handle('api:getServerVariables', async (_event, serverName: string) => {
-    const server = activeServers.find(s => s.name === serverName);
-    if (!server) throw new Error('Server not found');
-    const driver = createDriver(server);
-    try {
-      await driver.connect(server.config!);
-      return await driver.getServerVariables();
-    } finally {
-      await driver.disconnect();
-    }
-  });
+  ipcMain.handle('api:getServerVariables', async (_event, serverName: string) =>
+    withDriver(serverName, undefined, driver => driver.getServerVariables()));
 
-  ipcMain.handle('api:getServerCapabilities', (_event, serverName: string) => {
-    const server = activeServers.find(s => s.name === serverName);
-    if (!server) throw new Error('Server not found');
-    return createDriver(server).getCapabilities();
-  });
+  ipcMain.handle('api:getServerCapabilities', (_event, serverName: string) =>
+    createDriver(findActiveServer(serverName)).getCapabilities());
 
   // CSV import — read file, return content
   ipcMain.handle('api:openFileDialog', async (_event, filters: Electron.FileFilter[]) => {
@@ -657,29 +481,11 @@ app.whenReady().then(() => {
     fs.writeFileSync(QUERY_HISTORY_FILE, '[]');
   });
 
-  ipcMain.handle('api:getProcessList', async (_event, serverName: string) => {
-    const server = activeServers.find(s => s.name === serverName);
-    if (!server) throw new Error('Server not found');
-    const driver = createDriver(server);
-    try {
-      await driver.connect(server.config!);
-      return await driver.getProcessList();
-    } finally {
-      await driver.disconnect();
-    }
-  });
+  ipcMain.handle('api:getProcessList', async (_event, serverName: string) =>
+    withDriver(serverName, undefined, driver => driver.getProcessList()));
 
-  ipcMain.handle('api:killProcess', async (_event, serverName: string, processId: number | string) => {
-    const server = activeServers.find(s => s.name === serverName);
-    if (!server) throw new Error('Server not found');
-    const driver = createDriver(server);
-    try {
-      await driver.connect(server.config!);
-      await driver.killProcess(processId);
-    } finally {
-      await driver.disconnect();
-    }
-  });
+  ipcMain.handle('api:killProcess', async (_event, serverName: string, processId: number | string) =>
+    withDriver(serverName, undefined, driver => driver.killProcess(processId)));
 
   ipcMain.handle('api:saveExportFile', async (_event, defaultFilename: string, content: string, filters: Electron.FileFilter[]) => {
     const { filePath, canceled } = await dialog.showSaveDialog({
@@ -693,8 +499,7 @@ app.whenReady().then(() => {
   });
 
   ipcMain.handle('api:exportTableData', async (_event, serverName: string, dbName: string, tableName: string, format: 'csv' | 'sql', filter: string, sort: SortConfig[]) => {
-    const server = activeServers.find(s => s.name === serverName);
-    if (!server) throw new Error('Server not found');
+    findActiveServer(serverName); // fail before prompting if the server is gone
 
     const ext = format === 'csv' ? 'csv' : 'sql';
     const { filePath, canceled } = await dialog.showSaveDialog({
@@ -706,9 +511,7 @@ app.whenReady().then(() => {
     });
     if (canceled || !filePath) return { saved: false };
 
-    const driver = createDriver(server);
-    try {
-      await driver.connect({ ...server.config!, database: dbName });
+    return withDriver(serverName, dbName, async driver => {
       let allRows: Record<string, unknown>[] = [];
       let columns: string[] = [];
       let offset = 0;
@@ -754,9 +557,7 @@ app.whenReady().then(() => {
 
       fs.writeFileSync(filePath, content, 'utf-8');
       return { saved: true, filePath };
-    } finally {
-      await driver.disconnect();
-    }
+    });
   });
 
   createWindow();
