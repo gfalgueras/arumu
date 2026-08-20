@@ -80,6 +80,6 @@
     ]
   },
   "lint-staged": {
-    "src/**/*.{ts,tsx}": "eslint --fix"
+    "src/**/*.{ts,tsx,vue}": "eslint --fix"
   }
 }
