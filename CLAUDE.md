@@ -62,11 +62,14 @@ Passwords encrypted via Electron `safeStorage`, format `enc:<base64>`. Details: 
 
 ## SQL Identifier Escaping
 
-Always escape MySQL identifiers with backticks:
+Never hand-roll escaping — every driver implements `escapeIdentifier()` (and
+`escapeStringLiteral()`) for its own dialect:
 ```ts
-const escaped = name.replace(/`/g, '``');
-// Use as: `\`${escaped}\``
+const sql = `SELECT * FROM ${this.escapeIdentifier(table)}`;
 ```
+Drivers with schema-qualified names also have a private `qualified(db, table)`.
+Values in bulk paths should be bound as parameters rather than interpolated —
+see `insertRows()`.
 
 ## i18n
 

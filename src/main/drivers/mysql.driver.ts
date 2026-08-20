@@ -234,9 +234,7 @@ export class MySQLDriver implements IDatabaseDriver {
   }
 
   async getTableCreateStatement(database: string, table: string): Promise<string> {
-    const escapedDb = database.replace(/`/g, '``');
-    const escapedTable = table.replace(/`/g, '``');
-    const [rows] = await this.exec(`SHOW CREATE TABLE \`${escapedDb}\`.\`${escapedTable}\``) as [RowDataPacket[], FieldPacket[]];
+    const [rows] = await this.exec(`SHOW CREATE TABLE ${this.qualified(database, table)}`) as [RowDataPacket[], FieldPacket[]];
     if (rows && rows.length > 0) {
       const row = rows[0];
       const createTableKey = Object.keys(row).find(k => k.toLowerCase() === 'create table');
@@ -246,9 +244,7 @@ export class MySQLDriver implements IDatabaseDriver {
   }
 
   async getTableData(database: string, table: string, limit: number, offset: number, sort?: SortConfig[], filter?: string): Promise<TableDataResponse> {
-    const escapedDb = database.replace(/`/g, '``');
-    const escapedTable = table.replace(/`/g, '``');
-    const fullTableName = `\`${escapedDb}\`.\`${escapedTable}\``;
+    const fullTableName = this.qualified(database, table);
 
     const colQuery = `SELECT COLUMN_NAME FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ? ORDER BY ORDINAL_POSITION`;
     const [colRows] = await this.exec(colQuery, [database, table]) as [RowDataPacket[], FieldPacket[]];
@@ -271,7 +267,7 @@ export class MySQLDriver implements IDatabaseDriver {
       if (isRawWhere) {
         whereClause = lowerFilter.startsWith('where ') ? trimmedFilter : `WHERE ${trimmedFilter}`;
       } else if (columns.length > 0) {
-        const searchTerms = columns.map((col: string) => `\`${col.replace(/`/g, '``')}\` LIKE ?`).join(' OR ');
+        const searchTerms = columns.map((col: string) => `${this.escapeIdentifier(col)} LIKE ?`).join(' OR ');
         whereClause = `WHERE ${searchTerms}`;
         const filterValue = `%${filter}%`;
         columns.forEach(() => params.push(filterValue));
@@ -280,7 +276,7 @@ export class MySQLDriver implements IDatabaseDriver {
 
     let orderBy = '';
     if (sort && sort.length > 0) {
-      orderBy = 'ORDER BY ' + sort.map(s => `\`${s.column.replace(/`/g, '``')}\` ${s.direction}`).join(', ');
+      orderBy = 'ORDER BY ' + sort.map(s => `${this.escapeIdentifier(s.column)} ${s.direction}`).join(', ');
     }
 
     const safeLimit = Math.max(1, Math.floor(Number(limit)));
@@ -307,16 +303,14 @@ export class MySQLDriver implements IDatabaseDriver {
   }
 
   async addIndex(database: string, table: string, index: TableIndex): Promise<void> {
-    const escapedDb = database.replace(/`/g, '``');
-    const escapedTable = table.replace(/`/g, '``');
-    const fullTableName = `\`${escapedDb}\`.\`${escapedTable}\``;
-    const columns = index.columns.map(col => `\`${col.replace(/`/g, '``')}\``).join(', ');
+    const fullTableName = this.qualified(database, table);
+    const columns = index.columns.map(col => this.escapeIdentifier(col)).join(', ');
     let indexKeyword = 'INDEX';
     if (index.type === 'UNIQUE') indexKeyword = 'UNIQUE INDEX';
     else if (index.type === 'FULLTEXT') indexKeyword = 'FULLTEXT INDEX';
     else if (index.type === 'SPATIAL') indexKeyword = 'SPATIAL INDEX';
     else if (index.type === 'PRIMARY') indexKeyword = 'PRIMARY KEY';
-    const indexName = (index.name && index.type !== 'PRIMARY') ? `\`${index.name.replace(/`/g, '``')}\`` : '';
+    const indexName = (index.name && index.type !== 'PRIMARY') ? this.escapeIdentifier(index.name) : '';
     let sql = '';
     if (index.type === 'PRIMARY') {
       sql = `ALTER TABLE ${fullTableName} ADD PRIMARY KEY (${columns})`;
@@ -329,13 +323,11 @@ export class MySQLDriver implements IDatabaseDriver {
   }
 
   async addForeignKey(database: string, table: string, fk: ForeignKey): Promise<void> {
-    const escapedDb = database.replace(/`/g, '``');
-    const escapedTable = table.replace(/`/g, '``');
-    const fullTableName = `\`${escapedDb}\`.\`${escapedTable}\``;
-    const columns = fk.columns.map(col => `\`${col.replace(/`/g, '``')}\``).join(', ');
-    const refTable = `\`${escapedDb}\`.\`${fk.referencedTable.replace(/`/g, '``')}\``;
-    const refColumns = fk.referencedColumns.map(col => `\`${col.replace(/`/g, '``')}\``).join(', ');
-    const constraintName = fk.name ? `CONSTRAINT \`${fk.name.replace(/`/g, '``')}\`` : '';
+    const fullTableName = this.qualified(database, table);
+    const columns = fk.columns.map(col => this.escapeIdentifier(col)).join(', ');
+    const refTable = this.qualified(database, fk.referencedTable);
+    const refColumns = fk.referencedColumns.map(col => this.escapeIdentifier(col)).join(', ');
+    const constraintName = fk.name ? `CONSTRAINT ${this.escapeIdentifier(fk.name)}` : '';
     const ALLOWED_FK_RULES = ['CASCADE', 'NO ACTION', 'RESTRICT', 'SET NULL', 'SET DEFAULT'];
     const updateRule = (fk.updateRule || '').toUpperCase();
     const deleteRule = (fk.deleteRule || '').toUpperCase();
@@ -348,28 +340,21 @@ export class MySQLDriver implements IDatabaseDriver {
   }
 
   async dropIndex(database: string, table: string, indexName: string): Promise<void> {
-    const escapedDb = database.replace(/`/g, '``');
-    const escapedTable = table.replace(/`/g, '``');
-    const fullTableName = `\`${escapedDb}\`.\`${escapedTable}\``;
+    const fullTableName = this.qualified(database, table);
     if (indexName === 'PRIMARY') {
       await this.exec(`ALTER TABLE ${fullTableName} DROP PRIMARY KEY`);
     } else {
-      await this.exec(`ALTER TABLE ${fullTableName} DROP INDEX \`${indexName.replace(/`/g, '``')}\``);
+      await this.exec(`ALTER TABLE ${fullTableName} DROP INDEX ${this.escapeIdentifier(indexName)}`);
     }
   }
 
   async dropForeignKey(database: string, table: string, fkName: string): Promise<void> {
-    const escapedDb = database.replace(/`/g, '``');
-    const escapedTable = table.replace(/`/g, '``');
-    const fullTableName = `\`${escapedDb}\`.\`${escapedTable}\``;
-    await this.exec(`ALTER TABLE ${fullTableName} DROP FOREIGN KEY \`${fkName.replace(/`/g, '``')}\``);
+    await this.exec(`ALTER TABLE ${this.qualified(database, table)} DROP FOREIGN KEY ${this.escapeIdentifier(fkName)}`);
   }
 
   async addColumn(database: string, table: string, column: ColumnInfo, afterColumn?: string): Promise<void> {
-    const escapedDb = database.replace(/`/g, '``');
-    const escapedTable = table.replace(/`/g, '``');
-    const fullTableName = `\`${escapedDb}\`.\`${escapedTable}\``;
-    const newColName = `\`${column.name.replace(/`/g, '``')}\``;
+    const fullTableName = this.qualified(database, table);
+    const newColName = this.escapeIdentifier(column.name);
     let columnType = column.type;
     if (column.length) columnType += `(${column.length})`;
     let sql = `ALTER TABLE ${fullTableName} ADD COLUMN ${newColName} ${columnType}`;
@@ -389,17 +374,15 @@ export class MySQLDriver implements IDatabaseDriver {
     if (column.comment) sql += ` COMMENT '${column.comment.replace(/'/g, "''")}'`;
     if (afterColumn !== undefined) {
       if (afterColumn === '') sql += ' FIRST';
-      else sql += ` AFTER \`${afterColumn.replace(/`/g, '``')}\``;
+      else sql += ` AFTER ${this.escapeIdentifier(afterColumn)}`;
     }
     await this.exec(sql);
   }
 
   async updateColumn(database: string, table: string, oldColumnName: string, newColumn: ColumnInfo, afterColumn?: string): Promise<void> {
-    const escapedDb = database.replace(/`/g, '``');
-    const escapedTable = table.replace(/`/g, '``');
-    const fullTableName = `\`${escapedDb}\`.\`${escapedTable}\``;
-    const oldColName = `\`${oldColumnName.replace(/`/g, '``')}\``;
-    const newColName = `\`${newColumn.name.replace(/`/g, '``')}\``;
+    const fullTableName = this.qualified(database, table);
+    const oldColName = this.escapeIdentifier(oldColumnName);
+    const newColName = this.escapeIdentifier(newColumn.name);
     let columnType = newColumn.type;
     if (newColumn.length) columnType += `(${newColumn.length})`;
     let sql = `ALTER TABLE ${fullTableName} CHANGE COLUMN ${oldColName} ${newColName} ${columnType}`;
@@ -419,7 +402,7 @@ export class MySQLDriver implements IDatabaseDriver {
     if (newColumn.comment) sql += ` COMMENT '${newColumn.comment.replace(/'/g, "''")}'`;
     if (afterColumn !== undefined) {
       if (afterColumn === '') sql += ' FIRST';
-      else sql += ` AFTER \`${afterColumn.replace(/`/g, '``')}\``;
+      else sql += ` AFTER ${this.escapeIdentifier(afterColumn)}`;
     }
     await this.exec(sql);
   }
@@ -450,6 +433,11 @@ export class MySQLDriver implements IDatabaseDriver {
 
   escapeIdentifier(name: string): string {
     return '`' + name.replace(/`/g, '``') + '`';
+  }
+
+  /** `db`.`table`, both escaped. */
+  private qualified(database: string, table: string): string {
+    return `${this.escapeIdentifier(database)}.${this.escapeIdentifier(table)}`;
   }
 
   escapeStringLiteral(val: string): string {
