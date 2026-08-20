@@ -142,6 +142,17 @@ export function runSharedSuite(
       expect((rows as any[]).length).toBe(10);
     }));
 
+    // Postgres/SQL Server/Oracle all used to key off row count, so a SELECT
+    // matching nothing came back as { affectedRows: 0 } and the UI rendered a
+    // result summary instead of an empty grid.
+    it('SELECT matching no rows returns an empty array', s(async () => {
+      const rows = await getDriver().executeQuery(
+        `SELECT * FROM customers WHERE name = 'no-such-customer-xyz'`,
+      );
+      expect(Array.isArray(rows)).toBe(true);
+      expect((rows as any[]).length).toBe(0);
+    }));
+
     // Identifiers are left unquoted on purpose: every dialect's seed creates
     // `categories` unquoted, and Oracle folds unquoted names to upper case —
     // so a quoted lower-case "categories" would not resolve there.

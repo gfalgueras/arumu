@@ -406,7 +406,10 @@ export class OracleDriver implements IDatabaseDriver {
 
   async executeQuery(querySql: string): Promise<QueryResult> {
     const result = await this.execRaw(querySql);
-    if (result.rows && result.rows.length > 0) return result.rows;
+    // rows is defined (possibly empty) only for queries that return a result
+    // set, so an empty SELECT still yields [] rather than an affected-rows
+    // summary.
+    if (result.rows !== undefined) return result.rows;
     return { affectedRows: result.rowsAffected ?? 0 };
   }
 

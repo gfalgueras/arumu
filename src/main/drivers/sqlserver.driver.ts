@@ -364,7 +364,10 @@ export class SQLServerDriver implements IDatabaseDriver {
 
   async executeQuery(querySql: string): Promise<QueryResult> {
     const result = await this.execRaw(querySql);
-    if (result.recordset && result.recordset.length > 0) return result.recordset;
+    // recordset is defined (possibly empty) only for statements that return a
+    // result set, so an empty SELECT still yields [] rather than an
+    // affected-rows summary.
+    if (result.recordset !== undefined) return result.recordset;
     const affected = result.rowsAffected?.[0] ?? 0;
     return { affectedRows: affected };
   }

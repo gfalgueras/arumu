@@ -380,7 +380,10 @@ export class PostgreSQLDriver implements IDatabaseDriver {
 
   async executeQuery(sql: string): Promise<QueryResult> {
     const result = await this.execRaw(sql);
-    if (result.rows && result.rows.length > 0) return result.rows;
+    // Keyed off the statement kind, not row count: a SELECT matching nothing
+    // must still come back as an empty array so callers can render "no rows"
+    // rather than an affected-rows summary.
+    if (result.command === 'SELECT' || result.command === 'SHOW') return result.rows ?? [];
     return { affectedRows: result.rowCount ?? 0 };
   }
 

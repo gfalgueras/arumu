@@ -62,16 +62,22 @@ export class MySQLDriver implements IDatabaseDriver {
     }
   }
 
+  // mysql2's own helpers, not exec(): exec() goes through execute(), whose
+  // prepared-statement protocol rejects transaction-control statements with
+  // "This command is not supported in the prepared statement protocol yet".
   async beginTransaction(): Promise<void> {
-    await this.exec('START TRANSACTION');
+    if (!this.connection) throw new Error('Not connected');
+    await this.connection.beginTransaction();
   }
 
   async commit(): Promise<void> {
-    await this.exec('COMMIT');
+    if (!this.connection) throw new Error('Not connected');
+    await this.connection.commit();
   }
 
   async rollback(): Promise<void> {
-    await this.exec('ROLLBACK');
+    if (!this.connection) throw new Error('Not connected');
+    await this.connection.rollback();
   }
 
   async getDatabases(): Promise<DatabaseInfo[]> {
