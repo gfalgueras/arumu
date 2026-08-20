@@ -5,7 +5,7 @@ import {
   ArrowUp, ArrowDown, Loader2, Download, ChevronDown, Plus, Check, X, Upload,
   Copy, Clipboard, Type, Trash2, ChevronRight as SubArrow
 } from 'lucide-vue-next';
-import type { SortConfig, TableDataResponse, ColumnInfo, ServerInfo } from '@shared/types/database';
+import type { SortConfig, TableDataResponse, ColumnInfo, ServerInfo, RowEdit, CellValue } from '@shared/types/database';
 import { showError } from '../errorService';
 import { $t } from '../i18n';
 import { api } from '../services/api';
@@ -16,7 +16,8 @@ import CsvImportModal from './CsvImportModal.vue';
 import ConfirmModal from './ConfirmModal.vue';
 import { skipUpdateConfirm, skipDeleteConfirm } from '../services/confirmService';
 import { tableDataCache } from '../services/tableDataCache';
-import { escId, escVal, valOrExpr, rowsToCsv } from '../services/sqlValue';
+import { isSqlExpr, rowsToCsv } from '../services/sqlValue';
+import { computeWindow } from '../services/virtualWindow';
 
 const props = defineProps<{
   serverName: string;
@@ -54,6 +55,79 @@ const limit = 1000;
 
 const columnInfo = ref<ColumnInfo[]>([]);
 const savingCell = ref(false);
+
+// ---- Virtual scrolling ----
+//
+// A page holds up to `limit` rows, and each row renders one cell per column,
+// so a wide table used to mount tens of thousands of DOM nodes at once. Only
+// the rows in view (plus overscan) are rendered; spacer rows above and below
+// keep the scrollbar the size it would be if all rows were present.
+
+const scrollRef = ref<HTMLElement | null>(null);
+const scrollTop = ref(0);
+const viewportHeight = ref(0);
+/** Measured from a real row so it tracks font/density changes. */
+const rowHeight = ref(25);
+const OVERSCAN_ROWS = 10;
+
+const rowCount = computed(() => data.value?.rows.length ?? 0);
+
+const visibleRange = computed(() => computeWindow({
+  rowCount: rowCount.value,
+  rowHeight: rowHeight.value,
+  scrollTop: scrollTop.value,
+  viewportHeight: viewportHeight.value,
+  overscan: OVERSCAN_ROWS,
+}));
+
+/** Rows to render, each carrying its true index so edit/selection still work. */
+const visibleRows = computed(() => {
+  const rows = data.value?.rows ?? [];
+  const { start, end } = visibleRange.value;
+  return rows.slice(start, end).map((row, i) => ({ row, index: start + i }));
+});
+
+const padTopHeight = computed(() => visibleRange.value.padTop);
+const padBottomHeight = computed(() => visibleRange.value.padBottom);
+
+let viewportObserver: ResizeObserver | null = null;
+let scrollFrame = 0;
+const handleScroll = () => {
+  if (scrollFrame) return;
+  scrollFrame = requestAnimationFrame(() => {
+    scrollFrame = 0;
+    const el = scrollRef.value;
+    if (!el) return;
+    scrollTop.value = el.scrollTop;
+    viewportHeight.value = el.clientHeight;
+  });
+};
+
+const measureViewport = () => {
+  const el = scrollRef.value;
+  if (!el) return;
+  viewportHeight.value = el.clientHeight;
+  scrollTop.value = el.scrollTop;
+
+  // Measure a rendered row so the estimate matches reality.
+  const firstRow = el.querySelector<HTMLTableRowElement>('tbody tr[data-row]');
+  if (firstRow && firstRow.offsetHeight > 0) rowHeight.value = firstRow.offsetHeight;
+};
+
+/** Keyboard navigation can move the selection outside the rendered window. */
+const scrollRowIntoView = (rowIndex: number) => {
+  const el = scrollRef.value;
+  if (!el) return;
+  const headerHeight = el.querySelector('thead')?.clientHeight ?? 0;
+  const rowTop = rowIndex * rowHeight.value;
+  const rowBottom = rowTop + rowHeight.value;
+
+  if (rowTop < el.scrollTop) {
+    el.scrollTop = rowTop;
+  } else if (rowBottom > el.scrollTop + el.clientHeight - headerHeight) {
+    el.scrollTop = rowBottom - el.clientHeight + headerHeight;
+  }
+};
 
 // Cell selection + editing
 const selectedCell = ref<{ rowIndex: number; col: string } | null>(null);
@@ -150,6 +224,12 @@ const fetchData = async () => {
       filter: appliedFilter.value
     });
     data.value = result;
+    // New row set: go back to the top and re-measure, since row height can
+    // differ once real content is in the cells.
+    await nextTick();
+    if (scrollRef.value) scrollRef.value.scrollTop = 0;
+    scrollTop.value = 0;
+    measureViewport();
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     error.value = msg;
@@ -211,21 +291,32 @@ const updateEditValue = (value: string, isNull: boolean) => {
   editingValue.value = { value, isNull };
 };
 
+/** Primary-key values identifying a row, used as the WHERE key for edits. */
+const pkFor = (rowIndex: number): Record<string, unknown> =>
+  Object.fromEntries(pkColumns.value.map(pk => [pk, data.value!.rows[rowIndex][pk]]));
+
+/** Confirms an edit by showing the statement the driver would actually run. */
+const confirmEdit = async (type: 'update' | 'delete', edit: RowEdit): Promise<boolean> => {
+  const sql = await api.previewRowEdit(props.serverName, props.database, props.table, edit);
+  return showConfirm(type, sql);
+};
+
 const saveEditCell = async () => {
   if (!editingCell.value || !data.value || savingCell.value) return;
   const { rowIndex, col } = editingCell.value;
-  const setExpr = editingValue.value.isNull ? 'NULL' : escVal(editingValue.value.value);
-  const whereClauses = pkColumns.value
-    .map(pk => `${escId(pk)} = ${escVal(data.value!.rows[rowIndex][pk] === null ? null : String(data.value!.rows[rowIndex][pk]))}`)
-    .join(' AND ');
-  const sql = `UPDATE ${escId(props.table)} SET ${escId(col)} = ${setExpr} WHERE ${whereClauses}`;
-  if (!skipUpdateConfirm.value) {
-    const ok = await showConfirm('update', sql);
-    if (!ok) return;
-  }
+  const edit: RowEdit = {
+    op: 'update',
+    pk: pkFor(rowIndex),
+    column: col,
+    value: editingValue.value.isNull
+      ? { kind: 'value', value: null }
+      : { kind: 'value', value: editingValue.value.value },
+  };
+  if (!skipUpdateConfirm.value && !(await confirmEdit('update', edit))) return;
+
   savingCell.value = true;
   try {
-    await api.executeSql(props.serverName, sql, props.database);
+    await api.applyRowEdit(props.serverName, props.database, props.table, edit);
     await fetchData();
     editingCell.value = null;
   } catch {
@@ -279,18 +370,21 @@ const insertValue = async (value: string | null, isExpression: boolean) => {
   if (!contextMenu.value || !data.value || !canEdit.value) return;
   const { rowIndex, col } = contextMenu.value;
   closeContextMenu();
-  const setExpr = value === null ? 'NULL' : isExpression ? value : escVal(value);
-  const whereClauses = pkColumns.value
-    .map(pk => `${escId(pk)} = ${escVal(data.value!.rows[rowIndex][pk] === null ? null : String(data.value!.rows[rowIndex][pk]))}`)
-    .join(' AND ');
-  const sql = `UPDATE ${escId(props.table)} SET ${escId(col)} = ${setExpr} WHERE ${whereClauses}`;
-  if (!skipUpdateConfirm.value) {
-    const ok = await showConfirm('update', sql);
-    if (!ok) return;
-  }
+  const edit: RowEdit = {
+    op: 'update',
+    pk: pkFor(rowIndex),
+    column: col,
+    value: value === null
+      ? { kind: 'value', value: null }
+      : isExpression
+        ? { kind: 'expr', expr: value }
+        : { kind: 'value', value },
+  };
+  if (!skipUpdateConfirm.value && !(await confirmEdit('update', edit))) return;
+
   savingCell.value = true;
   try {
-    await api.executeSql(props.serverName, sql, props.database);
+    await api.applyRowEdit(props.serverName, props.database, props.table, edit);
     await fetchData();
   } catch {
     // error already logged by log panel
@@ -302,18 +396,13 @@ const insertValue = async (value: string | null, isExpression: boolean) => {
 const deleteRow = async () => {
   if (!contextMenu.value || !data.value) return;
   const rowIndex = contextMenu.value.rowIndex;
-  const whereClauses = pkColumns.value
-    .map(pk => `${escId(pk)} = ${escVal(data.value!.rows[rowIndex][pk] === null ? null : String(data.value!.rows[rowIndex][pk]))}`)
-    .join(' AND ');
-  const sql = `DELETE FROM ${escId(props.table)} WHERE ${whereClauses}`;
+  const edit: RowEdit = { op: 'delete', pk: pkFor(rowIndex) };
   closeContextMenu();
-  if (!skipDeleteConfirm.value) {
-    const ok = await showConfirm('delete', sql);
-    if (!ok) return;
-  }
+  if (!skipDeleteConfirm.value && !(await confirmEdit('delete', edit))) return;
+
   savingCell.value = true;
   try {
-    await api.executeSql(props.serverName, sql, props.database);
+    await api.applyRowEdit(props.serverName, props.database, props.table, edit);
     selectedCell.value = null;
     await fetchData();
   } catch {
@@ -389,11 +478,17 @@ const saveNewRow = async () => {
       const hasValue = cell && !cell.isNull && cell.value !== '';
       return !(isAutoIncrement && !hasValue);
     });
-    const cols = columns.map(escId).join(', ');
-    const vals = columns
-      .map(col => valOrExpr(newRowValues.value[col]?.isNull ? null : newRowValues.value[col]?.value ?? ''))
-      .join(', ');
-    await api.executeSql(props.serverName, `INSERT INTO ${escId(props.table)} (${cols}) VALUES (${vals})`, props.database);
+    const values: Record<string, CellValue> = {};
+    for (const col of columns) {
+      const cell = newRowValues.value[col];
+      const raw = cell?.isNull ? null : cell?.value ?? '';
+      // Bare keywords and function calls are passed through as SQL so users
+      // can type CURRENT_TIMESTAMP or NOW() into a new row.
+      values[col] = raw !== null && isSqlExpr(raw)
+        ? { kind: 'expr', expr: raw }
+        : { kind: 'value', value: raw };
+    }
+    await api.applyRowEdit(props.serverName, props.database, props.table, { op: 'insert', values });
     newRowMode.value = false;
     newRowValues.value = {};
     await fetchData();
@@ -449,9 +544,18 @@ const handleKeyNav = (e: KeyboardEvent) => {
   } else if (e.key === 'ArrowLeft') {
     if (colIdx > 0) { e.preventDefault(); selectedCell.value = { rowIndex, col: cols[colIdx - 1] }; }
   } else if (e.key === 'ArrowDown') {
-    if (rowIndex < data.value.rows.length - 1) { e.preventDefault(); selectedCell.value = { rowIndex: rowIndex + 1, col }; }
+    if (rowIndex < data.value.rows.length - 1) {
+      e.preventDefault();
+      selectedCell.value = { rowIndex: rowIndex + 1, col };
+      // The next row may be outside the rendered window.
+      scrollRowIntoView(rowIndex + 1);
+    }
   } else if (e.key === 'ArrowUp') {
-    if (rowIndex > 0) { e.preventDefault(); selectedCell.value = { rowIndex: rowIndex - 1, col }; }
+    if (rowIndex > 0) {
+      e.preventDefault();
+      selectedCell.value = { rowIndex: rowIndex - 1, col };
+      scrollRowIntoView(rowIndex - 1);
+    }
   } else if (e.key === 'Enter') {
     e.preventDefault();
     startEditCell(rowIndex, col);
@@ -498,6 +602,11 @@ onMounted(async () => {
   }
 
   await nextTick();
+  measureViewport();
+  // Row height and viewport both change when the panel or window is resized.
+  viewportObserver = new ResizeObserver(() => measureViewport());
+  if (scrollRef.value) viewportObserver.observe(scrollRef.value);
+
   _initializing = false;
 });
 
@@ -506,6 +615,8 @@ onUnmounted(() => {
   window.removeEventListener('mouseup', handleMouseUp);
   document.removeEventListener('mousedown', handleGlobalClick);
   window.removeEventListener('keydown', handleKeyNav);
+  viewportObserver?.disconnect();
+  if (scrollFrame) cancelAnimationFrame(scrollFrame);
 
   tableDataCache.set(props.serverName, props.database, props.table, {
     data: data.value,
@@ -660,7 +771,11 @@ const exportSql = async () => {
       </div>
 
       <!-- Table Area -->
-      <div class="flex-1 overflow-auto bg-white dark:bg-slate-900 rounded-b-lg border border-slate-200 dark:border-slate-700 border-t-0 scrollbar-thin scrollbar-thumb-slate-300 dark:scrollbar-thumb-slate-700 scrollbar-track-transparent">
+      <div
+        ref="scrollRef"
+        @scroll="handleScroll"
+        class="flex-1 overflow-auto bg-white dark:bg-slate-900 rounded-b-lg border border-slate-200 dark:border-slate-700 border-t-0 scrollbar-thin scrollbar-thumb-slate-300 dark:scrollbar-thumb-slate-700 scrollbar-track-transparent"
+      >
         <table
           ref="tableRef"
           class="text-left border-collapse table-fixed w-full"
@@ -742,30 +857,41 @@ const exportSql = async () => {
               </td>
             </tr>
 
+            <!-- Spacers stand in for the rows outside the rendered window so
+                 the scrollbar matches the full page. -->
+            <tr v-if="padTopHeight > 0" aria-hidden="true">
+              <td :colspan="data?.columns.length" :style="{ height: padTopHeight + 'px', padding: 0, border: 0 }" />
+            </tr>
+
             <DataRow
-              v-for="(row, i) in data?.rows"
-              :key="getRowKey(row, i)"
+              v-for="{ row, index } in visibleRows"
+              :key="getRowKey(row, index)"
+              data-row
               v-memo="[
                 row,
                 data?.columns,
-                selectedCell?.rowIndex === i ? selectedCell.col : null,
-                editingCell?.rowIndex === i ? editingCell.col : null,
-                editingCell?.rowIndex === i ? editingValue : null,
+                selectedCell?.rowIndex === index ? selectedCell.col : null,
+                editingCell?.rowIndex === index ? editingCell.col : null,
+                editingCell?.rowIndex === index ? editingValue : null,
               ]"
               :row="row"
               :columns="data?.columns || []"
-              :rowIndex="i"
-              :selectedCol="selectedCell?.rowIndex === i ? selectedCell.col : null"
-              :editingCol="editingCell?.rowIndex === i ? editingCell.col : null"
+              :rowIndex="index"
+              :selectedCol="selectedCell?.rowIndex === index ? selectedCell.col : null"
+              :editingCol="editingCell?.rowIndex === index ? editingCell.col : null"
               :editingValue="editingValue"
               :canEdit="canEdit"
-              @selectCell="selectCell(i, $event)"
-              @openContextMenu="(col, evt) => openContextMenu(evt, i, col)"
-              @startEditCell="startEditCell(i, $event)"
+              @selectCell="selectCell(index, $event)"
+              @openContextMenu="(col, evt) => openContextMenu(evt, index, col)"
+              @startEditCell="startEditCell(index, $event)"
               @updateEditValue="updateEditValue"
               @saveEdit="saveEditCell"
               @cancelEdit="cancelEditCell"
             />
+
+            <tr v-if="padBottomHeight > 0" aria-hidden="true">
+              <td :colspan="data?.columns.length" :style="{ height: padBottomHeight + 'px', padding: 0, border: 0 }" />
+            </tr>
             <tr v-if="data && data.rows.length === 0 && !newRowMode">
               <td :colspan="data.columns.length" class="px-4 py-8 text-center text-slate-500 italic">
                 {{ $t('data_table.no_data') }}

@@ -7,9 +7,10 @@ import { SQLiteDriver } from './drivers/sqlite.driver';
 import { SQLServerDriver } from './drivers/sqlserver.driver';
 import { OracleDriver } from './drivers/oracle.driver';
 import { connectionPool } from './connection-pool';
+import { applySchemaChanges, collectSchemaChangeSql } from './drivers/schema-migration';
 import type {
   IDatabaseDriver, ServerInfo, StoredServer, ColumnInfo, TableIndex,
-  ForeignKey, SortConfig, AppState, AppSettings, QueryHistoryEntry, QuerySnippet, SchemaChanges,
+  ForeignKey, SortConfig, AppState, AppSettings, QueryHistoryEntry, QuerySnippet, SchemaChanges, RowEdit,
 } from '../shared/types/database';
 
 function createDriver(server: { type: 'mysql' | 'postgres' | 'sqlite' | 'sqlserver' | 'oracle' }): IDatabaseDriver {
@@ -461,33 +462,7 @@ app.whenReady().then(() => {
 
       let step = '';
       try {
-        // Drops first, so an index or FK can be recreated under a name that is
-        // still taken at the start of the migration.
-        for (const fk of changes.fksToDrop) {
-          step = `drop foreign key ${fk.name}`;
-          await driver.dropForeignKey(dbName, tableName, fk.name);
-        }
-        for (const idx of changes.indexesToDrop) {
-          step = `drop index ${idx.name}`;
-          await driver.dropIndex(dbName, tableName, idx.name);
-        }
-        for (const { oldName, newCol, afterColumn } of changes.columnsToUpdate) {
-          step = `update column ${oldName}`;
-          await driver.updateColumn(dbName, tableName, oldName, newCol, afterColumn);
-        }
-        for (const { col, afterColumn } of changes.columnsToAdd) {
-          step = `add column ${col.name}`;
-          await driver.addColumn(dbName, tableName, col, afterColumn);
-        }
-        for (const idx of changes.indexesToAdd) {
-          step = `add index ${idx.name || '(unnamed)'}`;
-          await driver.addIndex(dbName, tableName, idx);
-        }
-        for (const fk of changes.fksToAdd) {
-          step = `add foreign key ${fk.name || '(unnamed)'}`;
-          await driver.addForeignKey(dbName, tableName, fk);
-        }
-
+        await applySchemaChanges(driver, dbName, tableName, changes, s => { step = s; });
         if (atomic) await driver.commit();
       } catch (err) {
         if (atomic) await driver.rollback().catch(() => { /* surface the original error */ });
@@ -499,6 +474,16 @@ app.whenReady().then(() => {
         );
       }
     }));
+
+  /**
+   * The DDL a migration would run, rendered in the connected engine's dialect.
+   * Replays the migration against the driver with execution suppressed, so the
+   * preview can't drift from what applySchemaChanges actually does.
+   */
+  ipcMain.handle('api:previewSchemaChanges', async (_event, serverName: string, dbName: string, tableName: string, changes: SchemaChanges) => {
+    const driver = createDriver(findActiveServer(serverName));
+    return collectSchemaChangeSql(driver, dbName, tableName, changes);
+  });
 
   ipcMain.handle('api:getTableCreateStatement', async (_event, serverName: string, dbName: string, tableName: string) =>
     withDriver(serverName, dbName, async driver => ({
@@ -532,6 +517,15 @@ app.whenReady().then(() => {
         throw err;
       }
     }));
+
+  // Row-level grid edits. The driver builds the SQL so it matches the dialect
+  // and binds values instead of interpolating them.
+  ipcMain.handle('api:applyRowEdit', async (_event, serverName: string, dbName: string, tableName: string, edit: RowEdit) =>
+    withDriver(serverName, dbName, driver => driver.applyRowEdit(dbName, tableName, edit)));
+
+  /** The statement the edit would run, for the confirmation dialog. */
+  ipcMain.handle('api:previewRowEdit', (_event, serverName: string, dbName: string, tableName: string, edit: RowEdit) =>
+    createDriver(findActiveServer(serverName)).previewRowEdit(dbName, tableName, edit));
 
   ipcMain.handle('api:getSupportedTypes', (_event, serverName: string) =>
     createDriver(findActiveServer(serverName)).getSupportedTypes());

@@ -1,6 +1,8 @@
 import { DatabaseSync, StatementSync, type SQLInputValue } from 'node:sqlite';
 import { batchRows, buildValuesClause } from './bulk-insert';
 import { parseFilter } from './filter';
+import { buildRowEdit, type DmlContext } from './dml';
+import type { RowEdit } from '@shared/types/database';
 import {
   IDatabaseDriver, ConnectionConfig, DatabaseInfo, TableInfo, TableDataResponse,
   SortConfig, ColumnInfo, TableIndex, ForeignKey, TypeGroup, ServerCapabilities, ServerVariablesResult, QueryResult
@@ -8,10 +10,16 @@ import {
 
 export class SQLiteDriver implements IDatabaseDriver {
   private db: DatabaseSync | null = null;
+  /** When non-null, exec()/run() record statements instead of running them. */
+  private dryRun: string[] | null = null;
 
   static queryLogger: ((sql: string, durationMs: number, error?: string) => void) | null = null;
 
+  beginDryRun(): void { this.dryRun = []; }
+  endDryRun(): string[] { const out = this.dryRun ?? []; this.dryRun = null; return out; }
+
   private exec<T = Record<string, unknown>>(sql: string, params: SQLInputValue[] = []): T[] {
+    if (this.dryRun) { this.dryRun.push(sql); return [] as T[]; }
     if (!this.db) throw new Error('Not connected');
     const t0 = Date.now();
     try {
@@ -26,6 +34,7 @@ export class SQLiteDriver implements IDatabaseDriver {
   }
 
   private run(sql: string, params: SQLInputValue[] = []): { changes: number | bigint; lastInsertRowid: number | bigint } {
+    if (this.dryRun) { this.dryRun.push(sql); return { changes: 0, lastInsertRowid: 0 }; }
     if (!this.db) throw new Error('Not connected');
     const t0 = Date.now();
     try {
@@ -310,6 +319,24 @@ export class SQLiteDriver implements IDatabaseDriver {
       this.run(`INSERT INTO ${this.escapeIdentifier(table)} (${colList}) VALUES ${values}`, batch.flat());
     }
     return rows.length;
+  }
+
+  private dmlContext(table: string): DmlContext {
+    return {
+      escId: (n: string) => this.escapeIdentifier(n),
+      placeholder: () => '?',
+      escLiteral: (v: string) => this.escapeStringLiteral(v),
+      tableRef: this.escapeIdentifier(table),
+    };
+  }
+
+  async applyRowEdit(_database: string, table: string, edit: RowEdit): Promise<void> {
+    const { sql, params } = buildRowEdit(this.dmlContext(table), edit);
+    this.run(sql, params as SQLInputValue[]);
+  }
+
+  previewRowEdit(_database: string, table: string, edit: RowEdit): string {
+    return buildRowEdit(this.dmlContext(table), edit).display;
   }
 
   async getSupportedTypes(): Promise<TypeGroup[]> {

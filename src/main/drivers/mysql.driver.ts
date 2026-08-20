@@ -1,6 +1,8 @@
 import mysql, { Connection, RowDataPacket, FieldPacket, QueryResult as MySQLQueryResult } from 'mysql2/promise';
 import { batchRows, buildValuesClause } from './bulk-insert';
 import { parseFilter } from './filter';
+import { buildRowEdit, type DmlContext } from './dml';
+import type { RowEdit } from '@shared/types/database';
 import { IDatabaseDriver, ConnectionConfig, DatabaseInfo, TableInfo, TableDataResponse, SortConfig, ColumnInfo, TableIndex, ForeignKey, TypeGroup, ServerCapabilities, ServerVariablesResult, QueryResult } from '@shared/types/database';
 
 // mysql2's execute() result shape: row data for SELECTs, OkPacket/ResultSetHeader for writes.
@@ -25,10 +27,16 @@ function sanitizeRows(rows: Record<string, unknown>[]): Record<string, unknown>[
 
 export class MySQLDriver implements IDatabaseDriver {
   private connection: Connection | null = null;
+  /** When non-null, exec() records statements instead of running them. */
+  private dryRun: string[] | null = null;
 
   static queryLogger: ((sql: string, durationMs: number, error?: string) => void) | null = null;
 
+  beginDryRun(): void { this.dryRun = []; }
+  endDryRun(): string[] { const out = this.dryRun ?? []; this.dryRun = null; return out; }
+
   private async exec(sql: string, params?: unknown[]): Promise<MySQLExecResult> {
+    if (this.dryRun) { this.dryRun.push(sql); return [[], []] as unknown as MySQLExecResult; }
     if (!this.connection) throw new Error('Not connected');
     const t0 = Date.now();
     try {
@@ -414,6 +422,24 @@ export class MySQLDriver implements IDatabaseDriver {
       await this.exec(`INSERT INTO ${target} (${colList}) VALUES ${values}`, batch.flat());
     }
     return rows.length;
+  }
+
+  private dmlContext(database: string, table: string): DmlContext {
+    return {
+      escId: (n: string) => this.escapeIdentifier(n),
+      placeholder: () => '?',
+      escLiteral: (v: string) => this.escapeStringLiteral(v),
+      tableRef: this.qualified(database, table),
+    };
+  }
+
+  async applyRowEdit(database: string, table: string, edit: RowEdit): Promise<void> {
+    const { sql, params } = buildRowEdit(this.dmlContext(database, table), edit);
+    await this.exec(sql, params);
+  }
+
+  previewRowEdit(database: string, table: string, edit: RowEdit): string {
+    return buildRowEdit(this.dmlContext(database, table), edit).display;
   }
 
   async getSupportedTypes(): Promise<TypeGroup[]> {

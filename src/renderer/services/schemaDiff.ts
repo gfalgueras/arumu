@@ -1,8 +1,12 @@
 import type { ColumnInfo, TableIndex, ForeignKey, SchemaChanges } from '@shared/types/database';
 
 /**
- * Pure schema-diff and ALTER-preview logic, lifted out of TableSchema.vue so
- * it can be read (and tested) without the 1500-line editor around it.
+ * Pure schema-diff logic, lifted out of TableSchema.vue so it can be read (and
+ * tested) without the 1500-line editor around it.
+ *
+ * Rendering the diff as SQL is deliberately not done here: the statements come
+ * from the driver via api.previewSchemaChanges(), so the preview matches the
+ * connected engine instead of always emitting MySQL.
  */
 
 export interface SchemaSnapshot {
@@ -77,78 +81,17 @@ export function diffSchema(snapshot: SchemaSnapshot): SchemaChanges {
   return { columnsToUpdate, columnsToAdd, indexesToDrop, indexesToAdd, fksToDrop, fksToAdd };
 }
 
-// ── ALTER preview ───────────────────────────────────────────────────────────
-//
-// NOTE: this renders MySQL syntax (backtick quoting, CHANGE COLUMN, COMMENT).
-// It is display-only — the migration itself is executed by the driver for the
-// connected engine — but the preview will not match what actually runs on
-// Postgres, SQL Server or Oracle.
-
-const escId = (name: string) => '`' + name.replace(/`/g, '``') + '`';
-const escStr = (val: string) => "'" + val.replace(/'/g, "''") + "'";
-
-function columnDefinition(col: ColumnInfo, afterColumn?: string): string {
-  let sql = col.type;
-  if (col.length) sql += `(${col.length})`;
-  if (col.unsigned) sql += ' UNSIGNED';
-  sql += col.nullable ? ' NULL' : ' NOT NULL';
-
-  if (col.default !== undefined) {
-    if (col.default === null) sql += ' DEFAULT NULL';
-    else if (col.default.toUpperCase() === 'CURRENT_TIMESTAMP') sql += ' DEFAULT CURRENT_TIMESTAMP';
-    else sql += ` DEFAULT ${escStr(col.default)}`;
-  }
-
-  if (col.extra) sql += ` ${col.extra}`;
-  if (col.comment) sql += ` COMMENT ${escStr(col.comment)}`;
-
-  if (afterColumn !== undefined) {
-    sql += afterColumn === '' ? ' FIRST' : ` AFTER ${escId(afterColumn)}`;
-  }
-  return sql;
-}
-
-/** Renders the pending migration as a single ALTER TABLE, or null if empty. */
-export function buildAlterSql(database: string, table: string, changes: SchemaChanges): string | null {
-  const parts: string[] = [];
-
-  for (const { oldName, newCol, afterColumn } of changes.columnsToUpdate) {
-    parts.push(`CHANGE COLUMN ${escId(oldName)} ${escId(newCol.name)} ${columnDefinition(newCol, afterColumn)}`);
-  }
-  for (const { col, afterColumn } of changes.columnsToAdd) {
-    parts.push(`ADD COLUMN ${escId(col.name)} ${columnDefinition(col, afterColumn)}`);
-  }
-
-  for (const fk of changes.fksToDrop) parts.push(`DROP FOREIGN KEY ${escId(fk.name)}`);
-  for (const idx of changes.indexesToDrop) {
-    parts.push(idx.name === 'PRIMARY' ? 'DROP PRIMARY KEY' : `DROP INDEX ${escId(idx.name)}`);
-  }
-
-  for (const idx of changes.indexesToAdd) {
-    const cols = idx.columns.map(escId).join(', ');
-    if (idx.type === 'PRIMARY') {
-      parts.push(`ADD PRIMARY KEY (${cols})`);
-      continue;
-    }
-    let type = 'INDEX';
-    if (idx.type === 'UNIQUE') type = 'UNIQUE INDEX';
-    else if (idx.type === 'FULLTEXT') type = 'FULLTEXT INDEX';
-    else if (idx.type === 'SPATIAL') type = 'SPATIAL INDEX';
-    parts.push(`ADD ${type} ${idx.name ? escId(idx.name) : ''} (${cols})`);
-  }
-
-  for (const fk of changes.fksToAdd) {
-    const cols = fk.columns.map(escId).join(', ');
-    const refTable = `${escId(database)}.${escId(fk.referencedTable)}`;
-    const refCols = fk.referencedColumns.map(escId).join(', ');
-    const name = fk.name ? `CONSTRAINT ${escId(fk.name)}` : '';
-
-    let sql = `ADD ${name} FOREIGN KEY (${cols}) REFERENCES ${refTable} (${refCols})`;
-    if (fk.updateRule) sql += ` ON UPDATE ${fk.updateRule}`;
-    if (fk.deleteRule) sql += ` ON DELETE ${fk.deleteRule}`;
-    parts.push(sql);
-  }
-
-  if (parts.length === 0) return null;
-  return `ALTER TABLE ${escId(database)}.${escId(table)}\n  ${parts.join(',\n  ')};`;
+/**
+ * Whether the migration would actually do anything. Derived from the diff
+ * rather than comparing the raw arrays, so edits that cancel out — a column
+ * moved and moved back, an index renamed and renamed again — correctly leave
+ * the Save button disabled.
+ */
+export function hasChanges(changes: SchemaChanges): boolean {
+  return changes.columnsToUpdate.length > 0
+    || changes.columnsToAdd.length > 0
+    || changes.indexesToDrop.length > 0
+    || changes.indexesToAdd.length > 0
+    || changes.fksToDrop.length > 0
+    || changes.fksToAdd.length > 0;
 }

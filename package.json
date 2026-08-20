@@ -13,6 +13,7 @@
     "typecheck:web": "vue-tsc --noEmit -p tsconfig.web.json --composite false",
     "test": "vitest",
     "test:ci": "vitest run",
+    "test:unit": "vitest run tests/unit",
     "test:drivers": "vitest run tests/drivers",
     "test:smoke": "vitest run tests/smoke",
     "test:coverage": "vitest --coverage",

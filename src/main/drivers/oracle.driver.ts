@@ -1,6 +1,8 @@
 import type oracledb from 'oracledb';
 import { batchRows } from './bulk-insert';
 import { parseFilter } from './filter';
+import { buildRowEdit, type DmlContext } from './dml';
+import type { RowEdit } from '@shared/types/database';
 import {
   IDatabaseDriver, ConnectionConfig, DatabaseInfo, TableInfo, TableDataResponse,
   SortConfig, ColumnInfo, TableIndex, ForeignKey, TypeGroup, ServerCapabilities, ServerVariablesResult, QueryResult
@@ -15,6 +17,8 @@ function odb(): typeof oracledb {
 
 export class OracleDriver implements IDatabaseDriver {
   private connection: oracledb.Connection | null = null;
+  /** When non-null, exec() records statements instead of running them. */
+  private dryRun: string[] | null = null;
   private inTransaction = false;
 
   static queryLogger: ((sql: string, durationMs: number, error?: string) => void) | null = null;
@@ -28,8 +32,12 @@ export class OracleDriver implements IDatabaseDriver {
     return !this.inTransaction;
   }
 
+  beginDryRun(): void { this.dryRun = []; }
+  endDryRun(): string[] { const out = this.dryRun ?? []; this.dryRun = null; return out; }
+
   // Positional :1, :2 bind variables
   private async exec<T = Record<string, unknown>>(querySql: string, params: unknown[] = []): Promise<T[]> {
+    if (this.dryRun) { this.dryRun.push(querySql); return [] as T[]; }
     if (!this.connection) throw new Error('Not connected');
     const t0 = Date.now();
     try {
@@ -522,6 +530,26 @@ export class OracleDriver implements IDatabaseDriver {
       OracleDriver.queryLogger?.(sql, Date.now() - t0, err instanceof Error ? err.message : String(err));
       throw err;
     }
+  }
+
+  // Unquoted names are folded to upper case by Oracle, and the rest of this
+  // driver quotes them, so identifiers must be upper-cased before quoting.
+  private dmlContext(table: string): DmlContext {
+    return {
+      escId: (n: string) => this.escapeIdentifier(n.toUpperCase()),
+      placeholder: (i: number) => `:${i + 1}`,
+      escLiteral: (v: string) => this.escapeStringLiteral(v),
+      tableRef: this.escapeIdentifier(table.toUpperCase()),
+    };
+  }
+
+  async applyRowEdit(_database: string, table: string, edit: RowEdit): Promise<void> {
+    const { sql, params } = buildRowEdit(this.dmlContext(table), edit);
+    await this.exec(sql, params);
+  }
+
+  previewRowEdit(_database: string, table: string, edit: RowEdit): string {
+    return buildRowEdit(this.dmlContext(table), edit).display;
   }
 
   async getSupportedTypes(): Promise<TypeGroup[]> {

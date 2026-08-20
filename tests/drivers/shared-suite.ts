@@ -200,6 +200,97 @@ export function runSharedSuite(
     }));
   });
 
+  // ── Row edits ─────────────────────────────────────────────────────────────
+  //
+  // These used to be built in the renderer with hardcoded MySQL backticks, so
+  // they only ever worked against MySQL.
+
+  describe('applyRowEdit', () => {
+    const label = 'row-edit-target';
+
+    it('insert, update and delete round-trip', s(async () => {
+      const driver = getDriver();
+      const read = async () => {
+        const rows = await driver.executeQuery(
+          `SELECT name FROM categories WHERE name = '${label}' OR name = '${label}-updated'`,
+        );
+        return rows as Record<string, unknown>[];
+      };
+
+      await driver.applyRowEdit(opts.db, 'categories', {
+        op: 'insert',
+        values: { name: { kind: 'value', value: label } },
+      });
+      expect((await read()).length).toBe(1);
+
+      await driver.applyRowEdit(opts.db, 'categories', {
+        op: 'update',
+        pk: { name: label },
+        column: 'name',
+        value: { kind: 'value', value: `${label}-updated` },
+      });
+      const afterUpdate = await read();
+      expect(afterUpdate.length).toBe(1);
+      expect(Object.values(afterUpdate[0])[0]).toBe(`${label}-updated`);
+
+      await driver.applyRowEdit(opts.db, 'categories', {
+        op: 'delete',
+        pk: { name: `${label}-updated` },
+      });
+      expect((await read()).length).toBe(0);
+    }));
+
+    it('previewRowEdit renders the statement without running it', s(async () => {
+      const driver = getDriver();
+      const sql = driver.previewRowEdit(opts.db, 'categories', {
+        op: 'delete',
+        pk: { name: 'never-inserted' },
+      });
+      expect(sql).toContain('DELETE');
+      expect(sql).toContain('never-inserted');
+      // Preview must not execute: the row count is untouched.
+      const rows = await driver.executeQuery(`SELECT name FROM categories`);
+      expect((rows as any[]).length).toBeGreaterThan(0);
+    }));
+
+    it('refuses an edit with no key rather than touching every row', s(async () => {
+      await expect(
+        getDriver().applyRowEdit(opts.db, 'categories', { op: 'delete', pk: {} }),
+      ).rejects.toThrow(/without a key/);
+    }));
+  });
+
+  // ── Schema-change preview ─────────────────────────────────────────────────
+
+  describe('dry run', () => {
+    it('captures DDL without executing it', s(async () => {
+      const driver = getDriver();
+      const before = await driver.getTableColumns(opts.db, 'categories');
+
+      driver.beginDryRun();
+      await driver.addColumn(opts.db, 'categories', {
+        name: 'never_created', type: 'VARCHAR', length: 10, nullable: true,
+      } as any);
+      const captured = driver.endDryRun();
+
+      expect(captured.length).toBeGreaterThan(0);
+      expect(captured.join(' ')).toContain('never_created');
+
+      // The column must not actually exist.
+      const after = await driver.getTableColumns(opts.db, 'categories');
+      expect(after.length).toBe(before.length);
+      expect(after.map(c => c.name.toLowerCase())).not.toContain('never_created');
+    }));
+
+    it('resumes executing after the dry run ends', s(async () => {
+      const driver = getDriver();
+      driver.beginDryRun();
+      driver.endDryRun();
+      const rows = await driver.executeQuery(`SELECT name FROM categories`);
+      expect((rows as any[]).length).toBeGreaterThan(0);
+    }));
+  });
+
   // ── Escaping ──────────────────────────────────────────────────────────────
 
   describe('escapeIdentifier / escapeStringLiteral', () => {

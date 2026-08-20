@@ -180,6 +180,20 @@ export interface QuerySnippet {
 // object (affectedRows, insertId, ...) for INSERT/UPDATE/DELETE/DDL.
 export type QueryResult = Record<string, unknown>[] | Record<string, unknown>;
 
+/**
+ * A grid cell value: either a literal to bind, or raw SQL to pass through
+ * (so users can type CURRENT_TIMESTAMP or a function call into a cell).
+ */
+export type CellValue =
+  | { kind: 'value'; value: string | null }
+  | { kind: 'expr'; expr: string };
+
+/** One row-level edit from the data grid, keyed by primary key. */
+export type RowEdit =
+  | { op: 'update'; pk: Record<string, unknown>; column: string; value: CellValue }
+  | { op: 'delete'; pk: Record<string, unknown> }
+  | { op: 'insert'; values: Record<string, CellValue> };
+
 export interface IDatabaseDriver {
   connect(config: ConnectionConfig): Promise<void>;
   disconnect(): Promise<void>;
@@ -211,6 +225,21 @@ export interface IDatabaseDriver {
    * under each engine's per-statement bind limit. Returns the row count.
    */
   insertRows(database: string, table: string, columns: string[], rows: (string | null)[][]): Promise<number>;
+
+  /**
+   * Applies one row-level grid edit. Built by the driver so the SQL matches
+   * the dialect and values are bound rather than interpolated.
+   */
+  applyRowEdit(database: string, table: string, edit: RowEdit): Promise<void>;
+  /** The statement applyRowEdit would run, with values inlined, for display. */
+  previewRowEdit(database: string, table: string, edit: RowEdit): string;
+
+  /**
+   * Suppresses execution so a migration can be replayed to capture the SQL it
+   * would run. Used by the ALTER preview; see collectSchemaChangeSql.
+   */
+  beginDryRun(): void;
+  endDryRun(): string[];
   getSupportedTypes(): Promise<TypeGroup[]>;
   getCapabilities(): ServerCapabilities;
   getProcessList(): Promise<Record<string, unknown>[]>;

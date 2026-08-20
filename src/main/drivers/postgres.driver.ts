@@ -1,6 +1,8 @@
 import { Client, QueryResult as PgQueryResult } from 'pg';
 import { batchRows, buildValuesClause } from './bulk-insert';
 import { parseFilter } from './filter';
+import { buildRowEdit, type DmlContext } from './dml';
+import type { RowEdit } from '@shared/types/database';
 import {
   IDatabaseDriver, ConnectionConfig, DatabaseInfo, TableInfo, TableDataResponse,
   SortConfig, ColumnInfo, TableIndex, ForeignKey, TypeGroup, ServerCapabilities, ServerVariablesResult, QueryResult
@@ -37,10 +39,16 @@ const PG_TYPE_MAP: Record<string, string> = {
 
 export class PostgreSQLDriver implements IDatabaseDriver {
   private client: Client | null = null;
+  /** When non-null, exec() records statements instead of running them. */
+  private dryRun: string[] | null = null;
 
   static queryLogger: ((sql: string, durationMs: number, error?: string) => void) | null = null;
 
+  beginDryRun(): void { this.dryRun = []; }
+  endDryRun(): string[] { const out = this.dryRun ?? []; this.dryRun = null; return out; }
+
   private async exec<T = Record<string, unknown>>(sql: string, params?: unknown[]): Promise<T[]> {
+    if (this.dryRun) { this.dryRun.push(sql); return [] as T[]; }
     if (!this.client) throw new Error('Not connected');
     const t0 = Date.now();
     try {
@@ -486,6 +494,24 @@ export class PostgreSQLDriver implements IDatabaseDriver {
       await this.exec(`INSERT INTO ${this.escapeIdentifier(table)} (${colList}) VALUES ${values}`, batch.flat());
     }
     return rows.length;
+  }
+
+  private dmlContext(table: string): DmlContext {
+    return {
+      escId: (n: string) => this.escapeIdentifier(n),
+      placeholder: (i: number) => `$${i + 1}`,
+      escLiteral: (v: string) => this.escapeStringLiteral(v),
+      tableRef: this.escapeIdentifier(table),
+    };
+  }
+
+  async applyRowEdit(_database: string, table: string, edit: RowEdit): Promise<void> {
+    const { sql, params } = buildRowEdit(this.dmlContext(table), edit);
+    await this.exec(sql, params);
+  }
+
+  previewRowEdit(_database: string, table: string, edit: RowEdit): string {
+    return buildRowEdit(this.dmlContext(table), edit).display;
   }
 
   async getSupportedTypes(): Promise<TypeGroup[]> {

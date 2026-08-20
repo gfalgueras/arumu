@@ -1,7 +1,7 @@
 import type {
   ServerInfo, StoredServer, DatabaseInfo, TableInfo, ColumnInfo, TableIndex, ForeignKey,
   TableDataResponse, SortConfig, AppState, AppSettings, TypeGroup, ServerCapabilities,
-  ServerVariablesResult, QueryHistoryEntry, QuerySnippet, QueryResult, SchemaChanges,
+  ServerVariablesResult, QueryHistoryEntry, QuerySnippet, QueryResult, SchemaChanges, RowEdit,
 } from '@shared/types/database';
 import type { FileFilter } from 'electron';
 
@@ -52,10 +52,16 @@ export const api = {
   updateColumn: (serverName: string, dbName: string, tableName: string, oldName: string, column: ColumnInfo, afterColumn?: string): Promise<void> => electronAPI.invoke('api:updateColumn', serverName, dbName, tableName, oldName, clean(column), afterColumn) as Promise<void>,
   applySchemaChanges: (serverName: string, dbName: string, tableName: string, changes: SchemaChanges): Promise<void> =>
     electronAPI.invoke('api:applySchemaChanges', serverName, dbName, tableName, clean(changes)) as Promise<void>,
+  previewSchemaChanges: (serverName: string, dbName: string, tableName: string, changes: SchemaChanges): Promise<string[]> =>
+    electronAPI.invoke('api:previewSchemaChanges', serverName, dbName, tableName, clean(changes)) as Promise<string[]>,
   getTableCreateStatement: (serverName: string, dbName: string, tableName: string): Promise<{ statement: string }> => electronAPI.invoke('api:getTableCreateStatement', serverName, dbName, tableName) as Promise<{ statement: string }>,
   executeSql: (serverName: string, sql: string, database: string): Promise<QueryResult> => electronAPI.invoke('api:executeSql', serverName, sql, database) as Promise<QueryResult>,
   importRows: (serverName: string, dbName: string, tableName: string, columns: string[], rows: (string | null)[][]): Promise<number> =>
     electronAPI.invoke('api:importRows', serverName, dbName, tableName, clean(columns), clean(rows)) as Promise<number>,
+  applyRowEdit: (serverName: string, dbName: string, tableName: string, edit: RowEdit): Promise<void> =>
+    electronAPI.invoke('api:applyRowEdit', serverName, dbName, tableName, clean(edit)) as Promise<void>,
+  previewRowEdit: (serverName: string, dbName: string, tableName: string, edit: RowEdit): Promise<string> =>
+    electronAPI.invoke('api:previewRowEdit', serverName, dbName, tableName, clean(edit)) as Promise<string>,
   getSupportedTypes: (serverName: string): Promise<TypeGroup[]> => electronAPI.invoke('api:getSupportedTypes', serverName) as Promise<TypeGroup[]>,
   getSchema: (serverName: string, dbName: string): Promise<Record<string, string[]>> => electronAPI.invoke('api:getSchema', serverName, dbName) as Promise<Record<string, string[]>>,
   getQueryHistory: (): Promise<QueryHistoryEntry[]> => electronAPI.invoke('api:getQueryHistory') as Promise<QueryHistoryEntry[]>,

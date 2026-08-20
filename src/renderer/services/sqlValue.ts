@@ -1,38 +1,20 @@
 /**
- * Value/identifier formatting for the SQL that DataTable builds client-side
- * for cell edits, inserts and deletes.
+ * Renderer-side value helpers for the data grid.
  *
- * NOTE: this emits MySQL syntax (backtick identifiers, backslash escapes).
- * The same limitation exists wherever the renderer composes SQL itself; the
- * dialect-correct path is to let the driver do it in main, as insertRows()
- * does. Extracted here so there is one place to fix when that happens.
+ * SQL is no longer composed here — row edits go through the driver via
+ * applyRowEdit(), so the statement matches the connected engine's dialect and
+ * values are bound rather than interpolated. What remains is UI-level: how to
+ * interpret what the user typed, and CSV rendering for the export button.
  */
-
-export const escId = (name: string) => '`' + name.replace(/`/g, '``') + '`';
-
-/** Quotes a value, passing through anything that parses as a plain number. */
-export const escVal = (val: string | null): string => {
-  if (val === null) return 'NULL';
-  const n = Number(val);
-  if (!isNaN(n) && val.trim() !== '') return val;
-  return "'" + val.replace(/\\/g, '\\\\').replace(/'/g, "\\'") + "'";
-};
 
 const SQL_EXPR_RE = /^(CURRENT_TIMESTAMP|CURRENT_DATE|CURRENT_TIME|DEFAULT|TRUE|FALSE|NULL)$/i;
 
 /**
- * Whether a typed cell value should be passed through as an expression rather
- * than quoted — bare keywords like CURRENT_TIMESTAMP, or anything containing a
- * call. Deliberately permissive so users can type expressions into cells.
+ * Whether a typed cell value should be sent as SQL rather than a literal —
+ * bare keywords like CURRENT_TIMESTAMP, or anything containing a call.
+ * Deliberately permissive so users can type expressions into cells.
  */
 export const isSqlExpr = (val: string) => SQL_EXPR_RE.test(val.trim()) || val.includes('(');
-
-/** escVal, but leaves recognised SQL expressions unquoted. */
-export const valOrExpr = (val: string | null): string => {
-  if (val === null) return 'NULL';
-  if (isSqlExpr(val)) return val;
-  return escVal(val);
-};
 
 /** RFC-4180-style CSV field quoting. */
 export const csvEscape = (val: unknown): string => {
