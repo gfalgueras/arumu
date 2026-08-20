@@ -1,8 +1,8 @@
 <script setup lang="ts">
 interface EditCell { value: string; isNull: boolean; }
 
-const props = defineProps<{
-  row: any;
+defineProps<{
+  row: Record<string, unknown>;
   columns: string[];
   rowIndex: number;
   selectedCol: string | null;
@@ -20,7 +20,7 @@ const emit = defineEmits<{
   (e: 'cancelEdit'): void;
 }>();
 
-const formatCellValue = (val: any): string => {
+const formatCellValue = (val: unknown): string => {
   if (typeof val === 'string' && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/.test(val)) {
     return val.replace('T', ' ').replace(/\.\d+Z$/, '').replace('Z', '');
   }

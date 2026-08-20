@@ -6,13 +6,14 @@ import { api } from '../services/api';
 import { showError } from '../errorService';
 import BaseButton from './ui/BaseButton.vue';
 import SearchInput from './ui/SearchInput.vue';
+import type { VariableRow } from '@shared/types/database';
 
 const props = defineProps<{
   serverName: string;
 }>();
 
-const variables = ref<any[]>([]);
-const status = ref<any[]>([]);
+const variables = ref<VariableRow[]>([]);
+const status = ref<VariableRow[]>([]);
 const loading = ref(false);
 const search = ref('');
 const activeSubTab = ref<'variables' | 'status'>('variables');
@@ -22,7 +23,7 @@ const activeList = computed(() => activeSubTab.value === 'variables' ? variables
 const filtered = computed(() => {
   if (!search.value.trim()) return activeList.value;
   const q = search.value.toLowerCase();
-  return activeList.value.filter((row: any) => {
+  return activeList.value.filter((row: VariableRow) => {
     const name = (row.name || '').toLowerCase();
     const val = String(row.value ?? '').toLowerCase();
     return name.includes(q) || val.includes(q);
@@ -35,8 +36,8 @@ const load = async () => {
     const result = await api.getServerVariables(props.serverName);
     variables.value = result.variables || [];
     status.value = result.status || [];
-  } catch (err: any) {
-    const msg = err.message?.replace(/^Error invoking remote method '[^']+': (Error: )?/, '') || String(err);
+  } catch (err) {
+    const msg = (err instanceof Error ? err.message : undefined)?.replace(/^Error invoking remote method '[^']+': (Error: )?/, '') || String(err);
     showError($t('variables.error'), msg);
   } finally {
     loading.value = false;

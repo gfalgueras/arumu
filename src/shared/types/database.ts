@@ -68,7 +68,7 @@ export interface ConnectionConfig {
 
 export interface TableDataResponse {
   columns: string[];
-  rows: any[];
+  rows: Record<string, unknown>[];
   total: number;
 }
 
@@ -80,8 +80,11 @@ export interface SortConfig {
 export interface AppState {
   activeServerNames: string[];
   selectedServerName: string | null;
-  selectedDatabase: string | null;
-  selectedTable: string | null;
+  // Not currently saved/restored by App.vue — table/database selection doesn't
+  // survive a restart. Kept optional rather than wired up, since restoring it
+  // is a product decision, not a type-cleanup one.
+  selectedDatabase?: string | null;
+  selectedTable?: string | null;
   activeTab: string;
   queryTabs: { id: string; name: string; query: string }[];
   sidebarWidth: number;
@@ -91,7 +94,7 @@ export interface AppState {
   tableFilter: string;
   expandedServerNames: string[];
   expandedDatabaseIds: string[]; // Formato "serverName:dbName"
-  expandedTableIds: string[]; // Formato "serverName:dbName:tableName"
+  expandedTableIds?: string[]; // Formato "serverName:dbName:tableName"
 }
 
 export interface TypeGroup {
@@ -147,6 +150,17 @@ export interface QueryHistoryEntry {
   error?: string;
 }
 
+export interface QuerySnippet {
+  id: string;
+  name: string;
+  sql: string;
+  createdAt: string;
+}
+
+// executeQuery/runTableMaintenance return rows for SELECTs, or a result-info
+// object (affectedRows, insertId, ...) for INSERT/UPDATE/DELETE/DDL.
+export type QueryResult = Record<string, unknown>[] | Record<string, unknown>;
+
 export interface IDatabaseDriver {
   connect(config: ConnectionConfig): Promise<void>;
   disconnect(): Promise<void>;
@@ -158,7 +172,7 @@ export interface IDatabaseDriver {
   getTableForeignKeys(database: string, table: string): Promise<ForeignKey[]>;
   getTableCreateStatement(database: string, table: string): Promise<string>;
   getTableData(database: string, table: string, limit: number, offset: number, sort?: SortConfig[], filter?: string): Promise<TableDataResponse>;
-  executeQuery(sql: string): Promise<any>;
+  executeQuery(sql: string): Promise<QueryResult>;
   addIndex(database: string, table: string, index: TableIndex): Promise<void>;
   addForeignKey(database: string, table: string, fk: ForeignKey): Promise<void>;
   dropIndex(database: string, table: string, indexName: string): Promise<void>;
@@ -167,10 +181,10 @@ export interface IDatabaseDriver {
   updateColumn(database: string, table: string, oldColumnName: string, newColumn: ColumnInfo, afterColumn?: string): Promise<void>;
   getSupportedTypes(): Promise<TypeGroup[]>;
   getCapabilities(): ServerCapabilities;
-  getProcessList(): Promise<any[]>;
+  getProcessList(): Promise<Record<string, unknown>[]>;
   killProcess(processId: number | string): Promise<void>;
   getServerVariables(): Promise<ServerVariablesResult>;
   escapeIdentifier(name: string): string;
   escapeStringLiteral(val: string): string;
-  runTableMaintenance(database: string, table: string, op: string): Promise<any>;
+  runTableMaintenance(database: string, table: string, op: string): Promise<QueryResult>;
 }

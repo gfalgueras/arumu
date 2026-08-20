@@ -3,7 +3,7 @@ import './index.css'
 import App from './App.vue'
 
 const logError = (message: string, stack?: string) => {
-  (window as any).electronAPI?.invoke('log:error', message, stack).catch(() => {});
+  window.electronAPI?.invoke('log:error', message, stack).catch(() => {});
 };
 
 window.onerror = (_event, _source, _line, _col, error) => {

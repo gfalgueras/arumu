@@ -31,7 +31,7 @@ const loading = ref(false);
 const error = ref<string | null>(null);
 const bottomTab = ref<'indexes' | 'fks' | 'maintenance'>('indexes');
 const maintenanceRunning = ref<string | null>(null);
-const maintenanceResults = ref<{ op: string; result: any[] } | null>(null);
+const maintenanceResults = ref<{ op: string; result: Record<string, unknown>[] } | null>(null);
 const copied = ref(false);
 const copiedAlter = ref(false);
 
@@ -227,9 +227,10 @@ const fetchSchemaData = async () => {
     originalFKs.value = JSON.parse(JSON.stringify(fksData));
     createStatement.value = createData.statement;
     allDatabaseSchema.value = schemaData;
-  } catch (err: any) {
-    error.value = err.message;
-    showError($t('table_schema.error_load_structure'), err.message);
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    error.value = msg;
+    showError($t('table_schema.error_load_structure'), msg);
   } finally {
     loading.value = false;
   }
@@ -241,8 +242,8 @@ const runMaintenance = async (op: string) => {
   try {
     const result = await api.tableMaintenanceOp(props.serverName, props.database, props.table, op);
     maintenanceResults.value = { op, result: Array.isArray(result) ? result : [result] };
-  } catch (err: any) {
-    const msg = err.message?.replace(/^Error invoking remote method '[^']+': (Error: )?/, '') || String(err);
+  } catch (err) {
+    const msg = (err instanceof Error ? err.message : undefined)?.replace(/^Error invoking remote method '[^']+': (Error: )?/, '') || String(err);
     showError($t('maintenance.error'), msg);
   } finally {
     maintenanceRunning.value = null;
@@ -464,8 +465,8 @@ const handleCommit = async () => {
     }
 
     await fetchSchemaData();
-  } catch (err: any) {
-    showError($t('table_schema.error_save_changes'), err.message);
+  } catch (err) {
+    showError($t('table_schema.error_save_changes'), err instanceof Error ? err.message : String(err));
   } finally {
     saving.value = false;
   }

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, type Component } from 'vue';
 import { X, Languages, Keyboard, PanelLeft, Settings } from 'lucide-vue-next';
 import { $t, getLocale, setLocale, supportedLocales } from '../i18n';
 import { api } from '../services/api';
@@ -81,7 +81,7 @@ const densityOptions = [
   { value: 'compact', label: $t('settings.menu_density_compact') },
 ];
 
-const navItems: { id: Tab; icon: any; label: string }[] = [
+const navItems: { id: Tab; icon: Component; label: string }[] = [
   { id: 'general', icon: Languages, label: $t('settings.tab_general') },
   { id: 'keyboard', icon: Keyboard, label: $t('settings.tab_keyboard') },
   { id: 'menu', icon: PanelLeft, label: $t('settings.tab_menu') },

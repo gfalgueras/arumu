@@ -50,17 +50,17 @@ const ALLOWED_ON_CHANNELS = new Set([
 ]);
 
 contextBridge.exposeInMainWorld('electronAPI', {
-  invoke: (channel: string, ...args: any[]) => {
+  invoke: (channel: string, ...args: unknown[]) => {
     if (!ALLOWED_INVOKE_CHANNELS.has(channel)) {
       throw new Error(`IPC channel not allowed: ${channel}`);
     }
     return ipcRenderer.invoke(channel, ...args);
   },
-  on: (channel: string, callback: (...args: any[]) => void) => {
+  on: (channel: string, callback: (...args: unknown[]) => void) => {
     if (!ALLOWED_ON_CHANNELS.has(channel)) {
       throw new Error(`IPC channel not allowed: ${channel}`);
     }
-    const subscription = (_event: any, ...args: any[]) => callback(...args);
+    const subscription = (_event: Electron.IpcRendererEvent, ...args: unknown[]) => callback(...args);
     ipcRenderer.on(channel, subscription);
     return () => ipcRenderer.removeListener(channel, subscription);
   }

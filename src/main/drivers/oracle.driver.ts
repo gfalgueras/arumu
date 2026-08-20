@@ -1,12 +1,12 @@
 import type oracledb from 'oracledb';
 import {
   IDatabaseDriver, ConnectionConfig, DatabaseInfo, TableInfo, TableDataResponse,
-  SortConfig, ColumnInfo, TableIndex, ForeignKey, TypeGroup, ServerCapabilities, ServerVariablesResult
+  SortConfig, ColumnInfo, TableIndex, ForeignKey, TypeGroup, ServerCapabilities, ServerVariablesResult, QueryResult
 } from '@shared/types/database';
 
-// eslint-disable-next-line @typescript-eslint/no-require-imports
 let _odb: typeof oracledb | null = null
 function odb(): typeof oracledb {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports -- lazy-loaded: native addon, kept external so unused drivers don't pay its load cost
   if (!_odb) _odb = require('oracledb')
   return _odb!
 }
@@ -17,11 +17,11 @@ export class OracleDriver implements IDatabaseDriver {
   static queryLogger: ((sql: string, durationMs: number, error?: string) => void) | null = null;
 
   // Positional :1, :2 bind variables
-  private async exec(querySql: string, params: any[] = []): Promise<any[]> {
+  private async exec<T = Record<string, unknown>>(querySql: string, params: unknown[] = []): Promise<T[]> {
     if (!this.connection) throw new Error('Not connected');
     const t0 = Date.now();
     try {
-      const result = await this.connection.execute(querySql, params, {
+      const result = await this.connection.execute<T>(querySql, params, {
         outFormat: odb().OUT_FORMAT_OBJECT,
         fetchTypeHandler: (meta) => {
           if (meta.dbType === odb().DB_TYPE_CLOB || meta.dbType === odb().DB_TYPE_NCLOB) {
@@ -33,18 +33,18 @@ export class OracleDriver implements IDatabaseDriver {
         },
       });
       OracleDriver.queryLogger?.(querySql, Date.now() - t0);
-      return (result.rows ?? []) as any[];
-    } catch (err: any) {
-      OracleDriver.queryLogger?.(querySql, Date.now() - t0, err.message || String(err));
+      return result.rows ?? [];
+    } catch (err: unknown) {
+      OracleDriver.queryLogger?.(querySql, Date.now() - t0, err instanceof Error ? err.message : String(err));
       throw err;
     }
   }
 
-  private async execRaw(querySql: string, params: any[] = []): Promise<oracledb.Result<any>> {
+  private async execRaw(querySql: string, params: unknown[] = []): Promise<oracledb.Result<Record<string, unknown>>> {
     if (!this.connection) throw new Error('Not connected');
     const t0 = Date.now();
     try {
-      const result = await this.connection.execute(querySql, params, {
+      const result = await this.connection.execute<Record<string, unknown>>(querySql, params, {
         outFormat: odb().OUT_FORMAT_OBJECT,
         fetchTypeHandler: (meta) => {
           if (meta.dbType === odb().DB_TYPE_CLOB || meta.dbType === odb().DB_TYPE_NCLOB) {
@@ -54,8 +54,8 @@ export class OracleDriver implements IDatabaseDriver {
       });
       OracleDriver.queryLogger?.(querySql, Date.now() - t0);
       return result;
-    } catch (err: any) {
-      OracleDriver.queryLogger?.(querySql, Date.now() - t0, err.message || String(err));
+    } catch (err: unknown) {
+      OracleDriver.queryLogger?.(querySql, Date.now() - t0, err instanceof Error ? err.message : String(err));
       throw err;
     }
   }
@@ -85,27 +85,27 @@ export class OracleDriver implements IDatabaseDriver {
   }
 
   async getDatabases(): Promise<DatabaseInfo[]> {
-    const rows = await this.exec(
+    const rows = await this.exec<{ name: string }>(
       `SELECT username as "name" FROM all_users ORDER BY username`
     );
-    return rows.map(r => ({ name: r.name as string, tables: [] }));
+    return rows.map(r => ({ name: r.name, tables: [] }));
   }
 
   async getTables(database: string): Promise<TableInfo[]> {
-    const rows = await this.exec(
+    const rows = await this.exec<{ name: string }>(
       `SELECT table_name as "name", 0 as "size" FROM all_tables WHERE owner = UPPER(:1) ORDER BY table_name`,
       [database]
     );
-    return rows.map(r => ({ name: r.name as string, size: 0 }));
+    return rows.map(r => ({ name: r.name, size: 0 }));
   }
 
   async getSchema(database: string): Promise<Record<string, string[]>> {
-    const rows = await this.exec(
+    const rows = await this.exec<{ TABLE_NAME: string; COLUMN_NAME: string }>(
       `SELECT table_name, column_name FROM all_tab_columns WHERE owner = UPPER(:1) ORDER BY table_name, column_id`,
       [database]
     );
     const schema: Record<string, string[]> = {};
-    for (const row of rows as any[]) {
+    for (const row of rows) {
       if (!schema[row.TABLE_NAME]) schema[row.TABLE_NAME] = [];
       schema[row.TABLE_NAME].push(row.COLUMN_NAME);
     }
@@ -113,7 +113,19 @@ export class OracleDriver implements IDatabaseDriver {
   }
 
   async getTableColumns(database: string, table: string): Promise<ColumnInfo[]> {
-    const rows = await this.exec(`
+    interface OracleColumnRow {
+      COLUMN_NAME: string;
+      DATA_TYPE: string;
+      DATA_LENGTH: number | null;
+      CHAR_LENGTH: number | null;
+      DATA_PRECISION: number | null;
+      DATA_SCALE: number | null;
+      NULLABLE: string;
+      DATA_DEFAULT: string | null;
+      IDENTITY_COLUMN: string;
+      COL_KEY: string;
+    }
+    const rows = await this.exec<OracleColumnRow>(`
       SELECT
         c.column_name,
         c.data_type,
@@ -138,8 +150,8 @@ export class OracleDriver implements IDatabaseDriver {
       ORDER BY c.column_id
     `, [table, database, table, database]);
 
-    return (rows as any[]).map(row => {
-      const type = (row.DATA_TYPE || '') as string;
+    return rows.map(row => {
+      const type = row.DATA_TYPE || '';
       let length: string | number | null = null;
       if (['VARCHAR2', 'NVARCHAR2', 'CHAR', 'NCHAR'].includes(type)) {
         length = row.CHAR_LENGTH ?? row.DATA_LENGTH ?? null;
@@ -149,7 +161,7 @@ export class OracleDriver implements IDatabaseDriver {
         length = row.DATA_PRECISION;
       }
       return {
-        name: row.COLUMN_NAME as string,
+        name: row.COLUMN_NAME,
         type,
         length,
         nullable: row.NULLABLE === 'Y',
@@ -162,7 +174,14 @@ export class OracleDriver implements IDatabaseDriver {
   }
 
   async getTableIndexes(database: string, table: string): Promise<TableIndex[]> {
-    const rows = await this.exec(`
+    interface OracleIndexRow {
+      INDEX_NAME: string;
+      UNIQUENESS: string;
+      COLUMN_NAME: string;
+      METHOD: string;
+      IS_PRIMARY: number;
+    }
+    const rows = await this.exec<OracleIndexRow>(`
       SELECT
         i.index_name,
         i.uniqueness,
@@ -178,8 +197,8 @@ export class OracleDriver implements IDatabaseDriver {
     `, [table, database]);
 
     const indexMap = new Map<string, TableIndex>();
-    for (const row of rows as any[]) {
-      const name = row.INDEX_NAME as string;
+    for (const row of rows) {
+      const name = row.INDEX_NAME;
       if (!indexMap.has(name)) {
         let type = 'INDEX';
         if (row.IS_PRIMARY === 1) type = 'PRIMARY';
@@ -192,13 +211,20 @@ export class OracleDriver implements IDatabaseDriver {
           method: (row.METHOD || 'NORMAL').toUpperCase(),
         });
       }
-      indexMap.get(name)!.columns.push(row.COLUMN_NAME as string);
+      indexMap.get(name)!.columns.push(row.COLUMN_NAME);
     }
     return Array.from(indexMap.values());
   }
 
   async getTableForeignKeys(database: string, table: string): Promise<ForeignKey[]> {
-    const rows = await this.exec(`
+    interface OracleFkRow {
+      NAME: string;
+      COLUMN_NAME: string;
+      REFERENCED_TABLE: string;
+      REFERENCED_COLUMN: string;
+      DELETE_RULE: string;
+    }
+    const rows = await this.exec<OracleFkRow>(`
       SELECT
         fk.constraint_name as name,
         fkc.column_name,
@@ -217,28 +243,28 @@ export class OracleDriver implements IDatabaseDriver {
     `, [table, database]);
 
     const fkMap = new Map<string, ForeignKey>();
-    for (const row of rows as any[]) {
-      const name = row.NAME as string;
+    for (const row of rows) {
+      const name = row.NAME;
       if (!fkMap.has(name)) {
-        const deleteRule = (row.DELETE_RULE as string || 'NO ACTION').replace(/_/g, ' ');
+        const deleteRule = (row.DELETE_RULE || 'NO ACTION').replace(/_/g, ' ');
         fkMap.set(name, {
           name,
           columns: [],
-          referencedTable: row.REFERENCED_TABLE as string,
+          referencedTable: row.REFERENCED_TABLE,
           referencedColumns: [],
           updateRule: 'NO ACTION', // Oracle does not support ON UPDATE
           deleteRule,
         });
       }
-      fkMap.get(name)!.columns.push(row.COLUMN_NAME as string);
-      fkMap.get(name)!.referencedColumns.push(row.REFERENCED_COLUMN as string);
+      fkMap.get(name)!.columns.push(row.COLUMN_NAME);
+      fkMap.get(name)!.referencedColumns.push(row.REFERENCED_COLUMN);
     }
     return Array.from(fkMap.values());
   }
 
   async getTableCreateStatement(database: string, table: string): Promise<string> {
     try {
-      const rows = await this.exec(
+      const rows = await this.exec<{ DDL: string }>(
         `SELECT DBMS_METADATA.GET_DDL('TABLE', UPPER(:1), UPPER(:2)) as ddl FROM DUAL`,
         [table, database]
       );
@@ -284,13 +310,13 @@ export class OracleDriver implements IDatabaseDriver {
   async getTableData(_database: string, table: string, limit: number, offset: number, sort?: SortConfig[], filter?: string): Promise<TableDataResponse> {
     const esc = (n: string) => this.escapeIdentifier(n);
 
-    const colRows = await this.exec(
+    const colRows = await this.exec<{ COLUMN_NAME: string }>(
       `SELECT column_name FROM all_tab_columns WHERE table_name = UPPER(:1) ORDER BY column_id`,
       [table]
     );
-    const columns = (colRows as any[]).map(r => r.COLUMN_NAME as string);
+    const columns = colRows.map(r => r.COLUMN_NAME);
 
-    const filterParams: any[] = [];
+    const filterParams: unknown[] = [];
     let whereClause = '';
 
     if (filter && columns.length > 0) {
@@ -321,12 +347,12 @@ export class OracleDriver implements IDatabaseDriver {
 
     const [dataRows, countRows] = await Promise.all([
       this.exec(query, [...filterParams, safeOffset, safeLimit]),
-      this.exec(countQuery, filterParams),
+      this.exec<{ total: number }>(countQuery, filterParams),
     ]);
 
     // Oracle returns uppercase column names — normalize to original casing from metadata
-    const normalized = (dataRows as any[]).map(row => {
-      const out: Record<string, any> = {};
+    const normalized = dataRows.map(row => {
+      const out: Record<string, unknown> = {};
       for (const col of columns) {
         out[col] = row[col] ?? row[col.toUpperCase()] ?? null;
       }
@@ -336,11 +362,11 @@ export class OracleDriver implements IDatabaseDriver {
     return {
       columns,
       rows: normalized,
-      total: Number((countRows[0] as any)?.total ?? 0),
+      total: Number(countRows[0]?.total ?? 0),
     };
   }
 
-  async executeQuery(querySql: string): Promise<any> {
+  async executeQuery(querySql: string): Promise<QueryResult> {
     const result = await this.execRaw(querySql);
     if (result.rows && result.rows.length > 0) return result.rows;
     return { affectedRows: result.rowsAffected ?? 0 };
@@ -458,7 +484,7 @@ export class OracleDriver implements IDatabaseDriver {
     };
   }
 
-  async getProcessList(): Promise<any[]> {
+  async getProcessList(): Promise<Record<string, unknown>[]> {
     const rows = await this.exec(`
       SELECT
         s.sid || ',' || s.serial# as "spid",
@@ -485,16 +511,16 @@ export class OracleDriver implements IDatabaseDriver {
   }
 
   async getServerVariables(): Promise<ServerVariablesResult> {
-    const rows = await this.exec(
+    const rows = await this.exec<{ NAME: string; VALUE: string }>(
       `SELECT name, value FROM v$parameter ORDER BY name`
     );
     return {
-      variables: (rows as any[]).map(r => ({ name: r.NAME as string, value: String(r.VALUE ?? '') })),
+      variables: rows.map(r => ({ name: r.NAME, value: String(r.VALUE ?? '') })),
       status: [],
     };
   }
 
-  async runTableMaintenance(_database: string, table: string, op: string): Promise<any> {
+  async runTableMaintenance(_database: string, table: string, op: string): Promise<QueryResult> {
     const esc = (n: string) => this.escapeIdentifier(n);
     switch (op.toUpperCase()) {
       case 'ANALYZE_STATS':
@@ -504,7 +530,7 @@ export class OracleDriver implements IDatabaseDriver {
         );
         return { affectedRows: 0 };
       case 'VALIDATE':
-        return this.exec(`ANALYZE TABLE ${esc(table)} VALIDATE STRUCTURE`);
+        return this.exec<Record<string, unknown>>(`ANALYZE TABLE ${esc(table)} VALIDATE STRUCTURE`);
       case 'SHRINK':
         await this.exec(`ALTER TABLE ${esc(table)} SHRINK SPACE`);
         return { affectedRows: 0 };

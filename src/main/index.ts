@@ -6,7 +6,10 @@ import { PostgreSQLDriver } from './drivers/postgres.driver';
 import { SQLiteDriver } from './drivers/sqlite.driver';
 import { SQLServerDriver } from './drivers/sqlserver.driver';
 import { OracleDriver } from './drivers/oracle.driver';
-import type { IDatabaseDriver, ServerInfo, StoredServer, DatabaseInfo } from '../shared/types/database';
+import type {
+  IDatabaseDriver, ServerInfo, StoredServer, TableInfo, ColumnInfo, TableIndex,
+  ForeignKey, SortConfig, AppState, AppSettings, QueryHistoryEntry, QuerySnippet,
+} from '../shared/types/database';
 
 function createDriver(server: { type: 'mysql' | 'postgres' | 'sqlite' | 'sqlserver' | 'oracle' }): IDatabaseDriver {
   switch (server.type) {
@@ -61,7 +64,7 @@ const writeErrorLog = (source: string, message: string, stack?: string) => {
 };
 
 const originalConsoleError = console.error.bind(console);
-console.error = (...args: any[]) => {
+console.error = (...args: unknown[]) => {
   originalConsoleError(...args);
   writeErrorLog('main', args.map(a => a instanceof Error ? a.message : String(a)).join(' '),
     args.find(a => a instanceof Error)?.stack);
@@ -129,7 +132,7 @@ const saveStoredServers = (servers: StoredServer[]) => {
   fs.writeFileSync(CONNECTIONS_FILE, JSON.stringify(encrypted, null, 2));
 };
 
-const getAppState = () => {
+const getAppState = (): AppState | null => {
   if (!fs.existsSync(APP_STATE_FILE)) {
     return null;
   }
@@ -141,33 +144,33 @@ const getAppState = () => {
   }
 };
 
-const saveAppState = (state: any) => {
+const saveAppState = (state: AppState) => {
   fs.writeFileSync(APP_STATE_FILE, JSON.stringify(state, null, 2));
 };
 
-const getQueryHistory = () => {
+const getQueryHistory = (): QueryHistoryEntry[] => {
   if (!fs.existsSync(QUERY_HISTORY_FILE)) return [];
   try { return JSON.parse(fs.readFileSync(QUERY_HISTORY_FILE, 'utf-8')); }
   catch { return []; }
 };
 
-const addToQueryHistory = (entry: any) => {
+const addToQueryHistory = (entry: QueryHistoryEntry) => {
   const history = [entry, ...getQueryHistory()].slice(0, 500);
   fs.writeFileSync(QUERY_HISTORY_FILE, JSON.stringify(history, null, 2));
 };
 
-const getAppSettings = () => {
+const getAppSettings = (): AppSettings => {
   if (!fs.existsSync(APP_SETTINGS_FILE)) {
     return {};
   }
   try {
     return JSON.parse(fs.readFileSync(APP_SETTINGS_FILE, 'utf-8'));
-  } catch (e) {
+  } catch (_e) {
     return {};
   }
 };
 
-const saveAppSettings = (settings: any) => {
+const saveAppSettings = (settings: AppSettings) => {
   fs.writeFileSync(APP_SETTINGS_FILE, JSON.stringify(settings, null, 2));
 };
 
@@ -278,7 +281,7 @@ app.whenReady().then(() => {
         return db.tables;
       }
 
-      let tables: any[] = [];
+      let tables: TableInfo[] = [];
       if (server.config) {
         const config = { ...server.config, database: dbName };
         await driver.connect(config);
@@ -346,12 +349,13 @@ app.whenReady().then(() => {
         activeServers.push(newActiveServer);
       }
       return newActiveServer;
-    } catch (err: any) {
+    } catch (err) {
       console.error('[api:connect] Error:', err);
-      const friendly = err?.code ? DB_ERROR_MESSAGES[err.code] : null;
+      const dbErr = err as { code?: string; sqlMessage?: string; message?: string };
+      const friendly = dbErr?.code ? DB_ERROR_MESSAGES[dbErr.code] : null;
       const msg = friendly
-        ? `${friendly} (${err.code})`
-        : ([err?.code, err?.sqlMessage || (err?.message !== err?.code ? err?.message : null)].filter(Boolean).join(': ') || String(err) || 'Connection failed');
+        ? `${friendly} (${dbErr.code})`
+        : ([dbErr?.code, dbErr?.sqlMessage || (dbErr?.message !== dbErr?.code ? dbErr?.message : null)].filter(Boolean).join(': ') || String(err) || 'Connection failed');
       throw new Error(msg);
     } finally {
       await driver.disconnect();
@@ -390,15 +394,15 @@ app.whenReady().then(() => {
   });
 
   ipcMain.handle('api:getAppState', () => getAppState());
-  ipcMain.handle('api:saveAppState', (_event, state: any) => saveAppState(state));
+  ipcMain.handle('api:saveAppState', (_event, state: AppState) => saveAppState(state));
   ipcMain.handle('api:getAppSettings', () => getAppSettings());
-  ipcMain.handle('api:saveAppSettings', (_event, settings: any) => saveAppSettings(settings));
+  ipcMain.handle('api:saveAppSettings', (_event, settings: AppSettings) => saveAppSettings(settings));
 
   ipcMain.handle('log:error', (_event, message: string, stack?: string) => {
     writeErrorLog('renderer', message, stack);
   });
 
-  ipcMain.handle('api:getTableData', async (_event, serverName: string, dbName: string, tableName: string, options: any) => {
+  ipcMain.handle('api:getTableData', async (_event, serverName: string, dbName: string, tableName: string, options: { limit: number; offset: number; sort?: SortConfig[]; filter?: string }) => {
     const server = activeServers.find(s => s.name === serverName);
     if (!server) throw new Error('Server not found');
 
@@ -445,7 +449,7 @@ app.whenReady().then(() => {
     }
   });
 
-  ipcMain.handle('api:addIndex', async (_event, serverName: string, dbName: string, tableName: string, index: any) => {
+  ipcMain.handle('api:addIndex', async (_event, serverName: string, dbName: string, tableName: string, index: TableIndex) => {
     const server = activeServers.find(s => s.name === serverName);
     if (!server) throw new Error('Server not found');
     const driver = createDriver(server);
@@ -488,7 +492,7 @@ app.whenReady().then(() => {
     }
   });
 
-  ipcMain.handle('api:addForeignKey', async (_event, serverName: string, dbName: string, tableName: string, fk: any) => {
+  ipcMain.handle('api:addForeignKey', async (_event, serverName: string, dbName: string, tableName: string, fk: ForeignKey) => {
     const server = activeServers.find(s => s.name === serverName);
     if (!server) throw new Error('Server not found');
     const driver = createDriver(server);
@@ -516,7 +520,7 @@ app.whenReady().then(() => {
     }
   });
 
-  ipcMain.handle('api:addColumn', async (_event, serverName: string, dbName: string, tableName: string, column: any, afterColumn: any) => {
+  ipcMain.handle('api:addColumn', async (_event, serverName: string, dbName: string, tableName: string, column: ColumnInfo, afterColumn?: string) => {
     const server = activeServers.find(s => s.name === serverName);
     if (!server) throw new Error('Server not found');
     const driver = createDriver(server);
@@ -530,7 +534,7 @@ app.whenReady().then(() => {
     }
   });
 
-  ipcMain.handle('api:updateColumn', async (_event, serverName: string, dbName: string, tableName: string, oldName: string, column: any, afterColumn: any) => {
+  ipcMain.handle('api:updateColumn', async (_event, serverName: string, dbName: string, tableName: string, oldName: string, column: ColumnInfo, afterColumn?: string) => {
     const server = activeServers.find(s => s.name === serverName);
     if (!server) throw new Error('Server not found');
     const driver = createDriver(server);
@@ -616,7 +620,7 @@ app.whenReady().then(() => {
   });
 
   // CSV import — read file, return content
-  ipcMain.handle('api:openFileDialog', async (_event, filters: any[]) => {
+  ipcMain.handle('api:openFileDialog', async (_event, filters: Electron.FileFilter[]) => {
     const { filePaths, canceled } = await dialog.showOpenDialog({
       properties: ['openFile'],
       filters,
@@ -628,24 +632,24 @@ app.whenReady().then(() => {
 
   // Snippets
   const SNIPPETS_FILE = path.join(CONFIG_DIR, 'snippets.json');
-  const getSnippets = () => {
+  const getSnippets = (): QuerySnippet[] => {
     if (!fs.existsSync(SNIPPETS_FILE)) return [];
     try { return JSON.parse(fs.readFileSync(SNIPPETS_FILE, 'utf-8')); }
     catch { return []; }
   };
   ipcMain.handle('api:getSnippets', () => getSnippets());
-  ipcMain.handle('api:saveSnippet', (_event, snippet: any) => {
-    const snippets = [snippet, ...getSnippets().filter((s: any) => s.id !== snippet.id)];
+  ipcMain.handle('api:saveSnippet', (_event, snippet: QuerySnippet) => {
+    const snippets = [snippet, ...getSnippets().filter(s => s.id !== snippet.id)];
     fs.writeFileSync(SNIPPETS_FILE, JSON.stringify(snippets, null, 2));
   });
   ipcMain.handle('api:deleteSnippet', (_event, id: string) => {
-    const snippets = getSnippets().filter((s: any) => s.id !== id);
+    const snippets = getSnippets().filter(s => s.id !== id);
     fs.writeFileSync(SNIPPETS_FILE, JSON.stringify(snippets, null, 2));
   });
 
   ipcMain.handle('api:getQueryHistory', () => getQueryHistory());
 
-  ipcMain.handle('api:addQueryHistory', (_event, entry: any) => {
+  ipcMain.handle('api:addQueryHistory', (_event, entry: QueryHistoryEntry) => {
     addToQueryHistory(entry);
   });
 
@@ -665,7 +669,7 @@ app.whenReady().then(() => {
     }
   });
 
-  ipcMain.handle('api:killProcess', async (_event, serverName: string, processId: number) => {
+  ipcMain.handle('api:killProcess', async (_event, serverName: string, processId: number | string) => {
     const server = activeServers.find(s => s.name === serverName);
     if (!server) throw new Error('Server not found');
     const driver = createDriver(server);
@@ -677,7 +681,7 @@ app.whenReady().then(() => {
     }
   });
 
-  ipcMain.handle('api:saveExportFile', async (_event, defaultFilename: string, content: string, filters: any[]) => {
+  ipcMain.handle('api:saveExportFile', async (_event, defaultFilename: string, content: string, filters: Electron.FileFilter[]) => {
     const { filePath, canceled } = await dialog.showSaveDialog({
       title: 'Save Export',
       defaultPath: defaultFilename,
@@ -688,7 +692,7 @@ app.whenReady().then(() => {
     return { saved: true, filePath };
   });
 
-  ipcMain.handle('api:exportTableData', async (_event, serverName: string, dbName: string, tableName: string, format: 'csv' | 'sql', filter: string, sort: any[]) => {
+  ipcMain.handle('api:exportTableData', async (_event, serverName: string, dbName: string, tableName: string, format: 'csv' | 'sql', filter: string, sort: SortConfig[]) => {
     const server = activeServers.find(s => s.name === serverName);
     if (!server) throw new Error('Server not found');
 
@@ -705,7 +709,7 @@ app.whenReady().then(() => {
     const driver = createDriver(server);
     try {
       await driver.connect({ ...server.config!, database: dbName });
-      let allRows: any[] = [];
+      let allRows: Record<string, unknown>[] = [];
       let columns: string[] = [];
       let offset = 0;
       const chunk = 1000;
@@ -718,13 +722,13 @@ app.whenReady().then(() => {
       }
 
       const escId = (s: string) => driver.escapeIdentifier(s);
-      const escVal = (val: any): string => {
+      const escVal = (val: unknown): string => {
         if (val === null) return 'NULL';
         if (typeof val === 'number') return String(val);
         if (typeof val === 'boolean') return val ? '1' : '0';
         return driver.escapeStringLiteral(String(val));
       };
-      const escCsv = (val: any): string => {
+      const escCsv = (val: unknown): string => {
         if (val === null) return '';
         const s = String(val);
         if (s.includes(',') || s.includes('"') || s.includes('\n') || s.includes('\r')) {

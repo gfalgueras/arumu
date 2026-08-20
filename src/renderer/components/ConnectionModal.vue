@@ -98,9 +98,9 @@ const handleSave = async () => {
       showAddForm.value = false;
       fetchStoredServers();
     }
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error saving connection:', error);
-    showError('Error saving connection', error.message);
+    showError('Error saving connection', error instanceof Error ? error.message : String(error));
   }
 };
 </script>

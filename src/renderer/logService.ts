@@ -39,9 +39,10 @@ export function clearLogs() {
   logEntries.splice(0, logEntries.length);
 }
 
-const electronAPI = (window as any).electronAPI;
+const electronAPI = window.electronAPI;
 if (electronAPI) {
-  electronAPI.on('query:log', ({ sql, durationMs, error }: { sql: string; durationMs: number; error?: string }) => {
+  electronAPI.on('query:log', (...args: unknown[]) => {
+    const { sql, durationMs, error } = args[0] as { sql: string; durationMs: number; error?: string };
     const shortSql = sql.length > 200 ? sql.slice(0, 200) + '…' : sql;
     const queryType = detectQueryType(sql);
     if (error) {

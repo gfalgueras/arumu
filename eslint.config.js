@@ -5,6 +5,8 @@ import pluginVue from 'eslint-plugin-vue'
 import vueParser from 'vue-eslint-parser'
 import { defineConfig, globalIgnores } from 'eslint/config'
 
+const noUnusedVars = ['error', { argsIgnorePattern: '^_', varsIgnorePattern: '^_', caughtErrorsIgnorePattern: '^_' }]
+
 export default defineConfig([
   globalIgnores(['out', 'dist', 'node_modules']),
   {
@@ -13,6 +15,9 @@ export default defineConfig([
     languageOptions: {
       ecmaVersion: 2022,
       globals: { ...globals.browser, ...globals.node },
+    },
+    rules: {
+      '@typescript-eslint/no-unused-vars': noUnusedVars,
     },
   },
   {
@@ -26,6 +31,9 @@ export default defineConfig([
         sourceType: 'module',
       },
       globals: { ...globals.browser, ...globals.node },
+    },
+    rules: {
+      '@typescript-eslint/no-unused-vars': noUnusedVars,
     },
   },
 ])

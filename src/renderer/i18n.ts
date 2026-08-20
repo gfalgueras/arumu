@@ -1,6 +1,8 @@
 import { ref } from 'vue';
 
-const translations: Record<string, any> = {
+type TranslationTree = string | { [key: string]: TranslationTree };
+
+const translations: Record<string, TranslationTree> = {
   en: {
     common: {
       save: 'Save',
@@ -1086,27 +1088,30 @@ export const setLocale = (locale: string) => {
   }
 };
 
+const isTree = (v: TranslationTree | undefined): v is { [key: string]: TranslationTree } =>
+  typeof v === 'object' && v !== null;
+
 export const $t = (key: string): string => {
   const keys = key.split('.');
-  let result = translations[currentLocale.value];
+  let result: TranslationTree | undefined = translations[currentLocale.value];
 
   for (const k of keys) {
-    if (result && result[k] !== undefined) {
+    if (isTree(result) && result[k] !== undefined) {
       result = result[k];
     } else {
-      let fallback = translations['en'];
+      let fallback: TranslationTree | undefined = translations['en'];
       for (const fk of keys) {
-        if (fallback && fallback[fk] !== undefined) {
+        if (isTree(fallback) && fallback[fk] !== undefined) {
           fallback = fallback[fk];
         } else {
           return key;
         }
       }
-      return fallback;
+      return typeof fallback === 'string' ? fallback : key;
     }
   }
 
-  return result;
+  return typeof result === 'string' ? result : key;
 };
 
 export const getLocale = () => currentLocale.value;

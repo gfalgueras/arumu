@@ -3,7 +3,7 @@ import { ref, onMounted, onUnmounted } from 'vue';
 import { Settings } from 'lucide-vue-next';
 import { $t } from '../../i18n';
 
-const props = defineProps<{
+defineProps<{
   x: number;
   y: number;
 }>();

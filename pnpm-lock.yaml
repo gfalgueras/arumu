@@ -48,9 +48,15 @@ importers:
       '@testcontainers/postgresql':
         specifier: ^11.14.0
         version: 11.14.0
+      '@types/mssql':
+        specifier: ^12.3.0
+        version: 12.3.0(@azure/core-client@1.10.1)
       '@types/node':
         specifier: ^25.1.0
         version: 25.2.2
+      '@types/oracledb':
+        specifier: ^7.0.2
+        version: 7.0.2
       '@types/pg':
         specifier: ^8.20.0
         version: 8.20.0
@@ -973,6 +979,9 @@ packages:
   '@types/ms@2.1.0':
     resolution: {integrity: sha512-GsCCIZDE/p3i96vtEqx+7dBUGXrc7zeSK3wwPHIaRThS+9OhWIXRqzs4d6k1SVU8g91DrNRWxWUGhp5KXQb2VA==}
 
+  '@types/mssql@12.3.0':
+    resolution: {integrity: sha512-+jy+AJtfuTDI5+nhh0hDNcir1p8P+pf+qsHXpUpYvg7EikxUUePBe+a+Kr6j/Xs89o4EbHlVzrh0HOxbqWM31Q==}
+
   '@types/node@18.19.130':
     resolution: {integrity: sha512-GRaXQx6jGfL8sKfaIDD6OupbIHBr9jv7Jnaml9tB7l4v068PAOXqfcujMMo5PhbIs6ggR1XODELqahT2R8v0fg==}
 
@@ -981,6 +990,9 @@ packages:
 
   '@types/node@25.2.2':
     resolution: {integrity: sha512-BkmoP5/FhRYek5izySdkOneRyXYN35I860MFAGupTdebyE66uZaR+bXLHq8k4DirE5DwQi3NuhvRU1jqTVwUrQ==}
+
+  '@types/oracledb@7.0.2':
+    resolution: {integrity: sha512-yAMn1N+yTyKpJpJ4EDf5Mfgas81dF3pchxZXlK0A4FG6+Jhvv5jaXdl0KmHbdg1ookCqPEYjzLo+7UBmsz9QWg==}
 
   '@types/pg@8.20.0':
     resolution: {integrity: sha512-bEPFOaMAHTEP1EzpvHTbmwR8UsFyHSKsRisLIHVMXnpNefSbGA1bD6CVy+qKjGSqmZqNqBDV2azOBo8TgkcVow==}
@@ -4500,6 +4512,15 @@ snapshots:
 
   '@types/ms@2.1.0': {}
 
+  '@types/mssql@12.3.0(@azure/core-client@1.10.1)':
+    dependencies:
+      '@types/node': 25.2.2
+      tarn: 3.0.2
+      tedious: 19.2.1(@azure/core-client@1.10.1)
+    transitivePeerDependencies:
+      - '@azure/core-client'
+      - supports-color
+
   '@types/node@18.19.130':
     dependencies:
       undici-types: 5.26.5
@@ -4511,6 +4532,10 @@ snapshots:
   '@types/node@25.2.2':
     dependencies:
       undici-types: 7.16.0
+
+  '@types/oracledb@7.0.2':
+    dependencies:
+      '@types/node': 25.2.2
 
   '@types/pg@8.20.0':
     dependencies:

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, watch, computed, shallowRef, provide } from 'vue';
-import { Plus, X, Server, Table, Database } from 'lucide-vue-next';
+import { Plus, X, Server, Table } from 'lucide-vue-next';
 import Sidebar from './components/Sidebar.vue';
 import TopBar from './components/TopBar.vue';
 import ConnectionModal from './components/ConnectionModal.vue';
@@ -15,7 +15,7 @@ import { showError } from './errorService';
 import { $t, setLocale } from './i18n';
 import { api } from './services/api';
 import { hotkeys, applyHotkeys, matchesHotkey } from './hotkeys';
-import type { ServerInfo, StoredServer, AppSettings } from '@shared/types/database';
+import type { ServerInfo, StoredServer, AppSettings, TableInfo } from '@shared/types/database';
 
 const menuDensity = ref<AppSettings['menuDensity']>('standard');
 provide('menuDensity', menuDensity);
@@ -73,7 +73,7 @@ const handleExpandServer = async (serverName: string) => {
     servers.value = servers.value.map(s => 
       s.name === serverName ? { ...s, databases } : s
     );
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error fetching databases:', error);
     showError($t('sidebar.error_databases'));
   } finally {
@@ -95,14 +95,14 @@ const handleExpandDatabase = async (serverName: string, dbName: string) => {
           db.name === dbName ? { 
             ...db, 
             tables, 
-            size: tables.reduce((acc: number, t: any) => acc + (t.size || 0), 0) 
+            size: tables.reduce((acc: number, t: TableInfo) => acc + (t.size || 0), 0)
           } : db
         );
         return { ...s, databases: updatedDbs };
       }
       return s;
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error fetching tables:', error);
     showError($t('sidebar.error_tables'));
   } finally {
@@ -136,9 +136,9 @@ const handleConnect = async (storedServer: StoredServer, closeAndRefresh = true)
       void handleExpandServer(storedServer.name);
     }
     return true;
-  } catch (error: any) {
+  } catch (error) {
     console.error('Connection error:', error);
-    const raw: string = error.message || 'Unknown error';
+    const raw: string = (error instanceof Error && error.message) || 'Unknown error';
     const msg = raw.replace(/^Error invoking remote method '[^']+': (Error: )?/, '');
     connectionError.value = msg;
     return false;
@@ -323,7 +323,7 @@ const handleCloseConnection = async () => {
     selectedServerName.value = null;
     selectedDatabase.value = null;
     selectedTable.value = null;
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error closing connection:', error);
     showError($t('topbar.error_close_conn'));
   }
@@ -339,7 +339,7 @@ const handleConfigServer = async (serverName: string) => {
     } else {
       showError($t('sidebar.error_config_not_found_title'), $t('sidebar.error_config_not_found_msg'));
     }
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error fetching server config:', error);
     showError($t('sidebar.error_get_config'));
   }

@@ -12,7 +12,7 @@ const props = defineProps<{
   serverType?: string;
 }>();
 
-const processes = ref<any[]>([]);
+const processes = ref<Record<string, unknown>[]>([]);
 const loading = ref(false);
 const autoRefresh = ref(false);
 let refreshInterval: ReturnType<typeof setInterval> | null = null;
@@ -20,6 +20,7 @@ const capabilities = ref<ServerCapabilities | null>(null);
 
 const processIdField = computed(() => capabilities.value?.processIdField ?? 'Id');
 const columns = computed(() => processes.value.length ? Object.keys(processes.value[0]) : []);
+const getProcId = (proc: Record<string, unknown>): string | number => proc[processIdField.value] as string | number;
 
 const load = async () => {
   if (loading.value) return;
@@ -27,22 +28,22 @@ const load = async () => {
   try {
     const result = await api.getProcessList(props.serverName);
     processes.value = Array.isArray(result) ? result : [];
-  } catch (err: any) {
-    const msg = err.message?.replace(/^Error invoking remote method '[^']+': (Error: )?/, '') || String(err);
+  } catch (err) {
+    const msg = (err instanceof Error ? err.message : undefined)?.replace(/^Error invoking remote method '[^']+': (Error: )?/, '') || String(err);
     showError($t('process_list.error_load'), msg);
   } finally {
     loading.value = false;
   }
 };
 
-const killProcess = async (id: number) => {
+const killProcess = async (id: number | string) => {
   const label = $t('process_list.confirm_kill').replace('{id}', String(id));
   if (!confirm(label)) return;
   try {
     await api.killProcess(props.serverName, id);
     await load();
-  } catch (err: any) {
-    const msg = err.message?.replace(/^Error invoking remote method '[^']+': (Error: )?/, '') || String(err);
+  } catch (err) {
+    const msg = (err instanceof Error ? err.message : undefined)?.replace(/^Error invoking remote method '[^']+': (Error: )?/, '') || String(err);
     showError($t('process_list.error_kill'), msg);
   }
 };
@@ -86,7 +87,7 @@ const colLabel = (col: string): string => {
   return map[col] ?? col;
 };
 
-const truncate = (val: any, max = 80) => {
+const truncate = (val: unknown, max = 80) => {
   if (val === null || val === undefined) return '';
   const s = String(val);
   return s.length > max ? s.slice(0, max) + '…' : s;
@@ -139,7 +140,7 @@ const truncate = (val: any, max = 80) => {
           </tr>
           <tr
             v-for="proc in processes"
-            :key="proc[processIdField]"
+            :key="getProcId(proc)"
             class="hover:bg-slate-50 dark:hover:bg-slate-800/40 group transition-colors"
           >
             <td v-for="col in columns" :key="col" class="px-3 py-1.5 text-xs text-slate-600 dark:text-slate-300 border-r border-slate-100 dark:border-slate-800/30 last:border-r-0 max-w-[200px]">
@@ -151,7 +152,7 @@ const truncate = (val: any, max = 80) => {
                 variant="danger"
                 size="xs"
                 class="opacity-0 group-hover:opacity-100"
-                @click="killProcess(proc[processIdField])"
+                @click="killProcess(getProcId(proc))"
                 :title="$t('process_list.kill')"
               >
                 <Skull :size="10" />

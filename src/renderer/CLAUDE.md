@@ -56,7 +56,7 @@ import { showError } from '../errorService';
 showError($t('some.error_title'), optionalDetailMessage);
 ```
 
-`<ErrorModal />` in `App.vue` is always mounted and reacts to `errorState`.
+`showError` forwards to `logService.addLog('error', ...)`. `<LogPanel />` in `App.vue` is always mounted and renders the log/error feed.
 
 ## Hotkeys: `hotkeys.ts`
 

@@ -1,5 +1,8 @@
-import mysql, { Connection } from 'mysql2/promise';
-import { IDatabaseDriver, ConnectionConfig, DatabaseInfo, TableInfo, TableDataResponse, SortConfig, ColumnInfo, TableIndex, ForeignKey, TypeGroup, ServerCapabilities, ServerVariablesResult } from '@shared/types/database';
+import mysql, { Connection, RowDataPacket, FieldPacket, QueryResult as MySQLQueryResult } from 'mysql2/promise';
+import { IDatabaseDriver, ConnectionConfig, DatabaseInfo, TableInfo, TableDataResponse, SortConfig, ColumnInfo, TableIndex, ForeignKey, TypeGroup, ServerCapabilities, ServerVariablesResult, QueryResult } from '@shared/types/database';
+
+// mysql2's execute() result shape: row data for SELECTs, OkPacket/ResultSetHeader for writes.
+type MySQLExecResult = [MySQLQueryResult, FieldPacket[]];
 
 function sanitizeValue(value: unknown): unknown {
   if (typeof value === 'bigint') return value.toString();
@@ -23,7 +26,7 @@ export class MySQLDriver implements IDatabaseDriver {
 
   static queryLogger: ((sql: string, durationMs: number, error?: string) => void) | null = null;
 
-  private async exec(sql: string, params?: any[]): Promise<any> {
+  private async exec(sql: string, params?: unknown[]): Promise<MySQLExecResult> {
     if (!this.connection) throw new Error('Not connected');
     const t0 = Date.now();
     try {
@@ -32,8 +35,9 @@ export class MySQLDriver implements IDatabaseDriver {
         : await this.connection.execute(sql);
       MySQLDriver.queryLogger?.(sql, Date.now() - t0);
       return result;
-    } catch (err: any) {
-      MySQLDriver.queryLogger?.(sql, Date.now() - t0, err.sqlMessage || err.message || String(err));
+    } catch (err: unknown) {
+      const dbErr = err as { sqlMessage?: string; message?: string };
+      MySQLDriver.queryLogger?.(sql, Date.now() - t0, dbErr.sqlMessage || dbErr.message || String(err));
       throw err;
     }
   }
@@ -57,8 +61,8 @@ export class MySQLDriver implements IDatabaseDriver {
   }
 
   async getDatabases(): Promise<DatabaseInfo[]> {
-    const [rows]: any = await this.exec('SHOW DATABASES');
-    return rows.map((row: any) => ({
+    const [rows] = await this.exec('SHOW DATABASES') as [RowDataPacket[], FieldPacket[]];
+    return rows.map((row) => ({
       name: row.Database,
       tables: []
     }));
@@ -72,8 +76,8 @@ export class MySQLDriver implements IDatabaseDriver {
       FROM information_schema.TABLES
       WHERE TABLE_SCHEMA = ?
     `;
-    const [rows]: any = await this.exec(query, [database]);
-    return rows.map((row: any) => ({
+    const [rows] = await this.exec(query, [database]) as [RowDataPacket[], FieldPacket[]];
+    return rows.map((row) => ({
       name: String(row.name || row.TABLE_NAME),
       size: Number(row.size !== undefined ? row.size : (Number(row.DATA_LENGTH || 0) + Number(row.INDEX_LENGTH || 0)))
     }));
@@ -86,9 +90,9 @@ export class MySQLDriver implements IDatabaseDriver {
       WHERE TABLE_SCHEMA = ?
       ORDER BY TABLE_NAME, ORDINAL_POSITION
     `;
-    const [rows]: any = await this.exec(query, [database]);
+    const [rows] = await this.exec(query, [database]) as [RowDataPacket[], FieldPacket[]];
     const schema: Record<string, string[]> = {};
-    rows.forEach((row: any) => {
+    rows.forEach((row) => {
       const tableName = row.TABLE_NAME || row.table_name || row.TableName;
       const columnName = row.COLUMN_NAME || row.column_name || row.ColumnName;
       if (tableName && columnName) {
@@ -115,9 +119,9 @@ export class MySQLDriver implements IDatabaseDriver {
       WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ?
       ORDER BY ORDINAL_POSITION
     `;
-    const [rows]: any = await this.exec(query, [database, table]);
-    return rows.map((row: any) => {
-      const getValue = (obj: any, key: string) => {
+    const [rows] = await this.exec(query, [database, table]) as [RowDataPacket[], FieldPacket[]];
+    return rows.map((row) => {
+      const getValue = (obj: RowDataPacket, key: string) => {
         const foundKey = Object.keys(obj).find(k => k.toLowerCase() === key.toLowerCase());
         return foundKey ? obj[foundKey] : undefined;
       };
@@ -155,9 +159,9 @@ export class MySQLDriver implements IDatabaseDriver {
       WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ?
       ORDER BY INDEX_NAME, SEQ_IN_INDEX
     `;
-    const [rows]: any = await this.exec(query, [database, table]);
+    const [rows] = await this.exec(query, [database, table]) as [RowDataPacket[], FieldPacket[]];
     const indexesMap = new Map<string, TableIndex>();
-    rows.forEach((row: any) => {
+    rows.forEach((row) => {
       const name = row.name;
       if (!indexesMap.has(name)) {
         let trueType = 'INDEX';
@@ -196,9 +200,9 @@ export class MySQLDriver implements IDatabaseDriver {
         AND k.REFERENCED_TABLE_NAME IS NOT NULL
       ORDER BY k.CONSTRAINT_NAME, k.ORDINAL_POSITION
     `;
-    const [rows]: any = await this.exec(query, [database, table]);
+    const [rows] = await this.exec(query, [database, table]) as [RowDataPacket[], FieldPacket[]];
     const fksMap = new Map<string, ForeignKey>();
-    rows.forEach((row: any) => {
+    rows.forEach((row) => {
       const name = row.name;
       if (!fksMap.has(name)) {
         fksMap.set(name, {
@@ -219,7 +223,7 @@ export class MySQLDriver implements IDatabaseDriver {
   async getTableCreateStatement(database: string, table: string): Promise<string> {
     const escapedDb = database.replace(/`/g, '``');
     const escapedTable = table.replace(/`/g, '``');
-    const [rows]: any = await this.exec(`SHOW CREATE TABLE \`${escapedDb}\`.\`${escapedTable}\``);
+    const [rows] = await this.exec(`SHOW CREATE TABLE \`${escapedDb}\`.\`${escapedTable}\``) as [RowDataPacket[], FieldPacket[]];
     if (rows && rows.length > 0) {
       const row = rows[0];
       const createTableKey = Object.keys(row).find(k => k.toLowerCase() === 'create table');
@@ -234,11 +238,11 @@ export class MySQLDriver implements IDatabaseDriver {
     const fullTableName = `\`${escapedDb}\`.\`${escapedTable}\``;
 
     const colQuery = `SELECT COLUMN_NAME FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ? ORDER BY ORDINAL_POSITION`;
-    const [colRows]: any = await this.exec(colQuery, [database, table]);
-    const columns = colRows.map((r: any) => r.COLUMN_NAME);
+    const [colRows] = await this.exec(colQuery, [database, table]) as [RowDataPacket[], FieldPacket[]];
+    const columns: string[] = colRows.map((r) => r.COLUMN_NAME);
 
     let whereClause = '';
-    const params: any[] = [];
+    const params: unknown[] = [];
     if (filter && columns.length > 0) {
       const trimmedFilter = filter.trim();
       const lowerFilter = trimmedFilter.toLowerCase();
@@ -272,10 +276,10 @@ export class MySQLDriver implements IDatabaseDriver {
     const query = `SELECT * FROM ${fullTableName} ${whereClause} ${orderBy} LIMIT ${safeLimit} OFFSET ${safeOffset}`;
     const countQuery = `SELECT COUNT(*) as total FROM ${fullTableName} ${whereClause}`;
 
-    const [[rows], [countRows]]: any = await Promise.all([
+    const [[rows], [countRows]] = await Promise.all([
       this.exec(query, params),
       this.exec(countQuery, params)
-    ]);
+    ]) as [[RowDataPacket[], FieldPacket[]], [RowDataPacket[], FieldPacket[]]];
 
     return {
       columns,
@@ -284,9 +288,9 @@ export class MySQLDriver implements IDatabaseDriver {
     };
   }
 
-  async executeQuery(sql: string): Promise<any> {
-    const [result]: any = await this.exec(sql);
-    return Array.isArray(result) ? sanitizeRows(result) : result;
+  async executeQuery(sql: string): Promise<QueryResult> {
+    const [result] = await this.exec(sql);
+    return Array.isArray(result) ? sanitizeRows(result as RowDataPacket[]) : result as unknown as Record<string, unknown>;
   }
 
   async addIndex(database: string, table: string, index: TableIndex): Promise<void> {
@@ -427,7 +431,7 @@ export class MySQLDriver implements IDatabaseDriver {
     return "'" + val.replace(/\\/g, '\\\\').replace(/'/g, "\\'") + "'";
   }
 
-  async runTableMaintenance(database: string, table: string, op: string): Promise<any> {
+  async runTableMaintenance(database: string, table: string, op: string): Promise<QueryResult> {
     const db = this.escapeIdentifier(database);
     const tbl = this.escapeIdentifier(table);
     return this.executeQuery(`${op.toUpperCase()} TABLE ${db}.${tbl}`);
@@ -450,8 +454,8 @@ export class MySQLDriver implements IDatabaseDriver {
     };
   }
 
-  async getProcessList(): Promise<any[]> {
-    const [rows]: any = await this.exec('SHOW PROCESSLIST');
+  async getProcessList(): Promise<Record<string, unknown>[]> {
+    const [rows] = await this.exec('SHOW PROCESSLIST') as [RowDataPacket[], FieldPacket[]];
     return rows;
   }
 
@@ -460,9 +464,9 @@ export class MySQLDriver implements IDatabaseDriver {
   }
 
   async getServerVariables(): Promise<ServerVariablesResult> {
-    const [vars]: any = await this.exec('SHOW VARIABLES');
-    const [stat]: any = await this.exec('SHOW GLOBAL STATUS');
-    const normalize = (rows: any[]) => rows.map((r: any) => ({
+    const [vars] = await this.exec('SHOW VARIABLES') as [RowDataPacket[], FieldPacket[]];
+    const [stat] = await this.exec('SHOW GLOBAL STATUS') as [RowDataPacket[], FieldPacket[]];
+    const normalize = (rows: RowDataPacket[]) => rows.map((r) => ({
       name: r.Variable_name ?? r.variable_name ?? r.Name ?? '',
       value: String(r.Value ?? r.value ?? ''),
     }));

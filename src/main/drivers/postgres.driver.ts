@@ -1,7 +1,7 @@
-import { Client, QueryResult } from 'pg';
+import { Client, QueryResult as PgQueryResult } from 'pg';
 import {
   IDatabaseDriver, ConnectionConfig, DatabaseInfo, TableInfo, TableDataResponse,
-  SortConfig, ColumnInfo, TableIndex, ForeignKey, TypeGroup, ServerCapabilities, ServerVariablesResult
+  SortConfig, ColumnInfo, TableIndex, ForeignKey, TypeGroup, ServerCapabilities, ServerVariablesResult, QueryResult
 } from '@shared/types/database';
 
 const PG_TYPE_MAP: Record<string, string> = {
@@ -38,28 +38,28 @@ export class PostgreSQLDriver implements IDatabaseDriver {
 
   static queryLogger: ((sql: string, durationMs: number, error?: string) => void) | null = null;
 
-  private async exec(sql: string, params?: any[]): Promise<any[]> {
+  private async exec<T = Record<string, unknown>>(sql: string, params?: unknown[]): Promise<T[]> {
     if (!this.client) throw new Error('Not connected');
     const t0 = Date.now();
     try {
       const result = await this.client.query(sql, params);
       PostgreSQLDriver.queryLogger?.(sql, Date.now() - t0);
       return result.rows;
-    } catch (err: any) {
-      PostgreSQLDriver.queryLogger?.(sql, Date.now() - t0, err.message || String(err));
+    } catch (err: unknown) {
+      PostgreSQLDriver.queryLogger?.(sql, Date.now() - t0, err instanceof Error ? err.message : String(err));
       throw err;
     }
   }
 
-  private async execRaw(sql: string, params?: any[]): Promise<QueryResult> {
+  private async execRaw(sql: string, params?: unknown[]): Promise<PgQueryResult> {
     if (!this.client) throw new Error('Not connected');
     const t0 = Date.now();
     try {
       const result = await this.client.query(sql, params);
       PostgreSQLDriver.queryLogger?.(sql, Date.now() - t0);
       return result;
-    } catch (err: any) {
-      PostgreSQLDriver.queryLogger?.(sql, Date.now() - t0, err.message || String(err));
+    } catch (err: unknown) {
+      PostgreSQLDriver.queryLogger?.(sql, Date.now() - t0, err instanceof Error ? err.message : String(err));
       throw err;
     }
   }
@@ -91,14 +91,14 @@ export class PostgreSQLDriver implements IDatabaseDriver {
   }
 
   async getDatabases(): Promise<DatabaseInfo[]> {
-    const rows = await this.exec(
+    const rows = await this.exec<{ name: string }>(
       `SELECT datname as name FROM pg_database WHERE datistemplate = false ORDER BY datname`
     );
     return rows.map(row => ({ name: row.name, tables: [] }));
   }
 
   async getTables(_database: string): Promise<TableInfo[]> {
-    const rows = await this.exec(
+    const rows = await this.exec<{ name: string; size: string | number }>(
       `SELECT tablename as name, pg_total_relation_size(quote_ident(tablename))::bigint as size
        FROM pg_tables WHERE schemaname = 'public' ORDER BY tablename`
     );
@@ -106,7 +106,7 @@ export class PostgreSQLDriver implements IDatabaseDriver {
   }
 
   async getSchema(_database: string): Promise<Record<string, string[]>> {
-    const rows = await this.exec(
+    const rows = await this.exec<{ table_name: string; column_name: string }>(
       `SELECT table_name, column_name
        FROM information_schema.columns
        WHERE table_schema = 'public' AND table_catalog = current_database()
@@ -121,7 +121,20 @@ export class PostgreSQLDriver implements IDatabaseDriver {
   }
 
   async getTableColumns(_database: string, table: string): Promise<ColumnInfo[]> {
-    const rows = await this.exec(`
+    interface PgColumnRow {
+      column_name: string;
+      data_type: string;
+      udt_name: string;
+      character_maximum_length: number | null;
+      numeric_precision: number | null;
+      numeric_scale: number | null;
+      is_nullable: string;
+      column_default: string | null;
+      is_generated: string;
+      generation_expression: string | null;
+      col_key: string;
+    }
+    const rows = await this.exec<PgColumnRow>(`
       SELECT
         c.column_name,
         c.data_type,
@@ -177,7 +190,14 @@ export class PostgreSQLDriver implements IDatabaseDriver {
   }
 
   async getTableIndexes(_database: string, table: string): Promise<TableIndex[]> {
-    const rows = await this.exec(`
+    interface PgIndexRow {
+      index_name: string;
+      is_primary: boolean;
+      is_unique: boolean;
+      column_name: string;
+      method: string;
+    }
+    const rows = await this.exec<PgIndexRow>(`
       SELECT
         i.relname as index_name,
         ix.indisprimary as is_primary,
@@ -215,7 +235,15 @@ export class PostgreSQLDriver implements IDatabaseDriver {
   }
 
   async getTableForeignKeys(_database: string, table: string): Promise<ForeignKey[]> {
-    const rows = await this.exec(`
+    interface PgFkRow {
+      name: string;
+      column_name: string;
+      referenced_table: string;
+      referenced_column: string;
+      update_rule: string;
+      delete_rule: string;
+    }
+    const rows = await this.exec<PgFkRow>(`
       SELECT
         tc.constraint_name as name,
         kcu.column_name,
@@ -290,13 +318,13 @@ export class PostgreSQLDriver implements IDatabaseDriver {
   async getTableData(_database: string, table: string, limit: number, offset: number, sort?: SortConfig[], filter?: string): Promise<TableDataResponse> {
     const esc = (n: string) => this.escapeIdentifier(n);
 
-    const colRows = await this.exec(
+    const colRows = await this.exec<{ column_name: string }>(
       `SELECT column_name FROM information_schema.columns WHERE table_schema = 'public' AND table_name = $1 ORDER BY ordinal_position`,
       [table]
     );
     const columns = colRows.map(r => r.column_name);
 
-    const filterParams: any[] = [];
+    const filterParams: unknown[] = [];
     let whereClause = '';
 
     if (filter && columns.length > 0) {
@@ -338,7 +366,7 @@ export class PostgreSQLDriver implements IDatabaseDriver {
     };
   }
 
-  async executeQuery(sql: string): Promise<any> {
+  async executeQuery(sql: string): Promise<QueryResult> {
     const result = await this.execRaw(sql);
     if (result.rows && result.rows.length > 0) return result.rows;
     return { affectedRows: result.rowCount ?? 0 };
@@ -465,7 +493,7 @@ export class PostgreSQLDriver implements IDatabaseDriver {
     };
   }
 
-  async getProcessList(): Promise<any[]> {
+  async getProcessList(): Promise<Record<string, unknown>[]> {
     return this.exec(`
       SELECT pid, usename as "User", client_addr as "Host", datname as "db",
              state as "Command",
@@ -482,14 +510,14 @@ export class PostgreSQLDriver implements IDatabaseDriver {
   }
 
   async getServerVariables(): Promise<ServerVariablesResult> {
-    const rows = await this.exec(`SELECT name, setting as value FROM pg_settings ORDER BY name`);
+    const rows = await this.exec<{ name: string; value: string }>(`SELECT name, setting as value FROM pg_settings ORDER BY name`);
     return {
       variables: rows.map(r => ({ name: r.name, value: String(r.value ?? '') })),
       status: [],
     };
   }
 
-  async runTableMaintenance(_database: string, table: string, op: string): Promise<any> {
+  async runTableMaintenance(_database: string, table: string, op: string): Promise<QueryResult> {
     const esc = (n: string) => this.escapeIdentifier(n);
     return this.executeQuery(`${op.toUpperCase()} ${esc(table)}`);
   }

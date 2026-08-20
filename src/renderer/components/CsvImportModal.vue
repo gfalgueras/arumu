@@ -94,7 +94,9 @@ watch(firstRowIsHeader, () => {
       csvHeaders.value = (allRows[0] || []).map((_, i) => `Column ${i + 1}`);
       csvRows.value = allRows;
     }
-  } catch {}
+  } catch {
+    // malformed CSV — leave headers/rows unset, form validation catches it
+  }
 });
 
 const escId = (s: string) => '`' + s.replace(/`/g, '``') + '`';
@@ -135,8 +137,8 @@ const doImport = async () => {
     alert($t('import.success').replace('{n}', String(imported)));
     emit('imported');
     emit('close');
-  } catch (err: any) {
-    const msg = err.message?.replace(/^Error invoking remote method '[^']+': (Error: )?/, '') || String(err);
+  } catch (err) {
+    const msg = (err instanceof Error ? err.message : undefined)?.replace(/^Error invoking remote method '[^']+': (Error: )?/, '') || String(err);
     showError($t('import.error'), msg);
   } finally {
     importing.value = false;

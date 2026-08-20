@@ -1,51 +1,72 @@
-const electronAPI = (window as any).electronAPI;
+import type {
+  ServerInfo, StoredServer, DatabaseInfo, TableInfo, ColumnInfo, TableIndex, ForeignKey,
+  TableDataResponse, SortConfig, AppState, AppSettings, TypeGroup, ServerCapabilities,
+  ServerVariablesResult, QueryHistoryEntry, QuerySnippet, QueryResult,
+} from '@shared/types/database';
+import type { FileFilter } from 'electron';
+
+interface ElectronAPI {
+  invoke(channel: string, ...args: unknown[]): Promise<unknown>;
+  on(channel: string, callback: (...args: unknown[]) => void): () => void;
+}
+
+declare global {
+  interface Window {
+    electronAPI?: ElectronAPI;
+  }
+}
+
+const electronAPI = window.electronAPI as ElectronAPI;
 
 if (!electronAPI) {
   console.warn('Electron API not found. If you are running in a browser, IPC calls will fail.');
 }
 
 // Deep clean objects to remove Vue Proxies and ensure clonability for Electron IPC
-const clean = (obj: any) => obj !== undefined ? JSON.parse(JSON.stringify(obj)) : undefined;
+const clean = <T>(obj: T): T | undefined => obj !== undefined ? JSON.parse(JSON.stringify(obj)) : undefined;
 
 export const api = {
-  getServers: () => electronAPI.invoke('api:getServers'),
-  getDatabases: (serverName: string) => electronAPI.invoke('api:getDatabases', serverName),
-  getTables: (serverName: string, dbName: string) => electronAPI.invoke('api:getTables', serverName, dbName),
-  getColumns: (serverName: string, dbName: string, tableName: string) => electronAPI.invoke('api:getTableColumns', serverName, dbName, tableName),
-  connect: (storedServer: any) => electronAPI.invoke('api:connect', clean(storedServer)),
-  getStoredServers: () => electronAPI.invoke('api:getStoredServers'),
-  saveStoredServer: (server: any) => electronAPI.invoke('api:saveStoredServer', clean(server)),
-  updateStoredServer: (name: string, server: any) => electronAPI.invoke('api:updateStoredServer', name, clean(server)),
-  getAppState: () => electronAPI.invoke('api:getAppState'),
-  saveAppState: (state: any) => electronAPI.invoke('api:saveAppState', clean(state)),
-  getAppSettings: () => electronAPI.invoke('api:getAppSettings'),
-  saveAppSettings: (settings: any) => electronAPI.invoke('api:saveAppSettings', clean(settings)),
-  disconnectServer: (name: string) => electronAPI.invoke('api:disconnectServer', name),
-  getTableData: (serverName: string, dbName: string, tableName: string, options: any) => electronAPI.invoke('api:getTableData', serverName, dbName, tableName, clean(options)),
-  getTableIndexes: (serverName: string, dbName: string, tableName: string) => electronAPI.invoke('api:getTableIndexes', serverName, dbName, tableName),
-  addIndex: (serverName: string, dbName: string, tableName: string, index: any) => electronAPI.invoke('api:addIndex', serverName, dbName, tableName, clean(index)),
-  dropIndex: (serverName: string, dbName: string, tableName: string, indexName: string) => electronAPI.invoke('api:dropIndex', serverName, dbName, tableName, indexName),
-  getTableForeignKeys: (serverName: string, dbName: string, tableName: string) => electronAPI.invoke('api:getTableForeignKeys', serverName, dbName, tableName),
-  addForeignKey: (serverName: string, dbName: string, tableName: string, fk: any) => electronAPI.invoke('api:addForeignKey', serverName, dbName, tableName, clean(fk)),
-  dropForeignKey: (serverName: string, dbName: string, tableName: string, fkName: string) => electronAPI.invoke('api:dropForeignKey', serverName, dbName, tableName, fkName),
-  addColumn: (serverName: string, dbName: string, tableName: string, column: any, afterColumn: any) => electronAPI.invoke('api:addColumn', serverName, dbName, tableName, clean(column), afterColumn),
-  updateColumn: (serverName: string, dbName: string, tableName: string, oldName: string, column: any, afterColumn: any) => electronAPI.invoke('api:updateColumn', serverName, dbName, tableName, oldName, clean(column), afterColumn),
-  getTableCreateStatement: (serverName: string, dbName: string, tableName: string) => electronAPI.invoke('api:getTableCreateStatement', serverName, dbName, tableName),
-  executeSql: (serverName: string, sql: string, database: string) => electronAPI.invoke('api:executeSql', serverName, sql, database),
-  getSupportedTypes: (serverName: string) => electronAPI.invoke('api:getSupportedTypes', serverName),
-  getSchema: (serverName: string, dbName: string) => electronAPI.invoke('api:getSchema', serverName, dbName),
-  getQueryHistory: () => electronAPI.invoke('api:getQueryHistory'),
-  addQueryHistory: (entry: any) => electronAPI.invoke('api:addQueryHistory', clean(entry)),
-  clearQueryHistory: () => electronAPI.invoke('api:clearQueryHistory'),
-  getProcessList: (serverName: string) => electronAPI.invoke('api:getProcessList', serverName),
-  killProcess: (serverName: string, processId: number) => electronAPI.invoke('api:killProcess', serverName, processId),
-  saveExportFile: (defaultFilename: string, content: string, filters: any[]) => electronAPI.invoke('api:saveExportFile', defaultFilename, content, clean(filters)),
-  exportTableData: (serverName: string, dbName: string, tableName: string, format: string, filter: string, sort: any[]) => electronAPI.invoke('api:exportTableData', serverName, dbName, tableName, format, filter, clean(sort)),
-  tableMaintenanceOp: (serverName: string, dbName: string, tableName: string, op: string) => electronAPI.invoke('api:tableMaintenanceOp', serverName, dbName, tableName, op),
-  getServerVariables: (serverName: string) => electronAPI.invoke('api:getServerVariables', serverName),
-  getServerCapabilities: (serverName: string) => electronAPI.invoke('api:getServerCapabilities', serverName),
-  openFileDialog: (filters: any[]) => electronAPI.invoke('api:openFileDialog', clean(filters)),
-  getSnippets: () => electronAPI.invoke('api:getSnippets'),
-  saveSnippet: (snippet: any) => electronAPI.invoke('api:saveSnippet', clean(snippet)),
-  deleteSnippet: (id: string) => electronAPI.invoke('api:deleteSnippet', id),
+  getServers: (): Promise<ServerInfo[]> => electronAPI.invoke('api:getServers') as Promise<ServerInfo[]>,
+  getDatabases: (serverName: string): Promise<DatabaseInfo[]> => electronAPI.invoke('api:getDatabases', serverName) as Promise<DatabaseInfo[]>,
+  getTables: (serverName: string, dbName: string): Promise<TableInfo[]> => electronAPI.invoke('api:getTables', serverName, dbName) as Promise<TableInfo[]>,
+  getColumns: (serverName: string, dbName: string, tableName: string): Promise<ColumnInfo[]> => electronAPI.invoke('api:getTableColumns', serverName, dbName, tableName) as Promise<ColumnInfo[]>,
+  connect: (storedServer: StoredServer): Promise<ServerInfo> => electronAPI.invoke('api:connect', clean(storedServer)) as Promise<ServerInfo>,
+  getStoredServers: (): Promise<StoredServer[]> => electronAPI.invoke('api:getStoredServers') as Promise<StoredServer[]>,
+  saveStoredServer: (server: StoredServer): Promise<StoredServer> => electronAPI.invoke('api:saveStoredServer', clean(server)) as Promise<StoredServer>,
+  updateStoredServer: (name: string, server: StoredServer): Promise<StoredServer> => electronAPI.invoke('api:updateStoredServer', name, clean(server)) as Promise<StoredServer>,
+  getAppState: (): Promise<AppState | null> => electronAPI.invoke('api:getAppState') as Promise<AppState | null>,
+  saveAppState: (state: AppState): Promise<void> => electronAPI.invoke('api:saveAppState', clean(state)) as Promise<void>,
+  getAppSettings: (): Promise<AppSettings> => electronAPI.invoke('api:getAppSettings') as Promise<AppSettings>,
+  saveAppSettings: (settings: AppSettings): Promise<void> => electronAPI.invoke('api:saveAppSettings', clean(settings)) as Promise<void>,
+  disconnectServer: (name: string): Promise<void> => electronAPI.invoke('api:disconnectServer', name) as Promise<void>,
+  getTableData: (serverName: string, dbName: string, tableName: string, options: { limit: number; offset: number; sort?: SortConfig[]; filter?: string }): Promise<TableDataResponse> =>
+    electronAPI.invoke('api:getTableData', serverName, dbName, tableName, clean(options)) as Promise<TableDataResponse>,
+  getTableIndexes: (serverName: string, dbName: string, tableName: string): Promise<TableIndex[]> => electronAPI.invoke('api:getTableIndexes', serverName, dbName, tableName) as Promise<TableIndex[]>,
+  addIndex: (serverName: string, dbName: string, tableName: string, index: TableIndex): Promise<void> => electronAPI.invoke('api:addIndex', serverName, dbName, tableName, clean(index)) as Promise<void>,
+  dropIndex: (serverName: string, dbName: string, tableName: string, indexName: string): Promise<void> => electronAPI.invoke('api:dropIndex', serverName, dbName, tableName, indexName) as Promise<void>,
+  getTableForeignKeys: (serverName: string, dbName: string, tableName: string): Promise<ForeignKey[]> => electronAPI.invoke('api:getTableForeignKeys', serverName, dbName, tableName) as Promise<ForeignKey[]>,
+  addForeignKey: (serverName: string, dbName: string, tableName: string, fk: ForeignKey): Promise<void> => electronAPI.invoke('api:addForeignKey', serverName, dbName, tableName, clean(fk)) as Promise<void>,
+  dropForeignKey: (serverName: string, dbName: string, tableName: string, fkName: string): Promise<void> => electronAPI.invoke('api:dropForeignKey', serverName, dbName, tableName, fkName) as Promise<void>,
+  addColumn: (serverName: string, dbName: string, tableName: string, column: ColumnInfo, afterColumn?: string): Promise<void> => electronAPI.invoke('api:addColumn', serverName, dbName, tableName, clean(column), afterColumn) as Promise<void>,
+  updateColumn: (serverName: string, dbName: string, tableName: string, oldName: string, column: ColumnInfo, afterColumn?: string): Promise<void> => electronAPI.invoke('api:updateColumn', serverName, dbName, tableName, oldName, clean(column), afterColumn) as Promise<void>,
+  getTableCreateStatement: (serverName: string, dbName: string, tableName: string): Promise<{ statement: string }> => electronAPI.invoke('api:getTableCreateStatement', serverName, dbName, tableName) as Promise<{ statement: string }>,
+  executeSql: (serverName: string, sql: string, database: string): Promise<QueryResult> => electronAPI.invoke('api:executeSql', serverName, sql, database) as Promise<QueryResult>,
+  getSupportedTypes: (serverName: string): Promise<TypeGroup[]> => electronAPI.invoke('api:getSupportedTypes', serverName) as Promise<TypeGroup[]>,
+  getSchema: (serverName: string, dbName: string): Promise<Record<string, string[]>> => electronAPI.invoke('api:getSchema', serverName, dbName) as Promise<Record<string, string[]>>,
+  getQueryHistory: (): Promise<QueryHistoryEntry[]> => electronAPI.invoke('api:getQueryHistory') as Promise<QueryHistoryEntry[]>,
+  addQueryHistory: (entry: QueryHistoryEntry): Promise<void> => electronAPI.invoke('api:addQueryHistory', clean(entry)) as Promise<void>,
+  clearQueryHistory: (): Promise<void> => electronAPI.invoke('api:clearQueryHistory') as Promise<void>,
+  getProcessList: (serverName: string): Promise<Record<string, unknown>[]> => electronAPI.invoke('api:getProcessList', serverName) as Promise<Record<string, unknown>[]>,
+  killProcess: (serverName: string, processId: number | string): Promise<void> => electronAPI.invoke('api:killProcess', serverName, processId) as Promise<void>,
+  saveExportFile: (defaultFilename: string, content: string, filters: FileFilter[]): Promise<{ saved: boolean; filePath?: string }> =>
+    electronAPI.invoke('api:saveExportFile', defaultFilename, content, clean(filters)) as Promise<{ saved: boolean; filePath?: string }>,
+  exportTableData: (serverName: string, dbName: string, tableName: string, format: string, filter: string, sort: SortConfig[]): Promise<{ saved: boolean; filePath?: string }> =>
+    electronAPI.invoke('api:exportTableData', serverName, dbName, tableName, format, filter, clean(sort)) as Promise<{ saved: boolean; filePath?: string }>,
+  tableMaintenanceOp: (serverName: string, dbName: string, tableName: string, op: string): Promise<QueryResult> => electronAPI.invoke('api:tableMaintenanceOp', serverName, dbName, tableName, op) as Promise<QueryResult>,
+  getServerVariables: (serverName: string): Promise<ServerVariablesResult> => electronAPI.invoke('api:getServerVariables', serverName) as Promise<ServerVariablesResult>,
+  getServerCapabilities: (serverName: string): Promise<ServerCapabilities> => electronAPI.invoke('api:getServerCapabilities', serverName) as Promise<ServerCapabilities>,
+  openFileDialog: (filters: FileFilter[]): Promise<{ filePath: string; content: string } | null> => electronAPI.invoke('api:openFileDialog', clean(filters)) as Promise<{ filePath: string; content: string } | null>,
+  getSnippets: (): Promise<QuerySnippet[]> => electronAPI.invoke('api:getSnippets') as Promise<QuerySnippet[]>,
+  saveSnippet: (snippet: QuerySnippet): Promise<void> => electronAPI.invoke('api:saveSnippet', clean(snippet)) as Promise<void>,
+  deleteSnippet: (id: string): Promise<void> => electronAPI.invoke('api:deleteSnippet', id) as Promise<void>,
 };

@@ -5,9 +5,12 @@ import ContextMenu from './Sidebar/ContextMenu.vue';
 import ServerItem from './Sidebar/ServerItem.vue';
 import { $t } from '../i18n';
 import { APP_VERSION } from '../config';
+import type { ServerInfo, DatabaseInfo, TableInfo } from '@shared/types/database';
+
+defineOptions({ name: 'AppSidebar' });
 
 const props = defineProps<{
-  servers: any[];
+  servers: ServerInfo[];
   selectedServerName: string | null;
   selectedDatabase: string | null;
   selectedTable: string | null;
@@ -90,13 +93,13 @@ type VisibleItem =
 const visibleItems = computed<VisibleItem[]>(() => {
   const result: VisibleItem[] = [];
   for (const server of props.servers) {
-    const serverDbs: any[] = server.databases || [];
-    const filteredDbs = serverDbs.filter((db: any) => {
+    const serverDbs: DatabaseInfo[] = server.databases || [];
+    const filteredDbs = serverDbs.filter((db: DatabaseInfo) => {
       const isSelected = server.name === props.selectedServerName && db.name === props.selectedDatabase;
       if (isSelected) return true;
       if (props.dbFilter && !db.name.toLowerCase().includes(props.dbFilter.toLowerCase())) return false;
       if (props.tableFilter && (db.tables || []).length > 0) {
-        if (!(db.tables || []).some((t: any) => t.name.toLowerCase().includes(props.tableFilter.toLowerCase()))) return false;
+        if (!(db.tables || []).some((t: TableInfo) => t.name.toLowerCase().includes(props.tableFilter.toLowerCase()))) return false;
       }
       return true;
     });
@@ -112,7 +115,7 @@ const visibleItems = computed<VisibleItem[]>(() => {
 
       if (!expandedDbIds.includes(db.name)) continue;
 
-      const tables: any[] = (db.tables || []).filter((t: any) => {
+      const tables: TableInfo[] = (db.tables || []).filter((t: TableInfo) => {
         if (server.name === props.selectedServerName && db.name === props.selectedDatabase && t.name === props.selectedTable) return true;
         return !props.tableFilter || t.name.toLowerCase().includes(props.tableFilter.toLowerCase());
       });

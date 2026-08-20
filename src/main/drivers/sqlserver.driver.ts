@@ -1,7 +1,7 @@
 import * as sql from 'mssql';
 import {
   IDatabaseDriver, ConnectionConfig, DatabaseInfo, TableInfo, TableDataResponse,
-  SortConfig, ColumnInfo, TableIndex, ForeignKey, TypeGroup, ServerCapabilities, ServerVariablesResult
+  SortConfig, ColumnInfo, TableIndex, ForeignKey, TypeGroup, ServerCapabilities, ServerVariablesResult, QueryResult
 } from '@shared/types/database';
 
 export class SQLServerDriver implements IDatabaseDriver {
@@ -10,7 +10,7 @@ export class SQLServerDriver implements IDatabaseDriver {
   static queryLogger: ((sql: string, durationMs: number, error?: string) => void) | null = null;
 
   // Converts positional ? params to @p1, @p2... and builds the mssql request
-  private buildRequest(querySql: string, params: any[] = []): { request: sql.Request; sql: string } {
+  private buildRequest(querySql: string, params: unknown[] = []): { request: sql.Request; sql: string } {
     if (!this.pool) throw new Error('Not connected');
     const request = this.pool.request();
     let idx = 0;
@@ -21,28 +21,28 @@ export class SQLServerDriver implements IDatabaseDriver {
     return { request, sql: parameterized };
   }
 
-  private async exec(querySql: string, params: any[] = []): Promise<any[]> {
+  private async exec<T = Record<string, unknown>>(querySql: string, params: unknown[] = []): Promise<T[]> {
     const t0 = Date.now();
     try {
       const { request, sql: paramSql } = this.buildRequest(querySql, params);
       const result = await request.query(paramSql);
       SQLServerDriver.queryLogger?.(querySql, Date.now() - t0);
       return result.recordset ?? [];
-    } catch (err: any) {
-      SQLServerDriver.queryLogger?.(querySql, Date.now() - t0, err.message || String(err));
+    } catch (err: unknown) {
+      SQLServerDriver.queryLogger?.(querySql, Date.now() - t0, err instanceof Error ? err.message : String(err));
       throw err;
     }
   }
 
-  private async execRaw(querySql: string, params: any[] = []): Promise<sql.IResult<any>> {
+  private async execRaw(querySql: string, params: unknown[] = []): Promise<sql.IResult<Record<string, unknown>>> {
     const t0 = Date.now();
     try {
       const { request, sql: paramSql } = this.buildRequest(querySql, params);
       const result = await request.query(paramSql);
       SQLServerDriver.queryLogger?.(querySql, Date.now() - t0);
       return result;
-    } catch (err: any) {
-      SQLServerDriver.queryLogger?.(querySql, Date.now() - t0, err.message || String(err));
+    } catch (err: unknown) {
+      SQLServerDriver.queryLogger?.(querySql, Date.now() - t0, err instanceof Error ? err.message : String(err));
       throw err;
     }
   }
@@ -100,7 +100,7 @@ export class SQLServerDriver implements IDatabaseDriver {
   }
 
   async getSchema(_database: string): Promise<Record<string, string[]>> {
-    const rows = await this.exec(`
+    const rows = await this.exec<{ TABLE_NAME: string; COLUMN_NAME: string }>(`
       SELECT TABLE_NAME, COLUMN_NAME
       FROM INFORMATION_SCHEMA.COLUMNS
       ORDER BY TABLE_NAME, ORDINAL_POSITION
@@ -114,7 +114,18 @@ export class SQLServerDriver implements IDatabaseDriver {
   }
 
   async getTableColumns(_database: string, table: string): Promise<ColumnInfo[]> {
-    const rows = await this.exec(`
+    interface MssqlColumnRow {
+      name: string;
+      type: string;
+      char_length: number | null;
+      num_precision: number | null;
+      num_scale: number | null;
+      nullable: string;
+      col_default: string | null;
+      is_identity: number;
+      col_key: string;
+    }
+    const rows = await this.exec<MssqlColumnRow>(`
       SELECT
         c.COLUMN_NAME as name,
         c.DATA_TYPE as type,
@@ -159,7 +170,14 @@ export class SQLServerDriver implements IDatabaseDriver {
   }
 
   async getTableIndexes(_database: string, table: string): Promise<TableIndex[]> {
-    const rows = await this.exec(`
+    interface MssqlIndexRow {
+      index_name: string;
+      is_primary_key: boolean;
+      is_unique: boolean;
+      column_name: string;
+      method: string;
+    }
+    const rows = await this.exec<MssqlIndexRow>(`
       SELECT
         i.name as index_name,
         i.is_primary_key,
@@ -275,7 +293,7 @@ export class SQLServerDriver implements IDatabaseDriver {
     );
     const columns = colRows.map(r => r.COLUMN_NAME as string);
 
-    const filterParams: any[] = [];
+    const filterParams: unknown[] = [];
     let whereClause = '';
 
     if (filter && columns.length > 0) {
@@ -315,7 +333,7 @@ export class SQLServerDriver implements IDatabaseDriver {
     };
   }
 
-  async executeQuery(querySql: string): Promise<any> {
+  async executeQuery(querySql: string): Promise<QueryResult> {
     const result = await this.execRaw(querySql);
     if (result.recordset && result.recordset.length > 0) return result.recordset;
     const affected = result.rowsAffected?.[0] ?? 0;
@@ -391,7 +409,7 @@ export class SQLServerDriver implements IDatabaseDriver {
     if (newColumn.length) typePart += `(${newColumn.length})`;
 
     // Drop existing DEFAULT constraint for this column
-    const defaultConstraints = await this.exec(`
+    const defaultConstraints = await this.exec<{ name: string }>(`
       SELECT d.name FROM sys.default_constraints d
       JOIN sys.columns c ON d.parent_object_id = c.object_id AND d.parent_column_id = c.column_id
       WHERE c.object_id = OBJECT_ID(?) AND c.name = ?
@@ -445,7 +463,7 @@ export class SQLServerDriver implements IDatabaseDriver {
     };
   }
 
-  async getProcessList(): Promise<any[]> {
+  async getProcessList(): Promise<Record<string, unknown>[]> {
     return this.exec(`
       SELECT
         r.session_id as spid,
@@ -483,15 +501,15 @@ export class SQLServerDriver implements IDatabaseDriver {
     };
   }
 
-  async runTableMaintenance(_database: string, table: string, op: string): Promise<any> {
+  async runTableMaintenance(_database: string, table: string, op: string): Promise<QueryResult> {
     const esc = (n: string) => this.escapeIdentifier(n);
     switch (op.toUpperCase()) {
       case 'REBUILD_INDEXES':
-        return this.exec(`ALTER INDEX ALL ON ${esc(table)} REBUILD`);
+        return this.exec<Record<string, unknown>>(`ALTER INDEX ALL ON ${esc(table)} REBUILD`);
       case 'UPDATE_STATISTICS':
-        return this.exec(`UPDATE STATISTICS ${esc(table)}`);
+        return this.exec<Record<string, unknown>>(`UPDATE STATISTICS ${esc(table)}`);
       case 'CHECK_INTEGRITY':
-        return this.exec(`DBCC CHECKTABLE(${this.escapeStringLiteral(table)})`);
+        return this.exec<Record<string, unknown>>(`DBCC CHECKTABLE(${this.escapeStringLiteral(table)})`);
       default:
         throw new Error(`Operation ${op} not supported in SQL Server`);
     }

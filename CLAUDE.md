@@ -114,7 +114,7 @@ pnpm lint       # ESLint on src/renderer
 | `QueryHistoryPanel.vue` | Browse and re-use past queries |
 | `QuerySnippetsPanel.vue` | Save/insert/delete SQL snippets |
 | `CsvImportModal.vue` | CSV file picker with column mapping |
-| `ErrorModal.vue` | Global error dialog |
+| `LogPanel.vue` | Global error/log panel |
 
 ## Active Tab System & State Persistence
 

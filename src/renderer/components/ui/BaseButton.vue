@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Loader2 } from 'lucide-vue-next';
 
-const props = withDefaults(defineProps<{
+withDefaults(defineProps<{
   variant?: 'primary' | 'secondary' | 'ghost' | 'text' | 'danger' | 'icon';
   size?: 'xs' | 'sm' | 'md';
   loading?: boolean;

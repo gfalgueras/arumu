@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { ref, computed, watch, onMounted, onUnmounted, onActivated, onDeactivated, shallowRef, type ComponentPublicInstance } from 'vue';
+import { ref, computed, watch, onUnmounted, onActivated, onDeactivated, shallowRef, type ComponentPublicInstance } from 'vue';
 import { Play, Loader2, AlertCircle, Database as DatabaseIcon, GripHorizontal, History, Zap, Bookmark } from 'lucide-vue-next';
 import CodeMirror from 'vue-codemirror6';
-import { sql, MySQL, PostgreSQL, SQLite, SQLDialect } from '@codemirror/lang-sql';
+import { sql, MySQL, PostgreSQL, SQLite, MSSQL, PLSQL, SQLDialect } from '@codemirror/lang-sql';
 import { oneDark } from '@codemirror/theme-one-dark';
 import { keymap, EditorView } from '@codemirror/view';
 import { autocompletion, completionKeymap, acceptCompletion } from '@codemirror/autocomplete';
@@ -12,10 +12,11 @@ import { api } from '../services/api';
 import { hotkeys, matchesHotkey, toCodeMirrorKey } from '../hotkeys';
 import QueryHistoryPanel from './QueryHistoryPanel.vue';
 import QuerySnippetsPanel from './QuerySnippetsPanel.vue';
+import type { ServerInfo, QueryResult } from '@shared/types/database';
 
 const props = defineProps<{
   serverName: string;
-  serverType: 'mysql' | 'postgres' | 'sqlite';
+  serverType: ServerInfo['type'];
   database: string | null;
 }>();
 
@@ -24,7 +25,7 @@ const height = defineModel<number>('height', { default: 300 });
 interface ResultTab {
   id: number;
   sql: string;
-  result: any;
+  result: QueryResult | null;
   error: string | null;
   duration: number;
 }
@@ -33,6 +34,10 @@ const loading = ref(false);
 const fetchingSchema = ref(false);
 const resultTabs = ref<ResultTab[]>([]);
 const activeResultTab = ref(0);
+const activeResultRows = computed<Record<string, unknown>[] | null>(() => {
+  const result = resultTabs.value[activeResultTab.value]?.result;
+  return Array.isArray(result) ? result : null;
+});
 const schema = shallowRef<Record<string, string[]>>({});
 const isResizing = ref(false);
 const editorContainerRef = ref<HTMLElement | null>(null);
@@ -111,8 +116,14 @@ watch(() => [props.serverName, props.database], async () => {
 }, { immediate: true });
 
 const extensions = computed(() => {
-  const baseDialect = props.serverType === 'postgres' ? PostgreSQL : 
-                      props.serverType === 'sqlite' ? SQLite : MySQL;
+  const dialectByServerType: Record<ServerInfo['type'], SQLDialect> = {
+    mysql: MySQL,
+    postgres: PostgreSQL,
+    sqlite: SQLite,
+    sqlserver: MSSQL,
+    oracle: PLSQL,
+  };
+  const baseDialect = dialectByServerType[props.serverType];
   const dialect = SQLDialect.define({
     ...baseDialect.spec,
     caseInsensitiveIdentifiers: true,
@@ -224,17 +235,17 @@ const handleExecute = async (rawSql: string, split = true) => {
   for (let i = 0; i < stmts.length; i++) {
     const stmt = stmts[i];
     const t0 = Date.now();
-    let result: any = null;
+    let result: QueryResult | null = null;
     let errorMsg: string | null = null;
     try {
       result = await api.executeSql(props.serverName, stmt, props.database || '');
       resultTabs.value.push({ id: i, sql: stmt, result, error: null, duration: Date.now() - t0 });
-    } catch (err: any) {
-      const raw: string = err.message || String(err);
+    } catch (err) {
+      const raw: string = (err instanceof Error ? err.message : undefined) || String(err);
       errorMsg = raw.replace(/^Error invoking remote method '[^']+': (Error: )?/, '');
       resultTabs.value.push({ id: i, sql: stmt, result: null, error: errorMsg, duration: Date.now() - t0 });
     }
-    const rowCount = Array.isArray(result) ? result.length : result?.affectedRows;
+    const rowCount = Array.isArray(result) ? result.length : (result?.affectedRows as number | undefined);
     api.addQueryHistory({
       id: Date.now().toString() + '_' + i,
       sql: stmt,
@@ -275,7 +286,8 @@ const insertSnippetQuery = (sql: string) => {
 const tabLabel = (tab: ResultTab): string => {
   if (tab.error) return `Error ${tab.id + 1}`;
   if (Array.isArray(tab.result)) return `Result ${tab.id + 1} (${tab.result.length} rows)`;
-  if (tab.result?.affectedRows !== undefined) return `Result ${tab.id + 1} (${tab.result.affectedRows} affected)`;
+  const affectedRows = tab.result?.affectedRows;
+  if (affectedRows !== undefined) return `Result ${tab.id + 1} (${affectedRows} affected)`;
   return `Result ${tab.id + 1}`;
 };
 
@@ -289,7 +301,7 @@ const handleExecuteFromButton = () => {
   handleExecute(text, true);
 };
 
-const formatCellValue = (val: any) => {
+const formatCellValue = (val: unknown) => {
   if (val === null) return 'NULL';
   
   // Detect ISO date strings and format them
@@ -522,17 +534,17 @@ const formatCellValue = (val: any) => {
                 <p class="text-sm font-mono whitespace-pre-wrap">{{ resultTabs[activeResultTab].error }}</p>
               </div>
             </div>
-            <div v-else-if="Array.isArray(resultTabs[activeResultTab].result)" class="flex-1 overflow-auto scrollbar-thin scrollbar-thumb-slate-300 dark:scrollbar-thumb-slate-700 scrollbar-track-transparent">
-              <table v-if="resultTabs[activeResultTab].result.length > 0" class="w-full text-left border-collapse min-w-max">
+            <div v-else-if="activeResultRows" class="flex-1 overflow-auto scrollbar-thin scrollbar-thumb-slate-300 dark:scrollbar-thumb-slate-700 scrollbar-track-transparent">
+              <table v-if="activeResultRows.length > 0" class="w-full text-left border-collapse min-w-max">
                 <thead class="sticky top-0 z-20 bg-slate-100 dark:bg-slate-800 shadow-sm">
                   <tr>
-                    <th v-for="col in Object.keys(resultTabs[activeResultTab].result[0])" :key="col" class="px-4 py-2 border-b border-slate-200 dark:border-slate-700 text-sm font-semibold text-slate-700 dark:text-slate-200">
+                    <th v-for="col in Object.keys(activeResultRows[0])" :key="col" class="px-4 py-2 border-b border-slate-200 dark:border-slate-700 text-sm font-semibold text-slate-700 dark:text-slate-200">
                       {{ col }}
                     </th>
                   </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-50 dark:divide-slate-800/50">
-                  <tr v-for="(row, i) in resultTabs[activeResultTab].result" :key="i" class="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
+                  <tr v-for="(row, i) in activeResultRows" :key="i" class="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
                     <td v-for="col in Object.keys(row)" :key="col" class="px-4 py-1.5 text-sm text-slate-600 dark:text-slate-300 truncate max-w-xs border-r border-slate-100 dark:border-slate-800/30 last:border-r-0">
                       <span v-if="row[col] === null" class="text-slate-400 dark:text-slate-600 italic text-xs">NULL</span>
                       <template v-else>{{ formatCellValue(row[col]) }}</template>

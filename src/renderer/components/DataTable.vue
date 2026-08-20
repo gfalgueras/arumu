@@ -5,7 +5,7 @@ import {
   ArrowUp, ArrowDown, Loader2, Download, ChevronDown, Plus, Check, X, Upload,
   Copy, Clipboard, Type, Trash2, ChevronRight as SubArrow
 } from 'lucide-vue-next';
-import type { SortConfig, TableDataResponse, ColumnInfo } from '@shared/types/database';
+import type { SortConfig, TableDataResponse, ColumnInfo, ServerInfo } from '@shared/types/database';
 import { showError } from '../errorService';
 import { $t } from '../i18n';
 import { api } from '../services/api';
@@ -19,7 +19,7 @@ import { tableDataCache } from '../services/tableDataCache';
 
 const props = defineProps<{
   serverName: string;
-  serverType: 'mysql' | 'postgres' | 'sqlite';
+  serverType: ServerInfo['type'];
   database: string;
   table: string;
 }>();
@@ -30,7 +30,7 @@ interface ContextMenuState {
   y: number;
   rowIndex: number;
   col: string;
-  colValue: any;
+  colValue: unknown;
 }
 
 const data = shallowRef<TableDataResponse | null>(null);
@@ -149,9 +149,10 @@ const fetchData = async () => {
       filter: appliedFilter.value
     });
     data.value = result;
-  } catch (err: any) {
-    error.value = err.message;
-    showError($t('data_table.error_load'), err.message);
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    error.value = msg;
+    showError($t('data_table.error_load'), msg);
   } finally {
     loading.value = false;
   }
@@ -175,7 +176,7 @@ const handleApplyFilter = (val: string) => {
   appliedFilter.value = val;
 };
 
-const getRowKey = (row: any, i: number): string | number => {
+const getRowKey = (row: Record<string, unknown>, i: number): string | number => {
   if (pkColumns.value.length > 0) {
     return pkColumns.value.map(pk => row[pk]).join('§');
   }
@@ -539,7 +540,7 @@ const valOrExpr = (val: string | null): string => {
 
 // ---- Export ----
 
-const csvEscape = (val: any): string => {
+const csvEscape = (val: unknown): string => {
   if (val === null) return '';
   const s = String(val);
   if (s.includes(',') || s.includes('"') || s.includes('\n') || s.includes('\r')) {

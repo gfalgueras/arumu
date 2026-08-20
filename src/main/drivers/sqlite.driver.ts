@@ -1,7 +1,7 @@
-import { DatabaseSync, StatementSync } from 'node:sqlite';
+import { DatabaseSync, StatementSync, type SQLInputValue } from 'node:sqlite';
 import {
   IDatabaseDriver, ConnectionConfig, DatabaseInfo, TableInfo, TableDataResponse,
-  SortConfig, ColumnInfo, TableIndex, ForeignKey, TypeGroup, ServerCapabilities, ServerVariablesResult
+  SortConfig, ColumnInfo, TableIndex, ForeignKey, TypeGroup, ServerCapabilities, ServerVariablesResult, QueryResult
 } from '@shared/types/database';
 
 export class SQLiteDriver implements IDatabaseDriver {
@@ -9,29 +9,29 @@ export class SQLiteDriver implements IDatabaseDriver {
 
   static queryLogger: ((sql: string, durationMs: number, error?: string) => void) | null = null;
 
-  private exec(sql: string, params: any[] = []): any[] {
+  private exec<T = Record<string, unknown>>(sql: string, params: SQLInputValue[] = []): T[] {
     if (!this.db) throw new Error('Not connected');
     const t0 = Date.now();
     try {
       const stmt: StatementSync = this.db.prepare(sql);
       const rows = stmt.all(...params);
       SQLiteDriver.queryLogger?.(sql, Date.now() - t0);
-      return rows as any[];
-    } catch (err: any) {
-      SQLiteDriver.queryLogger?.(sql, Date.now() - t0, err.message || String(err));
+      return rows as T[];
+    } catch (err: unknown) {
+      SQLiteDriver.queryLogger?.(sql, Date.now() - t0, err instanceof Error ? err.message : String(err));
       throw err;
     }
   }
 
-  private run(sql: string, params: any[] = []): { changes: number; lastInsertRowid: number | bigint } {
+  private run(sql: string, params: SQLInputValue[] = []): { changes: number | bigint; lastInsertRowid: number | bigint } {
     if (!this.db) throw new Error('Not connected');
     const t0 = Date.now();
     try {
       const result = this.db.prepare(sql).run(...params);
       SQLiteDriver.queryLogger?.(sql, Date.now() - t0);
-      return result as any;
-    } catch (err: any) {
-      SQLiteDriver.queryLogger?.(sql, Date.now() - t0, err.message || String(err));
+      return result;
+    } catch (err: unknown) {
+      SQLiteDriver.queryLogger?.(sql, Date.now() - t0, err instanceof Error ? err.message : String(err));
       throw err;
     }
   }
@@ -59,26 +59,26 @@ export class SQLiteDriver implements IDatabaseDriver {
   }
 
   async getDatabases(): Promise<DatabaseInfo[]> {
-    const rows = this.exec('PRAGMA database_list');
-    return rows.map((r: any) => ({ name: r.name as string, tables: [] }));
+    const rows = this.exec<{ name: string }>('PRAGMA database_list');
+    return rows.map((r) => ({ name: r.name, tables: [] }));
   }
 
   async getTables(_database: string): Promise<TableInfo[]> {
-    const rows = this.exec(
+    const rows = this.exec<{ name: string }>(
       `SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name`
     );
-    return rows.map((r: any) => ({ name: r.name as string, size: 0 }));
+    return rows.map((r) => ({ name: r.name, size: 0 }));
   }
 
   async getSchema(_database: string): Promise<Record<string, string[]>> {
-    const rows = this.exec(`
+    const rows = this.exec<{ table_name: string; column_name: string }>(`
       SELECT m.name as table_name, p.name as column_name
       FROM sqlite_master m, pragma_table_info(m.name) p
       WHERE m.type = 'table' AND m.name NOT LIKE 'sqlite_%'
       ORDER BY m.name, p.cid
     `);
     const schema: Record<string, string[]> = {};
-    for (const row of rows as any[]) {
+    for (const row of rows) {
       if (!schema[row.table_name]) schema[row.table_name] = [];
       schema[row.table_name].push(row.column_name);
     }
@@ -87,14 +87,21 @@ export class SQLiteDriver implements IDatabaseDriver {
 
   async getTableColumns(_database: string, table: string): Promise<ColumnInfo[]> {
     const esc = (n: string) => this.escapeIdentifier(n);
-    const rows = this.exec(`PRAGMA table_info(${esc(table)})`);
-    return (rows as any[]).map(row => {
-      const fullType = (row.type || '') as string;
+    interface PragmaColumnRow {
+      name: string;
+      type: string;
+      notnull: number;
+      pk: number;
+      dflt_value: string | null;
+    }
+    const rows = this.exec<PragmaColumnRow>(`PRAGMA table_info(${esc(table)})`);
+    return rows.map(row => {
+      const fullType = row.type || '';
       const typeMatch = fullType.match(/^([a-z\s]+?)(?:\(([^)]+)\))?$/i);
       const type = typeMatch ? typeMatch[1].trim().toUpperCase() : fullType.toUpperCase() || 'TEXT';
       const length = typeMatch ? (typeMatch[2] || null) : null;
       return {
-        name: row.name as string,
+        name: row.name,
         type,
         length,
         nullable: row.notnull === 0,
@@ -108,30 +115,33 @@ export class SQLiteDriver implements IDatabaseDriver {
 
   async getTableIndexes(_database: string, table: string): Promise<TableIndex[]> {
     const esc = (n: string) => this.escapeIdentifier(n);
-    const indexes = this.exec(`PRAGMA index_list(${esc(table)})`);
+    interface PragmaIndexRow { name: string; unique: number; origin: string }
+    interface PragmaColumnRow { name: string; pk: number }
+    interface PragmaIndexInfoRow { name: string }
+    const indexes = this.exec<PragmaIndexRow>(`PRAGMA index_list(${esc(table)})`);
 
     // Detect single-column INTEGER PRIMARY KEY (rowid alias — has no explicit index)
-    const cols = this.exec(`PRAGMA table_info(${esc(table)})`);
-    const pkCols = (cols as any[]).filter(c => c.pk > 0).sort((a, b) => a.pk - b.pk);
+    const cols = this.exec<PragmaColumnRow>(`PRAGMA table_info(${esc(table)})`);
+    const pkCols = cols.filter(c => c.pk > 0).sort((a, b) => a.pk - b.pk);
     const result: TableIndex[] = [];
 
     if (pkCols.length > 0) {
       result.push({
         name: 'PRIMARY',
-        columns: pkCols.map(c => c.name as string),
+        columns: pkCols.map(c => c.name),
         unique: true,
         type: 'PRIMARY',
         method: 'BTREE',
       });
     }
 
-    for (const idx of indexes as any[]) {
+    for (const idx of indexes) {
       // Skip auto-generated PK index (origin = 'pk')
       if (idx.origin === 'pk') continue;
-      const info = this.exec(`PRAGMA index_info(${this.escapeIdentifier(idx.name as string)})`);
+      const info = this.exec<PragmaIndexInfoRow>(`PRAGMA index_info(${this.escapeIdentifier(idx.name)})`);
       result.push({
-        name: idx.name as string,
-        columns: (info as any[]).map(i => i.name as string),
+        name: idx.name,
+        columns: info.map(i => i.name),
         unique: idx.unique === 1,
         type: idx.unique === 1 ? 'UNIQUE' : 'INDEX',
         method: 'BTREE',
@@ -142,41 +152,49 @@ export class SQLiteDriver implements IDatabaseDriver {
 
   async getTableForeignKeys(_database: string, table: string): Promise<ForeignKey[]> {
     const esc = (n: string) => this.escapeIdentifier(n);
-    const rows = this.exec(`PRAGMA foreign_key_list(${esc(table)})`);
+    interface PragmaFkRow {
+      id: number;
+      table: string;
+      from: string;
+      to: string | null;
+      on_update: string;
+      on_delete: string;
+    }
+    const rows = this.exec<PragmaFkRow>(`PRAGMA foreign_key_list(${esc(table)})`);
     const fkMap = new Map<number, ForeignKey>();
-    for (const row of rows as any[]) {
-      const id = row.id as number;
+    for (const row of rows) {
+      const id = row.id;
       if (!fkMap.has(id)) {
         fkMap.set(id, {
           name: `fk_${table}_${id}`,
           columns: [],
-          referencedTable: row.table as string,
+          referencedTable: row.table,
           referencedColumns: [],
-          updateRule: row.on_update as string,
-          deleteRule: row.on_delete as string,
+          updateRule: row.on_update,
+          deleteRule: row.on_delete,
         });
       }
-      fkMap.get(id)!.columns.push(row.from as string);
-      if (row.to) fkMap.get(id)!.referencedColumns.push(row.to as string);
+      fkMap.get(id)!.columns.push(row.from);
+      if (row.to) fkMap.get(id)!.referencedColumns.push(row.to);
     }
     return Array.from(fkMap.values());
   }
 
   async getTableCreateStatement(_database: string, table: string): Promise<string> {
-    const rows = this.exec(
+    const rows = this.exec<{ sql: string }>(
       `SELECT sql FROM sqlite_master WHERE type='table' AND name=?`,
       [table]
     );
-    return (rows[0] as any)?.sql ?? '';
+    return rows[0]?.sql ?? '';
   }
 
   async getTableData(_database: string, table: string, limit: number, offset: number, sort?: SortConfig[], filter?: string): Promise<TableDataResponse> {
     const esc = (n: string) => this.escapeIdentifier(n);
 
-    const colRows = this.exec(`PRAGMA table_info(${esc(table)})`);
-    const columns = (colRows as any[]).map(r => r.name as string);
+    const colRows = this.exec<{ name: string }>(`PRAGMA table_info(${esc(table)})`);
+    const columns = colRows.map(r => r.name);
 
-    const filterParams: any[] = [];
+    const filterParams: SQLInputValue[] = [];
     let whereClause = '';
 
     if (filter && columns.length > 0) {
@@ -204,21 +222,21 @@ export class SQLiteDriver implements IDatabaseDriver {
     const countQuery = `SELECT COUNT(*) as total FROM ${esc(table)} ${whereClause}`;
 
     const rows = this.exec(query, [...filterParams, safeLimit, safeOffset]);
-    const countRows = this.exec(countQuery, filterParams);
+    const countRows = this.exec<{ total: number }>(countQuery, filterParams);
 
     return {
       columns,
-      rows: rows as any[],
-      total: Number((countRows[0] as any)?.total ?? 0),
+      rows,
+      total: Number(countRows[0]?.total ?? 0),
     };
   }
 
-  async executeQuery(sql: string): Promise<any> {
+  async executeQuery(sql: string): Promise<QueryResult> {
     if (!this.db) throw new Error('Not connected');
     const trimmedUpper = sql.trim().toUpperCase();
     const isReader = /^(SELECT|WITH|EXPLAIN|PRAGMA\s+\w+\s*$|PRAGMA\s+\w+\s*\()/i.test(trimmedUpper);
     if (isReader) {
-      return this.exec(sql);
+      return this.exec<Record<string, unknown>>(sql);
     }
     const result = this.run(sql);
     return { affectedRows: Number(result.changes) };
@@ -299,7 +317,7 @@ export class SQLiteDriver implements IDatabaseDriver {
     };
   }
 
-  async getProcessList(): Promise<any[]> {
+  async getProcessList(): Promise<Record<string, unknown>[]> {
     return [];
   }
 
@@ -317,7 +335,7 @@ export class SQLiteDriver implements IDatabaseDriver {
     const variables = pragmas.map(name => {
       try {
         const rows = this.exec(`PRAGMA ${name}`);
-        const val = rows[0] ? Object.values(rows[0] as object)[0] : '';
+        const val = rows[0] ? Object.values(rows[0])[0] : '';
         return { name, value: String(val ?? '') };
       } catch {
         return { name, value: '' };
@@ -326,7 +344,7 @@ export class SQLiteDriver implements IDatabaseDriver {
     return { variables, status: [] };
   }
 
-  async runTableMaintenance(_database: string, _table: string, op: string): Promise<any> {
+  async runTableMaintenance(_database: string, _table: string, op: string): Promise<QueryResult> {
     if (op.toUpperCase() === 'VACUUM') {
       this.run('VACUUM');
       return { affectedRows: 0 };
