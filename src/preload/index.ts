@@ -26,6 +26,7 @@ const ALLOWED_INVOKE_CHANNELS = new Set([
   'api:dropForeignKey',
   'api:addColumn',
   'api:updateColumn',
+  'api:applySchemaChanges',
   'api:getTableCreateStatement',
   'api:executeSql',
   'api:importRows',

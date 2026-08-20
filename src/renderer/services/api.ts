@@ -1,7 +1,7 @@
 import type {
   ServerInfo, StoredServer, DatabaseInfo, TableInfo, ColumnInfo, TableIndex, ForeignKey,
   TableDataResponse, SortConfig, AppState, AppSettings, TypeGroup, ServerCapabilities,
-  ServerVariablesResult, QueryHistoryEntry, QuerySnippet, QueryResult,
+  ServerVariablesResult, QueryHistoryEntry, QuerySnippet, QueryResult, SchemaChanges,
 } from '@shared/types/database';
 import type { FileFilter } from 'electron';
 
@@ -50,6 +50,8 @@ export const api = {
   dropForeignKey: (serverName: string, dbName: string, tableName: string, fkName: string): Promise<void> => electronAPI.invoke('api:dropForeignKey', serverName, dbName, tableName, fkName) as Promise<void>,
   addColumn: (serverName: string, dbName: string, tableName: string, column: ColumnInfo, afterColumn?: string): Promise<void> => electronAPI.invoke('api:addColumn', serverName, dbName, tableName, clean(column), afterColumn) as Promise<void>,
   updateColumn: (serverName: string, dbName: string, tableName: string, oldName: string, column: ColumnInfo, afterColumn?: string): Promise<void> => electronAPI.invoke('api:updateColumn', serverName, dbName, tableName, oldName, clean(column), afterColumn) as Promise<void>,
+  applySchemaChanges: (serverName: string, dbName: string, tableName: string, changes: SchemaChanges): Promise<void> =>
+    electronAPI.invoke('api:applySchemaChanges', serverName, dbName, tableName, clean(changes)) as Promise<void>,
   getTableCreateStatement: (serverName: string, dbName: string, tableName: string): Promise<{ statement: string }> => electronAPI.invoke('api:getTableCreateStatement', serverName, dbName, tableName) as Promise<{ statement: string }>,
   executeSql: (serverName: string, sql: string, database: string): Promise<QueryResult> => electronAPI.invoke('api:executeSql', serverName, sql, database) as Promise<QueryResult>,
   importRows: (serverName: string, dbName: string, tableName: string, columns: string[], rows: (string | null)[][]): Promise<number> =>

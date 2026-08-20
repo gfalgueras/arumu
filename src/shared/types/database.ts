@@ -156,6 +156,19 @@ export interface QueryHistoryEntry {
   error?: string;
 }
 
+/**
+ * One table migration, applied as a unit. Order matters: drops run before
+ * adds so an index/FK can be recreated under a name that is still in use.
+ */
+export interface SchemaChanges {
+  fksToDrop: { name: string }[];
+  indexesToDrop: { name: string }[];
+  columnsToUpdate: { oldName: string; newCol: ColumnInfo; afterColumn?: string }[];
+  columnsToAdd: { col: ColumnInfo; afterColumn?: string }[];
+  indexesToAdd: TableIndex[];
+  fksToAdd: ForeignKey[];
+}
+
 export interface QuerySnippet {
   id: string;
   name: string;

@@ -438,31 +438,16 @@ const handleCommit = async () => {
   try {
     const { columnsToUpdate, columnsToAdd, indexesToDrop, indexesToAdd, fksToDrop, fksToAdd } = getPendingChanges();
 
-    // DROPs first (to avoid conflicts if re-adding indices/fks with same name)
-    for (const fk of fksToDrop) {
-       await api.dropForeignKey(props.serverName, props.database, props.table, fk.name);
-    }
-    for (const idx of indexesToDrop) {
-       await api.dropIndex(props.serverName, props.database, props.table, idx.name);
-    }
-
-    // Column updates
-    for (const { oldName, newCol, afterColumn } of columnsToUpdate) {
-      await api.updateColumn(props.serverName, props.database, props.table, oldName, newCol, afterColumn);
-    }
-
-    // New columns
-    for (const { col, afterColumn } of columnsToAdd) {
-      await api.addColumn(props.serverName, props.database, props.table, col, afterColumn);
-    }
-
-    // ADDs
-    for (const idx of indexesToAdd) {
-       await api.addIndex(props.serverName, props.database, props.table, idx);
-    }
-    for (const fk of fksToAdd) {
-       await api.addForeignKey(props.serverName, props.database, props.table, fk);
-    }
+    // Applied as one unit in main — see api:applySchemaChanges. Ordering
+    // (drops before adds) is preserved there.
+    await api.applySchemaChanges(props.serverName, props.database, props.table, {
+      fksToDrop,
+      indexesToDrop,
+      columnsToUpdate,
+      columnsToAdd,
+      indexesToAdd,
+      fksToAdd,
+    });
 
     await fetchSchemaData();
   } catch (err) {

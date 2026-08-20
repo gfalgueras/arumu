@@ -9,7 +9,7 @@ import { OracleDriver } from './drivers/oracle.driver';
 import { connectionPool } from './connection-pool';
 import type {
   IDatabaseDriver, ServerInfo, StoredServer, ColumnInfo, TableIndex,
-  ForeignKey, SortConfig, AppState, AppSettings, QueryHistoryEntry, QuerySnippet,
+  ForeignKey, SortConfig, AppState, AppSettings, QueryHistoryEntry, QuerySnippet, SchemaChanges,
 } from '../shared/types/database';
 
 function createDriver(server: { type: 'mysql' | 'postgres' | 'sqlite' | 'sqlserver' | 'oracle' }): IDatabaseDriver {
@@ -446,6 +446,59 @@ app.whenReady().then(() => {
 
   ipcMain.handle('api:updateColumn', async (_event, serverName: string, dbName: string, tableName: string, oldName: string, column: ColumnInfo, afterColumn?: string) =>
     withDriver(serverName, dbName, driver => driver.updateColumn(dbName, tableName, oldName, column, afterColumn)));
+
+  /**
+   * Applies a whole table migration in one connection, inside a transaction
+   * where the engine supports transactional DDL (Postgres/SQLite/SQL Server).
+   * On MySQL and Oracle each DDL statement implicitly commits, so a failure
+   * part-way cannot be rolled back — the error names the step that failed so
+   * the user can see how far it got.
+   */
+  ipcMain.handle('api:applySchemaChanges', async (_event, serverName: string, dbName: string, tableName: string, changes: SchemaChanges) =>
+    withDriver(serverName, dbName, async driver => {
+      const atomic = driver.getCapabilities().supportsTransactionalDDL;
+      if (atomic) await driver.beginTransaction();
+
+      let step = '';
+      try {
+        // Drops first, so an index or FK can be recreated under a name that is
+        // still taken at the start of the migration.
+        for (const fk of changes.fksToDrop) {
+          step = `drop foreign key ${fk.name}`;
+          await driver.dropForeignKey(dbName, tableName, fk.name);
+        }
+        for (const idx of changes.indexesToDrop) {
+          step = `drop index ${idx.name}`;
+          await driver.dropIndex(dbName, tableName, idx.name);
+        }
+        for (const { oldName, newCol, afterColumn } of changes.columnsToUpdate) {
+          step = `update column ${oldName}`;
+          await driver.updateColumn(dbName, tableName, oldName, newCol, afterColumn);
+        }
+        for (const { col, afterColumn } of changes.columnsToAdd) {
+          step = `add column ${col.name}`;
+          await driver.addColumn(dbName, tableName, col, afterColumn);
+        }
+        for (const idx of changes.indexesToAdd) {
+          step = `add index ${idx.name || '(unnamed)'}`;
+          await driver.addIndex(dbName, tableName, idx);
+        }
+        for (const fk of changes.fksToAdd) {
+          step = `add foreign key ${fk.name || '(unnamed)'}`;
+          await driver.addForeignKey(dbName, tableName, fk);
+        }
+
+        if (atomic) await driver.commit();
+      } catch (err) {
+        if (atomic) await driver.rollback().catch(() => { /* surface the original error */ });
+        const reason = err instanceof Error ? err.message : String(err);
+        throw new Error(
+          atomic
+            ? `Failed at "${step}": ${reason} — no changes were applied.`
+            : `Failed at "${step}": ${reason} — earlier steps in this migration were already applied and cannot be rolled back on this database.`,
+        );
+      }
+    }));
 
   ipcMain.handle('api:getTableCreateStatement', async (_event, serverName: string, dbName: string, tableName: string) =>
     withDriver(serverName, dbName, async driver => ({
